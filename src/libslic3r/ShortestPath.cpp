@@ -593,7 +593,7 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 	    	double flip_penalty() const { return this->cost_flipped - this->cost; }
 	    };
 
-		// Helper to detect loops in already connected paths and to accomodate flipping of chains.
+		// Helper to detect loops in already connected paths and to accommodate flipping of chains.
 		//	
 		// Unique chain IDs are assigned to paths. If paths are connected, end points will not have their chain IDs updated, but the chain IDs
 		// will remember an "equivalent" chain ID, which is the lowest ID of all the IDs in the path, and the lowest ID is equivalent to itself.

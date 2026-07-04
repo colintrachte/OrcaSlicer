@@ -1444,7 +1444,6 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
         if (mode == FilamentMapMode::fmmManual) {
             for (auto& elem : obj_filament.manual_filaments) {
                 bool found_left = false, found_right = false;
-                int filamnet_id = elem.first;
                 int extruder_id = elem.second;
                 if (extruder_id == 1 && !found_left) {
                     found_left = true;

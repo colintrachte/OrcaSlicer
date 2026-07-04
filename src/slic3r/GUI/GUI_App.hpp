@@ -227,7 +227,7 @@ class GUI_App : public wxApp
 {
 public:
 
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
     enum class EAppMode : unsigned char
     {
         Editor,
@@ -347,7 +347,7 @@ public:
 
     std::map<std::string, bool> test_url_state;
 
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
     explicit GUI_App();
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;

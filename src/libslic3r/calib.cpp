@@ -57,7 +57,7 @@ std::string CalibPressureAdvance::convert_number_to_string(double num, unsigned 
     if (precision) {
         /* if number is > 1000 then there are no way we'll fit fractional part into 5 glyphs, so
          * in this case we keep full precision.
-         * Otherwise we reduce precision by 1 to accomodate decimal separator */
+         * Otherwise we reduce precision by 1 to accommodate decimal separator */
         stream << std::setprecision(num >= 1000 ? precision : precision - 1);
     }
 

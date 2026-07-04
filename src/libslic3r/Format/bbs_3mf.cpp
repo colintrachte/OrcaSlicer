@@ -37,7 +37,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 
 namespace pt = boost::property_tree;
 
@@ -5800,7 +5800,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         };
 
-        //BBS: change volume to seperate objects
+        //BBS: change volume to separate objects
         /*struct Offsets
         {
             unsigned int first_vertex_id;
@@ -5889,7 +5889,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, ObjectToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, ObjectData const &object_data) const;
         void _add_object_components_to_stream(std::stringstream &stream, ObjectData const &object_data) const;
-        //BBS: change volume to seperate objects
+        //BBS: change volume to separate objects
         bool _add_mesh_to_object_stream(std::function<bool(std::string &, bool)> const &flush, ObjectData const &object_data) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -6380,8 +6380,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 PlateData *plate_data = plate_data_list[i];
                 if (!plate_data->gcode_file.empty() && plate_data->is_sliced_valid && boost::filesystem::exists(plate_data->gcode_file)) {
                     unsigned char digest[16];
-                    MD5_CTX       ctx;
-                    MD5_Init(&ctx);
+                    EVP_MD_CTX   *ctx = EVP_MD_CTX_new();
+                    EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
                     auto                        src_gcode_file = plate_data->gcode_file;
                     boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
                     std::string                 buf(64 * 1024, 0);
@@ -6390,9 +6390,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     while (ifs) {
                         ifs.read(buf.data(), buf.size());
                         int read_bytes = ifs.gcount();
-                        MD5_Update(&ctx, (unsigned char *) buf.data(), read_bytes);
+                        EVP_DigestUpdate(ctx, (unsigned char *) buf.data(), read_bytes);
                     }
-                    MD5_Final(digest, &ctx);
+                    unsigned int digest_len = 16;
+                    EVP_DigestFinal_ex(ctx, digest, &digest_len);
+                    EVP_MD_CTX_free(ctx);
                     char md5_str[33];
                     for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int) digest[j]); }
                     plate_data->gcode_file_md5 = std::string(md5_str);
@@ -7138,7 +7140,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     using coordinate_type_scientific = boost::spirit::karma::real_generator<float, coordinate_policy_scientific<float>>;
 #endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
-    //BBS: change volume to seperate objects
+    //BBS: change volume to separate objects
     bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &, bool)> const &flush, ObjectData const &object_data) const
     {
         std::string output_buffer;
@@ -7280,7 +7282,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //    if (volume == nullptr)
         //        continue;
 
-            //BBS: as we stored matrix seperately, not multiplied into vertex
+            //BBS: as we stored matrix separately, not multiplied into vertex
             //we don't need to consider this left hand case specially
             //bool is_left_handed = volume->is_left_handed();
             bool is_left_handed = false;

@@ -4221,7 +4221,7 @@ void Sidebar::auto_calc_flushing_volumes_internal(const int modify_id, const int
                 matrix[m_number_of_extruders * from_idx + modify_id] = flushing_volume;
             }
 
-            // modify to to
+            // modify to
             int to_idx = i;
             if (to_idx != modify_id) {
                 Slic3r::FlushVolCalculator calculator(min_flush_volumes[modify_id], m_max_flush_volume, nozzle_flush_dataset);
@@ -13620,7 +13620,7 @@ void Plater::load_gcode()
     load_gcode(input_file);
 }
 
-//BBS: remove GCodeViewer as seperate APP logic
+//BBS: remove GCodeViewer as separate APP logic
 void Plater::load_gcode(const wxString& filename)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " entry and filename: " << filename;
@@ -14145,7 +14145,7 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
-//BBS: remove GCodeViewer as seperate APP logic
+//BBS: remove GCodeViewer as separate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
     const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|zip|drc)", std::regex::icase);

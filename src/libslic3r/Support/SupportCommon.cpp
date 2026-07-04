@@ -1811,7 +1811,7 @@ void generate_support_toolpaths(
                         support_params, sheath, no_sort);
             }
 
-            // Merge base_interface_layers to base_layers to avoid unneccessary retractions
+            // Merge base_interface_layers to base_layers to avoid unnecessary retractions
             if (! base_layer.empty() && ! base_interface_layer.empty() && ! base_layer.polygons_to_extrude().empty() && ! base_interface_layer.polygons_to_extrude().empty() &&
                 base_layer.could_merge(base_interface_layer))
                 base_layer.merge(std::move(base_interface_layer));

@@ -4349,7 +4349,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         int tray_id_int = 0;
 
 
-        // set ams_filament id is is bbl filament
+        // set ams_filament id is bbl filament
         if (ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
             tray_id_int = VIRTUAL_TRAY_MAIN_ID;
             m_extrusion_cali_dlg->ams_filament_id = "";

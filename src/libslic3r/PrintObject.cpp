@@ -4465,7 +4465,7 @@ static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const index
     const float tr_det_sign = (tr.matrix().determinant() > 0. ? 1.f : -1.f);
 
     // The projection will be at most a pentagon. Let's minimize heap
-    // reallocations by saving in in the following struct.
+    // reallocations by saving in the following struct.
     // Points are used so that scaling can be done in parallel
     // and they can be moved from to create an ExPolygon later.
     struct LightPolygon {

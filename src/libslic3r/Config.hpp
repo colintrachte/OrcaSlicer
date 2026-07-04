@@ -509,7 +509,7 @@ public:
     }
 
     // set a item related with extruder variants when loading config from filament json, replace the original filament items
-    // rhs: item from seperate filament config
+    // rhs: item from separate filament config
     // restore_index: which index in this vector need to be restored
     // start: which index in this vector need to be replaced
     // count: how many items in this vector need to be replaced

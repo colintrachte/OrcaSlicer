@@ -62,7 +62,7 @@ using ExPolygonsWithIds = std::vector<ExPolygonsWithId>;
 /// </summary>
 struct EmbossShape 
 {
-    // shapes to to emboss separately over surface
+    // shapes to emboss separately over surface
     ExPolygonsWithIds shapes_with_ids;
 
     // Only cache for final shape
@@ -102,7 +102,7 @@ struct EmbossShape
         std::shared_ptr<std::string> file_data = nullptr;
 
         template<class Archive> void save(Archive &ar) const {
-            // Note: image is only cache it is not neccessary to store
+            // Note: image is only cache it is not necessary to store
 
             // Store file data as plain string
             // For Embossed text file_data are nullptr
@@ -122,7 +122,7 @@ struct EmbossShape
     // undo / redo stack recovery
     template<class Archive> void save(Archive &ar) const
     {
-        // final_shape is not neccessary to store - it is only cache
+        // final_shape is not necessary to store - it is only cache
         ar(shapes_with_ids, final_shape, scale, projection, svg_file);
         cereal::save(ar, fix_3mf_tr);
     }

@@ -714,7 +714,7 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
     m_view_matrix(3, 2) = 0.0;
     m_view_matrix(3, 3) = 1.0;
 
-    // Initialize the rotation quaternion from the rotation submatrix of of m_view_matrix.
+    // Initialize the rotation quaternion from the rotation submatrix of m_view_matrix.
     m_view_rotation = Eigen::Quaterniond(m_view_matrix.matrix().template block<3, 3>(0, 0));
     m_view_rotation.normalize();
 

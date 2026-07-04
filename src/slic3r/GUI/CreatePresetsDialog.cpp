@@ -4,7 +4,6 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
-#include <openssl/md5.h>
 #include <openssl/evp.h>
 #include <wx/dcgraph.h>
 #include <wx/tooltip.h>
@@ -2844,8 +2843,8 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
                     }
                 }
                 // save created successfully preset name
-                for (Preset const *sucessful_preset : selected_filament_presets)
-                    successful_preset_names.push_back(sucessful_preset->name.substr(0, sucessful_preset->name.find(" @")) + " @" + printer_preset_name);
+                for (Preset const *successful_preset : selected_filament_presets)
+                    successful_preset_names.push_back(successful_preset->name.substr(0, successful_preset->name.find(" @")) + " @" + printer_preset_name);
             }
 
             /******************************   clone process preset    ********************************/
@@ -2912,8 +2911,8 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
                     }
                 }
                 // save created successfully preset name
-                for (Preset const *sucessful_preset : selected_filament_presets)
-                    successful_preset_names.push_back(sucessful_preset->name.substr(0, sucessful_preset->name.find(" @")) + " @" + printer_preset_name);
+                for (Preset const *successful_preset : selected_filament_presets)
+                    successful_preset_names.push_back(successful_preset->name.substr(0, successful_preset->name.find(" @")) + " @" + printer_preset_name);
             }
         }
 
@@ -4697,13 +4696,13 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
     serial_sizer->Add(serial_key_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM, FromDIP(10));
 
     wxBoxSizer *  serial_value_sizer = new wxBoxSizer(wxVERTICAL);
-    wxString      full_filamnet_serial = from_u8(m_filament_serial);
-    wxString      show_filament_serial = full_filamnet_serial;
+    wxString      full_filament_serial = from_u8(m_filament_serial);
+    wxString      show_filament_serial = full_filament_serial;
     if (m_filament_serial.size() > 40) {
         show_filament_serial = from_u8(m_filament_serial.substr(0, 20)) + "...";
     }
     wxStaticText *serial_text = new wxStaticText(this, wxID_ANY, show_filament_serial, wxDefaultPosition, wxDefaultSize);
-    wxToolTip *   toolTip     = new wxToolTip(full_filamnet_serial);
+    wxToolTip *   toolTip     = new wxToolTip(full_filament_serial);
     serial_text->SetToolTip(toolTip);
     serial_value_sizer->Add(serial_text, 0, wxEXPAND | wxALL, 0);
     serial_sizer->Add(serial_value_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM, FromDIP(10));

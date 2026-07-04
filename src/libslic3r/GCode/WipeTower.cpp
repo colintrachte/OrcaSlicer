@@ -1471,6 +1471,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     //m_bridging(float(config.wipe_tower_bridging)),
     m_bridging(10.f),
     m_no_sparse_layers(config.wipe_tower_no_sparse_layers),
+    m_wipe_tower_filament(config.wipe_tower_filament.value),
     m_gcode_flavor(config.gcode_flavor),
     m_travel_speed(config.travel_speed),
     m_current_tool(initial_tool),
@@ -2445,7 +2446,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
     return construct_tcr(writer, false, old_tool, true, false, 0.f, false);
 }
 
-// Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
+// Appends a toolchange into m_plan and calculates necessary depth of the corresponding box
 void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool,
                                 unsigned int new_tool, float wipe_volume, float purge_volume)
 {
@@ -3807,6 +3808,10 @@ void WipeTower::plan_tower_new()
 
 int WipeTower::get_wall_filament_for_all_layer()
 {
+    // If the user has explicitly set a wipe tower extruder, always use it.
+    if (m_wipe_tower_filament > 0)
+        return m_wipe_tower_filament - 1;
+
     std::map<int, int> category_counts;
     std::map<int, int> filament_counts;
     int current_tool = m_current_tool;
@@ -3912,6 +3917,12 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         auto get_wall_filament_for_this_layer = [this, &layer, &wall_filament_id]() -> int {
             if (layer.tool_changes.size() == 0)
                 return -1;
+
+            // When the user has explicitly set a wipe tower extruder, honor it exactly —
+            // no same-category substitution. The extruder is guaranteed to be in the
+            // toolchange sequence by insert_wipe_tower_extruder().
+            if (m_wipe_tower_filament > 0)
+                return wall_filament_id;
 
             int candidate_id = -1;
             for (size_t idx = 0; idx < layer.tool_changes.size(); ++idx) {

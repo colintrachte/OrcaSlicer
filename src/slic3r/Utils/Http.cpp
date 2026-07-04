@@ -290,7 +290,8 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
             max_read_size = std::min(max_read_size, size_t(f->content_length - read_size));
             f->ifs.read(buffer, max_read_size);
         }
-	} catch (const std::exception &) {
+	} catch (const std::exception &ex) {
+		BOOST_LOG_TRIVIAL(error) << "HTTP file read failed: " << ex.what();
 		return CURL_READFUNC_ABORT;
 	}
 

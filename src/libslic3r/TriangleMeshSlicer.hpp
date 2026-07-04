@@ -51,7 +51,7 @@ struct MeshSlicingParamsEx : public MeshSlicingParams
 // slice_mesh_slabs() shall fall onto slicing planes produced by slice_mesh().
 //
 // If a slicing plane slices a horizontal face of a mesh exactly,
-// an upward facing horizontal face is is considered on slicing plane,
+// an upward facing horizontal face is considered on slicing plane,
 // while a downward facing horizontal face is considered not on slicing plane.
 // 
 // slice_mesh_slabs() thus projects an upward facing horizontal slice to the slicing plane,

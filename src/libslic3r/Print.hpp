@@ -1065,7 +1065,7 @@ public:
     ConflictResultOpt            get_conflict_result() const { return m_conflict_result; }
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
-    Points first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
+    Points first_layer_wipe_tower_corners(bool check_wipe_tower_existence=true) const;
 
     //SoftFever
     bool &is_BBL_printer() { return m_isBBLPrinter; }

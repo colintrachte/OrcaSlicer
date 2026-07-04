@@ -527,7 +527,7 @@ namespace Slic3r
         return merged_filaments;
     }
 
-    std::vector<int> FilamentGroup::seperate_merged_filaments(const std::vector<int>& filament_map, const std::unordered_map<int, std::vector<int>>& merged_filaments)
+    std::vector<int> FilamentGroup::separate_merged_filaments(const std::vector<int>& filament_map, const std::unordered_map<int, std::vector<int>>& merged_filaments)
     {
         std::vector<int> ret_map = filament_map;
         for (auto& elem : merged_filaments) {
@@ -586,8 +586,8 @@ namespace Slic3r
 
         auto merged_map = try_merge_filaments();
         rebuild_context(merged_map);
-        auto filamnet_map = calc_filament_group_for_flush(cost);
-        return seperate_merged_filaments(filamnet_map, merged_map);
+        auto filament_map = calc_filament_group_for_flush(cost);
+        return separate_merged_filaments(filament_map, merged_map);
     }
 
     std::vector<int> FilamentGroup::calc_filament_group_for_match(int* cost)

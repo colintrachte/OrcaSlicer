@@ -212,12 +212,12 @@ DynamicPrintConfig PresetBundle::construct_full_config(
         opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_filaments));
     }
 
-    std::vector<std::string> filamnet_preset_names;
+    std::vector<std::string> filament_preset_names;
     for (auto preset : in_filament_presets) {
-        filamnet_preset_names.emplace_back(preset.name);
+        filament_preset_names.emplace_back(preset.name);
     }
     out.option<ConfigOptionString>("print_settings_id", true)->value      = in_print_preset.name;
-    out.option<ConfigOptionStrings>("filament_settings_id", true)->values = filamnet_preset_names;
+    out.option<ConfigOptionStrings>("filament_settings_id", true)->values = filament_preset_names;
     out.option<ConfigOptionString>("printer_settings_id", true)->value    = in_printer_preset.name;
     out.option<ConfigOptionStrings>("filament_ids", true)->values         = filament_ids;
     out.option<ConfigOptionInts>("filament_map", true)->values            = filament_maps;

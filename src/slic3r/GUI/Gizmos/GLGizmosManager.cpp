@@ -1425,7 +1425,7 @@ bool GLGizmosManager::activate_gizmo(EType type)
 
     new_gizmo.register_raycasters_for_picking();
 
-    // sucessful activation of gizmo
+    // successful activation of gizmo
     return true;
 }
 

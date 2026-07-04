@@ -78,7 +78,7 @@ public:
 		GCodeViewer
 	};
 
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
 	explicit AppConfig() :
 		m_dirty(false),
 		m_orig_version(Semver::invalid()),

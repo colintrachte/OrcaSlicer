@@ -89,7 +89,7 @@ public:
     void update_from_preset();
     int get_index() { return m_index; }
     int get_tray_id() { return m_tray_id; }
-    bool is_bbl_filament() { return m_is_bbl_filamnet; }
+    bool is_bbl_filament() { return m_is_bbl_filament; }
     std::string get_tray_name() { return m_tray_name; }
     CalibrateFilamentComboBox* GetComboBox() { return m_comboBox; }
     CheckBox* GetCheckBox() { return m_checkBox; }
@@ -108,7 +108,7 @@ protected:
     int m_index{0};
     int m_tray_id { -1 };
     std::string m_tray_name;
-    bool m_is_bbl_filamnet{ false };
+    bool m_is_bbl_filament{ false };
 
     CheckBox* m_checkBox{ nullptr };
     wxRadioButton* m_radioBox{ nullptr };

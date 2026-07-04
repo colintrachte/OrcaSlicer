@@ -40,10 +40,8 @@ endif()
 
 ExternalProject_Add(dep_OpenSSL
     #EXCLUDE_FROM_ALL ON
-    URL "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz"
-    URL_HASH SHA256=2130E8C2FB3B79D1086186F78E59E8BC8D1A6AEDF17AB3907F4CB9AE20918C41
-    # URL "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.1.2.tar.gz"
-    # URL_HASH SHA256=8c776993154652d0bb393f506d850b811517c8bd8d24b1008aef57fbe55d3f31
+    URL "https://github.com/openssl/openssl/releases/download/openssl-3.4.6/openssl-3.4.6.tar.gz"
+    URL_HASH SHA256=a57b8a1f09b502c904352c8a5386987675f2d6c52bc155f9a2f416faea1c0473
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/OpenSSL
 	CONFIGURE_COMMAND ${_conf_cmd} ${_cross_arch}
         "--openssldir=${DESTDIR}"
@@ -52,7 +50,7 @@ ExternalProject_Add(dep_OpenSSL
         no-shared
         no-asm
         no-ssl3-method
-        no-dynamic-engine
+        no-engine
     BUILD_IN_SOURCE ON
     BUILD_COMMAND ${_make_cmd}
     INSTALL_COMMAND ${_install_cmd}

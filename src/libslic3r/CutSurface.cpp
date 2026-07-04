@@ -2086,7 +2086,7 @@ void priv::fill_polygon_distances(const ProjectionDistance &pd,
         if (!exist_next(nxt_index)) break;            
     } while (act_index != finish_index);
 
-    // when all results for polygon are set no neccessary to iterate negative
+    // when all results for polygon are set no necessary to iterate negative
     if (act_index == finish_index) return;
 
     act_index = index;
@@ -2674,7 +2674,7 @@ priv::SurfacePatch priv::create_surface_patch(const std::vector<FI> &fis,
     mesh.remove_property_map(is_counted);
 
     uint32_t count_faces = fis.size();    
-    // IMPROVE: Value is greater than neccessary, count edges used twice
+    // IMPROVE: Value is greater than necessary, count edges used twice
     uint32_t count_edges = count_faces*3; 
 
     CutMesh cm;
@@ -3049,7 +3049,7 @@ priv::SurfacePatches priv::diff_models(VCutAOIs            &cuts,
                                        const Project3d     &projection)
 {
     // IMPROVE: when models contain ONE mesh. It is only about convert cuts to patches
-    // and reduce unneccessary triangles on contour
+    // and reduce unnecessary triangles on contour
 
     //Convert model_index and cut_index into one index
     priv::ModelCut2index m2i(cuts);
@@ -3096,7 +3096,7 @@ priv::SurfacePatches priv::diff_models(VCutAOIs            &cuts,
                         patch_ex.just_cliped = true;
                     } else { 
                         // build tree on demand
-                        // NOTE: it is possible not neccessary: e.g. one model
+                        // NOTE: it is possible not necessary: e.g. one model
                         Tree &tree = trees[model_index2];
                         if (tree.empty()) {
                             const CutMesh &model   = models[model_index2];
@@ -3553,7 +3553,7 @@ SurfaceCut priv::patch2cut(SurfacePatch &patch)
     sc.indices.reserve(indices_size);
     sc.vertices.reserve(vertices_size);
     for (VI vi : mesh.vertices()) {
-        // vi order is is not sorted
+        // vi order is not sorted
         // assert(vi.idx() == sc.vertices.size());
         // vi is not continous
         // assert(vi.idx() < vertices_size);
@@ -3587,7 +3587,7 @@ SurfaceCut priv::patch2cut(SurfacePatch &patch)
         for (VI vi : loop) contour.push_back(convert_map[vi]);
     }
 
-    // Not neccessary, clean and free memory
+    // Not necessary, clean and free memory
     mesh.remove_property_map(convert_map);
     return sc;
 }

@@ -182,7 +182,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     const size_t num_extruders = print_config.filament_diameter.size();
     const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
     // BBS: don't do size compensation when slice volume.
-    // Will handle contour and hole size compensation seperately later.
+    // Will handle contour and hole size compensation separately later.
     //const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
     const auto   extra_offset = 0.f;
 
@@ -436,7 +436,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
 #else
                                         const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                         if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
-                                            //BBS: handle negative_volume seperately, always minus the negative volume and don't need to trim overlap
+                                            //BBS: handle negative_volume separately, always minus the negative volume and don't need to trim overlap
                                             if (!region.model_volume->is_negative_volume())
                                                 trim_overlap(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
                                             else
@@ -1256,7 +1256,7 @@ void PrintObject::slice_volumes()
         // Uncompensated slices for the layers in case the Elephant foot compensation is applied.
         std::vector<ExPolygons> lslices_elfoot_uncompensated;
         lslices_elfoot_uncompensated.resize(elephant_foot_compensation_scaled > 0 ? std::min(m_config.elefant_foot_compensation_layers.value, (int)m_layers.size()) : 0);
-        //BBS: this part has been changed a lot to support seperated contour and hole size compensation
+        //BBS: this part has been changed a lot to support separated contour and hole size compensation
 	    tbb::parallel_for(
 	        tbb::blocked_range<size_t>(0, m_layers.size()),
 			[this, xy_hole_scaled, xy_contour_scaled, elephant_foot_compensation_scaled, &lslices_elfoot_uncompensated](const tbb::blocked_range<size_t>& range) {
@@ -1508,7 +1508,7 @@ void PrintObject::apply_conical_overhang() {
     }
 }
 
-//BBS: this function is used to offset contour and holes of expolygons seperately by different value
+//BBS: this function is used to offset contour and holes of expolygons separately by different value
 ExPolygons PrintObject::_shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const
 {
     ExPolygons new_ex_polys;

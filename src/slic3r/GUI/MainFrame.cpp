@@ -253,7 +253,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
     int len = int(::GetModuleFileName(nullptr, path.data(), MAX_PATH));
     if (len > 0 && len < MAX_PATH) {
         path.erase(path.begin() + len, path.end());
-        //BBS: remove GCodeViewer as seperate APP logic
+        //BBS: remove GCodeViewer as separate APP logic
         /*if (app_mode == GUI_App::EAppMode::GCodeViewer) {
             // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from prusa-gcodeviewer.exe
             // Otherwise load it from the exe.
@@ -3814,7 +3814,7 @@ bool MainFrame::load_config_file(const std::string &path)
    // }
 //}
 
-//BBS: export all the system preset configs to seperate files
+//BBS: export all the system preset configs to separate files
 /*void MainFrame::export_system_configs()
 {
     // Ask user for a file name.

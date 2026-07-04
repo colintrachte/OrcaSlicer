@@ -316,7 +316,7 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
 
     m_tray_id = id;
     m_tray_name = m_comboBox->get_tray_name();
-    m_is_bbl_filamnet = DevFilaSystem::IsBBL_Filament(m_comboBox->get_tag_uid());
+    m_is_bbl_filament = DevFilaSystem::IsBBL_Filament(m_comboBox->get_tag_uid());
     Enable(m_comboBox->is_tray_exist());
 
     if (m_comboBox->is_tray_exist()) {

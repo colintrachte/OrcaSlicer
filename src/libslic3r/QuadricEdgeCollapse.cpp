@@ -10,7 +10,7 @@ using namespace Slic3r;
 //    #define EXPENSIVE_DEBUG_CHECKS
 #endif // NDEBUG
 
-// only private namespace not neccessary be in .hpp
+// only private namespace not necessary be in .hpp
 namespace QuadricEdgeCollapse {
     // SymetricMatrix
     class SymMat {

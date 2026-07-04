@@ -13,6 +13,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <iostream>
+#define OPENSSL_SUPPRESS_DEPRECATED
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/rand.h>

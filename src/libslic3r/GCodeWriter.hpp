@@ -55,7 +55,7 @@ public:
     std::string set_travel_acceleration(unsigned int acceleration)  { return set_acceleration_internal(Acceleration::Travel, acceleration); }
     std::string set_jerk_xy(double jerk);
     // Orca: set acceleration and jerk in one command for Klipper
-    std::string set_accel_and_jerk(unsigned int acceleration, double jerk);
+    std::string set_accel_and_jerk(unsigned int acceleration, double jerk, bool is_travel = false);
     std::string set_junction_deviation(double junction_deviation); 
     std::string set_pressure_advance(double pa) const;
     std::string set_input_shaping(char axis, float damp, float freq, std::string type) const;

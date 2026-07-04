@@ -2546,7 +2546,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             if (!existObject && objectExtruderMap.find(print_object_ID) != objectExtruderMap.end())
                 objPrintVec.push_back(std::make_pair(print_object_ID, objectExtruderMap.at(print_object_ID)));
         }
-        // BBS: m_brimMap and m_supportBrimMap are used instead of m_brim to generate brim of objs and supports seperately
+        // BBS: m_brimMap and m_supportBrimMap are used instead of m_brim to generate brim of objs and supports separately
         m_brimMap.clear();
         m_supportBrimMap.clear();
         m_first_layer_convex_hull.points.clear();
@@ -2944,10 +2944,10 @@ Polygons Print::first_layer_islands() const
     return islands;
 }
 
-Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
+Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existence) const
 {
     Points corners;
-    if (check_wipe_tower_existance && (!has_wipe_tower() || m_wipe_tower_data.tool_changes.empty()))
+    if (check_wipe_tower_existence && (!has_wipe_tower() || m_wipe_tower_data.tool_changes.empty()))
         return corners;
     {
         double width = m_wipe_tower_data.bbx.max.x() - m_wipe_tower_data.bbx.min.x();

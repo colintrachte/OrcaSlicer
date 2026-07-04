@@ -188,7 +188,7 @@ private:
 		SHAPE_REVERSED = -1
 	};
 
-    const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
+    const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually necessary to adjust
     const float WT_EPSILON            = 1e-3f;
     float filament_area() const {
         return m_filpar[0].filament_area; // all extruders are assumed to have the same filament diameter at this point
@@ -213,7 +213,7 @@ private:
 	float  m_z_pos 				= 0.f;  // Current Z position.
 	float  m_layer_height 		= 0.f; 	// Current layer height.
 	size_t m_max_color_changes 	= 0; 	// Maximum number of color changes per layer.
-    int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
+    int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not necessary)
     float  m_travel_speed       = 0.f;
 	float  m_infill_speed       = 0.f;
     float  m_wipe_tower_max_purge_speed   = 90.f;

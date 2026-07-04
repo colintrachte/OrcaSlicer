@@ -113,7 +113,16 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
       // Create the webview
     m_browser = WebView::CreateWebView(this, "");
     if (m_browser == nullptr) {
-        wxLogError("Could not init m_browser");
+        BOOST_LOG_TRIVIAL(error) << "PrinterWebView: WebView backend unavailable — "
+                                    "install libwebkit2gtk-4.1 (or libwebkit2gtk-4.0) on Linux";
+        auto* label = new wxStaticText(
+            this, wxID_ANY,
+            _L("The Klipper device interface requires a WebKit2GTK library.\n"
+               "Please install libwebkit2gtk-4.1 (Ubuntu/Debian) or the equivalent\n"
+               "package for your distribution and restart OrcaSlicer."),
+            wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+        topsizer->Add(label, wxSizerFlags().Center().Border(wxALL, 20));
+        SetSizer(topsizer);
         return;
     }
 
@@ -192,7 +201,7 @@ void PrinterWebView::load_url(wxString& url, wxString apikey)
 
 bool PrinterWebView::Show(bool show)
 {
-    if (show && !m_url_deferred.empty()) {
+    if (show && !m_url_deferred.empty() && m_browser != nullptr) {
         m_browser->LoadURL(m_url_deferred);
         //ORCA: m_url_deferred will be cleared on load success
         //m_url_deferred.clear();
@@ -202,11 +211,13 @@ bool PrinterWebView::Show(bool show)
 
 void PrinterWebView::reload()
 {
+    if (m_browser == nullptr) return;
     m_browser->Reload();
 }
 
 void PrinterWebView::update_mode()
 {
+    if (m_browser == nullptr) return;
     m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode"));
 }
 
@@ -226,7 +237,7 @@ void PrinterWebView::OnClose(wxCloseEvent& evt)
 
 void PrinterWebView::SendAPIKey()
 {
-    if (m_apikey_sent || m_apikey.IsEmpty())
+    if (m_browser == nullptr || m_apikey_sent || m_apikey.IsEmpty())
         return;
     m_apikey_sent   = true;
     wxString script = wxString::Format(R"(

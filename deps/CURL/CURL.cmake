@@ -58,9 +58,9 @@ endif()
 
 orcaslicer_add_cmake_project(CURL
   # GIT_REPOSITORY      https://github.com/curl/curl.git
-  # GIT_TAG             curl-7_75_0
-  URL                 https://github.com/curl/curl/archive/refs/tags/curl-7_75_0.zip
-  URL_HASH            SHA256=a63ae025bb0a14f119e73250f2c923f4bf89aa93b8d4fafa4a9f5353a96a765a
+  # GIT_TAG             curl-8_20_0
+  URL                 https://github.com/curl/curl/archive/refs/tags/curl-8_20_0.zip
+  URL_HASH            SHA256=6248926d3a1d53b7f66ccbd11f0a816cab0b21d040620c3b0602b5de2eb6f9d2
   DEPENDS             ${ZLIB_PKG}
   # PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
   #                     ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/curl-mods.patch

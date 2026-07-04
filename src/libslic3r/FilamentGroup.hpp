@@ -137,7 +137,7 @@ namespace Slic3r
 
         std::unordered_map<int, std::vector<int>> try_merge_filaments();
         void rebuild_context(const std::unordered_map<int, std::vector<int>>& merged_filaments);
-        std::vector<int> seperate_merged_filaments(const std::vector<int>& filament_map, const std::unordered_map<int,std::vector<int>>& merged_filaments );
+        std::vector<int> separate_merged_filaments(const std::vector<int>& filament_map, const std::unordered_map<int,std::vector<int>>& merged_filaments );
 
     private:
         FilamentGroupContext ctx;

@@ -480,7 +480,7 @@ public:
     BoundingBoxf3 instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     BoundingBoxf3 instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate = false) const;
 
-    // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
+    // Calculate 2D convex hull of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
     // This method is used by the auto arrange function.
     Polygon       convex_hull_2d(const Transform3d &trafo_instance) const;

@@ -1218,7 +1218,7 @@ void TriangleSelector::undivide_triangle(int facet_idx)
 void TriangleSelector::remove_useless_children(int facet_idx)
 {
     // Check that all children are leafs of the same type. If not, try to
-    // make them (recursive call). Remove them if sucessful.
+    // make them (recursive call). Remove them if successful.
 
     assert(facet_idx < int(m_triangles.size()) && m_triangles[facet_idx].valid());
     Triangle& tr = m_triangles[facet_idx];

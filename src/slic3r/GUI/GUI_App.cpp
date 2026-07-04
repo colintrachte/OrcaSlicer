@@ -65,6 +65,7 @@
 #include <wx/fontutil.h>
 #include <wx/glcanvas.h>
 #include <wx/utils.h>
+#define OPENSSL_SUPPRESS_DEPRECATED
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 
@@ -848,7 +849,7 @@ void GUI_App::post_init()
     plater_->trigger_restore_project(1);
     //#endif
 
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
     /*if (this->init_params->start_as_gcodeviewer) {
         if (! this->init_params->input_files.empty())
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
@@ -1015,7 +1016,7 @@ wxDEFINE_EVENT(EVT_UPDATE_BUNDLE_COMPLETE, wxCommandEvent);
 
 IMPLEMENT_APP(GUI_App)
 
-//BBS: remove GCodeViewer as seperate APP logic
+//BBS: remove GCodeViewer as separate APP logic
 //GUI_App::GUI_App(EAppMode mode)
 GUI_App::GUI_App()
     : wxApp()
@@ -2363,7 +2364,7 @@ void GUI_App::init_app_config()
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1% build %2%") % SoftFever_VERSION % GIT_COMMIT_HASH;
 
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
 	if (!app_config)
         app_config = new AppConfig();
         //app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
@@ -8437,7 +8438,7 @@ bool GUI_App::OnExceptionInMainLoop()
 // to a G-code viewer.
 void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 {
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
     /*size_t num_gcodes = 0;
     for (const wxString &filename : fileNames)
         if (is_gcode_file(into_u8(filename)))
@@ -8490,7 +8491,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             non_gcode_files.emplace_back(filename);
         }
     }
-    //BBS: remove GCodeViewer as seperate APP logic
+    //BBS: remove GCodeViewer as separate APP logic
     /*if (m_app_mode == EAppMode::GCodeViewer) {
         // Running in G-code viewer.
         // Load the first G-code into the G-code viewer.

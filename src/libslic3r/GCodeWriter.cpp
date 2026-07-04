@@ -46,10 +46,24 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     } else {
         m_max_acceleration = 0;
     }
-    m_max_travel_acceleration = static_cast<unsigned int>(
-        std::round((use_mach_limits && supports_separate_travel_acceleration(print_config.gcode_flavor.value)) ?
-                       print_config.machine_max_acceleration_travel.values.front() :
-                       0));
+    if (use_mach_limits) {
+        m_max_travel_acceleration = static_cast<unsigned int>(
+            std::round(print_config.machine_max_acceleration_travel.values.front()));
+        // For Klipper, clamp the travel cap by per-axis limits just like the extruding cap.
+        if (print_config.gcode_flavor.value == gcfKlipper) {
+            unsigned int x_limit = std::lrint(print_config.machine_max_acceleration_x.values.front());
+            unsigned int y_limit = std::lrint(print_config.machine_max_acceleration_y.values.front());
+            if (x_limit > 0 && m_max_travel_acceleration > 0)
+                m_max_travel_acceleration = std::min(m_max_travel_acceleration, x_limit);
+            if (y_limit > 0 && m_max_travel_acceleration > 0)
+                m_max_travel_acceleration = std::min(m_max_travel_acceleration, y_limit);
+        } else if (!supports_separate_travel_acceleration(print_config.gcode_flavor.value)) {
+            // Flavors that share a single M204 S value for both print and travel use only m_max_acceleration.
+            m_max_travel_acceleration = 0;
+        }
+    } else {
+        m_max_travel_acceleration = 0;
+    }
     if (use_mach_limits) {
         m_max_jerk_x  = std::lrint(print_config.machine_max_jerk_x.values.front());
         m_max_jerk_y  = std::lrint(print_config.machine_max_jerk_y.values.front());
@@ -305,15 +319,22 @@ std::string GCodeWriter::set_jerk_xy(double jerk)
 
 }
 
-std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double jerk)
+std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double jerk, bool is_travel)
 {
     // Only Klipper supports setting acceleration and jerk at the same time. Throw an error if we try to do this on other flavours.
     if(FLAVOR_IS_NOT(gcfKlipper))
         throw std::runtime_error(_u8L("set_accel_and_jerk() is only supported by Klipper"));
 
-    // Clamp the acceleration to the allowed maximum.
-    if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
-        acceleration = m_max_acceleration;
+    // Clamp the acceleration to the appropriate maximum: travel cap for travel moves,
+    // extruding cap for print moves. For Klipper both caps are stored separately.
+    if (is_travel) {
+        unsigned int cap = (m_max_travel_acceleration > 0) ? m_max_travel_acceleration : m_max_acceleration;
+        if (cap > 0 && acceleration > cap)
+            acceleration = cap;
+    } else {
+        if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
+            acceleration = m_max_acceleration;
+    }
     
     bool is_empty = true;
     std::ostringstream gcode;

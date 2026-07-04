@@ -861,7 +861,7 @@ void do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
 
     // when src mesh has multiple connected components, mcut refuses to work.
     // But we can force it to work by spliting the src mesh into disconnected components,
-    // and do booleans seperately, then merge all the results.
+    // and do booleans separately, then merge all the results.
     indexed_triangle_set all_its;
     if (boolean_opts == "UNION" || boolean_opts == "A_NOT_B") {
         for (size_t i = 0; i < src_parts.size(); i++) {

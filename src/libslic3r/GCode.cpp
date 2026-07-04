@@ -6356,7 +6356,7 @@ double GCode::calc_max_volumetric_speed(const double layer_height, const double 
         try {
             cs.push_back(std::stod(token));
         } catch (...) {
-            std::cerr << "Transformation failed: " << token << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Transformation parse failed for token: " << token;
         }
     }
     if (cs.size() != 6 || std::all_of(cs.begin(), cs.end(), [](double v) { return v == 0; })) return std::numeric_limits<double>::max();
@@ -7433,7 +7433,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
     }
     
     if (m_writer.get_gcode_flavor() == gcfKlipper) {
-        gcode += m_writer.set_accel_and_jerk(acceleration_to_set, jerk_to_set);
+        gcode += m_writer.set_accel_and_jerk(acceleration_to_set, jerk_to_set, /*is_travel=*/true);
     } else {
         gcode += m_writer.set_travel_acceleration(acceleration_to_set);
         gcode += m_writer.set_jerk_xy(jerk_to_set);

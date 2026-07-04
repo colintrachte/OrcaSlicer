@@ -82,7 +82,7 @@ public:
 };
 
 /// <summary>
-/// Hold neccessary data to create ModelVolume in job
+/// Hold necessary data to create ModelVolume in job
 /// Volume is created on the surface of existing volume in object.
 /// NOTE: EmbossDataBase::font_file doesn't have to be valid !!!
 /// </summary>
@@ -100,7 +100,7 @@ struct DataCreateVolume : public DataBase
 using DataBasePtr = std::unique_ptr<DataBase>;
 
 /// <summary>
-/// Hold neccessary data to update embossed text object in job
+/// Hold necessary data to update embossed text object in job
 /// </summary>
 struct DataUpdate
 {
@@ -168,7 +168,7 @@ struct SurfaceVolumeData
 };
 
 /// <summary>
-/// Hold neccessary data to update embossed text object in job
+/// Hold necessary data to update embossed text object in job
 /// </summary>
 struct UpdateSurfaceVolumeData : public DataUpdate, public SurfaceVolumeData{};
 

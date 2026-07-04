@@ -552,7 +552,7 @@ void ImGuiWrapper::new_frame()
             io.KeyMods &= ~key.first;
     }
 
-    // Not sure if it is neccessary
+    // Not sure if it is necessary
     // values from 33 to 126 are reserved for the standard ASCII characters
     for (size_t i = 33; i <= 126; ++i) {
         wxKeyCode keycode = static_cast<wxKeyCode>(i);
