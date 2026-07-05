@@ -1,0 +1,58 @@
+{
+  "files": {
+    "docs/roadmap.md": {
+      "sha256": "2169ae2a29b4fb9e8345f1c9772bd3ceb17149452f63779e568743b75319da76",
+      "template_sha256": "2169ae2a29b4fb9e8345f1c9772bd3ceb17149452f63779e568743b75319da76",
+      "template": "templates/ROADMAP.template.md",
+      "installed_at": "2026-07-04T04:56:01+00:00"
+    },
+    "docs/ai-harness.md": {
+      "sha256": "09d6b81eb91f12b95ca6a731bc3a0caddce093a3f2c410d02efa32dca5922da0",
+      "template_sha256": "09d6b81eb91f12b95ca6a731bc3a0caddce093a3f2c410d02efa32dca5922da0",
+      "template": "templates/AI_HARNESS.template.md",
+      "installed_at": "2026-07-04T04:56:01+00:00"
+    },
+    "helper_scripts/context_pack.py": {
+      "sha256": "389fed789fe0a9aa8c22e36088022de32d626d792b87f11552edf402b66dfdb1",
+      "template_sha256": "389fed789fe0a9aa8c22e36088022de32d626d792b87f11552edf402b66dfdb1",
+      "template": "helper_scripts/context_pack.py",
+      "installed_at": "2026-07-05T21:41:13+00:00"
+    },
+    "helper_scripts/route_tasks.py": {
+      "sha256": "f03aa6c81fdd8979030c1f37c7099985b0b795fac5235db6c67ca23a62fe7530",
+      "template_sha256": "f03aa6c81fdd8979030c1f37c7099985b0b795fac5235db6c67ca23a62fe7530",
+      "template": "helper_scripts/route_tasks.py",
+      "installed_at": "2026-07-05T21:41:13+00:00"
+    },
+    "helper_scripts/query_model.py": {
+      "sha256": "41dd6fcd06465c8d0cb17ee273062ff212b6f4c73cb83ef3ee1235e808ef916d",
+      "template_sha256": "41dd6fcd06465c8d0cb17ee273062ff212b6f4c73cb83ef3ee1235e808ef916d",
+      "template": "helper_scripts/query_model.py",
+      "installed_at": "2026-07-05T21:41:13+00:00"
+    },
+    "helper_scripts/pack_task.py": {
+      "sha256": "1fdca3f4e2d3b72da2e8bfd41ed1af84c42ea1ae64838c37f16ded3956189cc0",
+      "template_sha256": "1fdca3f4e2d3b72da2e8bfd41ed1af84c42ea1ae64838c37f16ded3956189cc0",
+      "template": "helper_scripts/pack_task.py",
+      "installed_at": "2026-07-05T21:41:13+00:00"
+    },
+    "helper_scripts/README.md": {
+      "sha256": "6dd5387abe27824f8030befc97a961543fa37bee2e892c3c8dd20b2cbd4cc799",
+      "template_sha256": "6dd5387abe27824f8030befc97a961543fa37bee2e892c3c8dd20b2cbd4cc799",
+      "template": "helper_scripts/README.md",
+      "installed_at": "2026-07-04T04:56:01+00:00"
+    },
+    "helper_scripts/external_refs.json": {
+      "sha256": "c84ee85f0c1ab4c27851605637fafbf4d0e5d2fede7051b68349571466ef64b1",
+      "template_sha256": "c84ee85f0c1ab4c27851605637fafbf4d0e5d2fede7051b68349571466ef64b1",
+      "template": "helper_scripts/external_refs.json",
+      "installed_at": "2026-07-04T04:56:01+00:00"
+    },
+    "helper_scripts/effort_ceiling.txt": {
+      "sha256": "60864aae264519399c7a7379382e411d40a3bd0f1641e669fb73183d223f6bd0",
+      "template_sha256": "60864aae264519399c7a7379382e411d40a3bd0f1641e669fb73183d223f6bd0",
+      "template": "helper_scripts/effort_ceiling.txt",
+      "installed_at": "2026-07-04T04:56:01+00:00"
+    }
+  }
+}

@@ -5,24 +5,28 @@ Completed items are removed; see CHANGELOG.md for what was done.
 
 ---
 
-## [BUG] Slowed Overhang Disables Arc Fitting for Overhang Paths (#7428)
+## [FEATURE/ARCH] Self-hosted Orca Cloud sync (#14318)
 
-**Issue:** When "Slow Down for Overhang" is active on any path, arc fitting (G2/G3) is bypassed for the ENTIRE path, even for non-overhang segments of the same extrusion loop.  
-**Priority:** Medium — 5 +1, 12 comments.  
-**Root cause:** In `GCode::_extrude` (`src/libslic3r/GCode.cpp`), when `variable_speed` is true (overhang slowing active), the code iterates through `new_points` and emits one G1 per point. The arc-fitting code path is only reached when `variable_speed` is false. Since `variable_speed` is set per-path (not per-segment), any path with even one overhang point loses arc fitting for the entire path.  
-**Fix approach:** In the variable-speed loop, detect non-variable-speed arc segments from `path.polyline.fitting_result` and emit G2/G3 for those while keeping G1 for variable-speed overhang segments. Requires careful index tracking between `new_points` (per-pixel subdivided) and `fitting_result` (pre-overhang subdivision).  
-**Action needed:** Design the mixed G1/G2/G3 variable-speed loop. Complex rewrite — needs design review and careful testing before implementation.
-
----
-
-## [FEATURE/ARCH] Spoolman Integration (#2955)
-
-**Request:** Connect to a Spoolman instance to look up filament IDs, track spool weights, and update remaining filament after a print.  
-**Scope:** Significant feature — requires:
-1. New printer/filament setting: `spoolman_url`
-2. HTTP requests to Spoolman REST API (can reuse `src/slic3r/Utils/Http.cpp`)
-3. UI: spool picker dialog in the filament panel
-4. G-code post-processing hook to call Spoolman's `consume` API after print
-
-**Architecture decision needed:** Integrate at the GUI layer (wxWidgets panel) or at the G-code export layer? The G-code export layer is more portable and does not depend on a running GUI.  
-**Action needed:** Approve scope and integration layer before implementation begins.
+**Request:** A local, self-hosted alternative to Orca Cloud's profile-sync service, so users
+aren't dependent on a third-party-hosted sync backend.
+**Owner's read (2026-07-05):** doesn't use Bambu or their printers and never will, so this
+has no personal urgency — but wants the *value to other users* investigated before deciding,
+since there isn't enough information yet to judge that.
+**Investigation so far:** `ICloudServiceAgent` (`src/slic3r/Utils/ICloudServiceAgent.hpp`) is
+a ~40-method interface, and settings sync is a small slice of it — login/OAuth (PKCE),
+device/task subscriptions, model mall + publishing, ratings, camera streaming, and telemetry
+are all bundled into the same interface as the sync calls
+(`get_user_presets`/`get_setting_list`/`get_setting_list2`/`put_setting`/
+`request_setting_id`/`delete_setting`). `OrcaCloudServiceAgent.hpp` even references an
+internal "Orca Cloud Sync Protocol Specification" for the sync data structures
+specifically (`OrcaCloudServiceAgent.hpp:40`) — meaning the sync sub-protocol may already be
+documented well enough to implement against without touching the rest of the interface.
+**Why this still isn't bounded:** "self-hosted" could mean (a) just documenting/publishing
+that existing sync protocol so anyone can stand up a compatible server, (b) shipping a
+minimal reference server (just the sync subset, none of the auth/model-mall/telemetry
+surface), or (c) building a full drop-in `ICloudServiceAgent` replacement — those are wildly
+different amounts of work and (c) is very likely not worth it. No maintainer or community
+signal yet on which of these actually matters to users beyond the original issue.
+**Action needed:** decide which of (a)/(b)/(c) above the value-investigation should target,
+or whether to survey issue #14318's own comments for what requesters actually meant by
+"self-hosted" before scoping further.
