@@ -173,6 +173,109 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Effort:** 559
   **Chars:** ~559,328 total (largest: src/libslic3r/PrintConfig.cpp ~559,328) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
+- [ ] **Score 5 🥇 · Class 2 — Preset management UX: opaque inheritance, silent duplication on
+  import, and invisible compatibility rules (owner pain point, 2026-07-05; re-prioritized to
+  High 2026-07-05)**
+  — Owner-authored, not a single upstream issue: the data model (system → user preset chains
+  via an `inherits` pointer, diff-only storage, printer/filament/process compatibility lists)
+  is workable, but the UI surfaces almost none of it, and several real upstream bugs make the
+  opacity actively harmful rather than just annoying. **Re-scored 3→5 and moved Medium→High**:
+  this is recurring friction and occasional silent data loss hit on *every* preset save/load/
+  import, on the owner's daily-driver platform (Windows) and owned hardware, versus several
+  items still scored 5 in Critical/§1 above that are platform-gated to Linux distros/desktop
+  environments this fork doesn't run (#10524 Pango/freetype2 crash, #10434 X11 segfault,
+  #7649 en_GB locale crash) — a one-time crash on an unused platform is lower real-world
+  priority than chronic friction plus confirmed silent data loss on the platform actually used.
+  This is a broad initiative — **do not implement as one diff**; scope and decompose into
+  independent sub-items (see candidate list below) before picking up any part, same as the
+  PR-decomposition rule for bundles.
+
+  **Confirmed root causes (read from this codebase, not speculation):**
+  - **Paired `.json` + `.info` files**: each user preset is one `.json` (config values,
+    written by `Preset::save()`, `src/libslic3r/Preset.cpp:634`) plus a sidecar `.info`
+    (cloud-sync metadata: `sync_info`/`user_id`/`setting_id`/`base_id`, `Preset.cpp:586-609`).
+    `remove_files()` (`Preset.cpp:611-631`) can delete the `.json` while deliberately keeping
+    the `.info` (`sync_info="delete"`) pending cloud confirmation — a documented orphaned-file
+    path. Copying/backing up a preset by hand means copying two files per preset; missing one
+    silently breaks it.
+  - **Diff-only storage + single-parent `inherits`**: a child preset's `.json` stores only the
+    keys that differ from its parent (`config.diff(parent_preset->config)`,
+    `Preset.cpp:1748-1790`); `inherits` (`Preset.hpp:308-311`) is a bare name string resolved
+    by `PresetCollection::get_preset_parent()` (`Preset.cpp:3028-3050`). Nothing in the UI
+    shows this chain, so a user has no way to tell which preset an edit actually lands in
+    (base, an intermediate link, or a fork) without opening the JSON. Confirmed upstream:
+    **#9536** ("Support inheritance from a user profile", 19 comments) — chaining a user
+    preset's `inherits` onto *another user preset* (not a system preset) throws
+    `can not find parent for config ...json!` and is rejected outright, so the "parent/child"
+    model only reliably works one level below a system preset.
+  - **Duplicate-name handling has no merge path**: on 3MF/project import
+    (`PresetCollection::load_external_preset`, `Preset.cpp:2416`), a name collision with a
+    differing config synthesizes `prefix + "(" + name + ")"` (`Preset.cpp:2605`), incrementing
+    `-1`, `-2`, etc. — there is no literal `"(copy)"` string, but the effect matches the
+    complaint: a second, differently-scoped copy is created silently, with no prompt to
+    merge, replace, or rebind. Bundle/JSON import (`PresetBundle::import_json_presets`,
+    `PresetBundle.cpp:1480-1491`) instead prompts yes/no/yes-to-all/no-to-all on collision and
+    silently *drops* the import if declined — the opposite failure mode (data loss instead of
+    duplication). Confirmed upstream: **#8216** ("Copy printer/filament/process profiles
+    across printers in bulk") and the general shape matches multiple closed reports.
+  - **Compatibility ("is this preset visible right now") is opaque and has shipped with a
+    literal bug**: `Preset::is_visible` (`Preset.hpp:227`) is set by
+    `set_visible_from_appconfig()` (`Preset.cpp:818-847`) from AppConfig printer-variant/
+    filament-install markers; combo boxes just filter on it silently
+    (`PresetComboBoxes.cpp:402-408`, `1179-1186`, `1692`, `2020`) with no "why isn't this
+    here" affordance. Confirmed upstream: **#12193** ("Filament preset disappears after
+    checking 'All printers' due to typo in JSON key ('compatible_prints' instead of
+    'compatible_printers')") — Orca itself wrote the wrong key name into its own preset,
+    silently hiding the preset with zero error surfaced. **#3497** ("Allow editing compatible
+    printers... more easily", closed as completed) documents the export→hand-edit-JSON→
+    reimport workaround users were reduced to before an in-app editor existed — worth
+    re-verifying that editor actually covers all the cases users hit.
+  - **User-preset JSON format differs from system-preset format, undocumented**: **#12223**
+    ("User process presets: undocumented format, silent import failures, misleading errors",
+    closed as duplicate — find and check the still-open canonical issue before starting) —
+    hand-authoring or hand-editing a process preset from a copied system preset fails import
+    with "You need to import the corresponding printer first" even when the printer is
+    already configured, and the only way to discover the correct on-disk shape is reverse-
+    engineering a UI-generated file.
+  - **`sync_user_preset` (cloud sync) is a real, separate overwrite vector**: the "Auto sync
+    user presets (Printer/Filament/Process)" checkbox (`Preferences.cpp:1712`,
+    `start_sync_user_preset()`/`stop_sync_user_preset()`) pulls cloud state over local presets.
+    Confirmed upstream data-loss reports plausibly tied to this path: **#14420** ("All process
+    profiles missing after updating to 2.4.0+", 10 comments), **#14396** ("Not all process
+    profiles synced to Orcacloud"), **#13967** ("Orca reset my config and I can't get it
+    back"), **#14210** ("Show the user which preset has a conflict with Orca Cloud preset").
+
+  **Already tracked elsewhere in this roadmap — don't duplicate, cross-reference instead:**
+  #13075 (Critical §1, printer profiles silently losing custom G-code/Motion Ability settings
+  — a persistence-layer instance of this same opacity), #12314 immediately above (compatibility
+  filtering regression — a direct symptom of this item's `is_visible`/compatibility root cause),
+  #14217 (§6 PR queue, preset-loading performance — may share root cause investigation with
+  slow tab-switching #997), #13573 (§6 PR queue, sibling filament presets hidden when a generic
+  is installed — an `is_visible` bug of the same family as #12193 above).
+
+  **Comparison to PrusaSlicer / SuperSlicer (owner asked whether either solved this):** no
+  evidence found of either project having actually solved it — same lineage, same diff-based
+  single-parent `inherits` model. PrusaSlicer lacks Orca's Bambu-cloud-sync layer, so it avoids
+  the `sync_user_preset` overwrite vector specifically, but has its own open reports of the
+  same underlying pattern (e.g. prusa3d/PrusaSlicer **#3729** "Profile inheritance should check
+  'conditions' on computed profile only", **#12626** "Provide Parent Preset Link Button" — a
+  feature request for exactly the missing-visibility problem described here). SuperSlicer
+  exposes a bit more of the inherits chain in its UI but is architecturally the same fork
+  lineage pre-dating Orca. Treat "PrusaSlicer/SuperSlicer already solved this" as false — it's
+  an unsolved problem across the whole fork family, not something to port from a sibling.
+
+  **Candidate improvement directions (unscoped — needs its own design/triage pass, not a
+  committed design):** an in-UI dependency view (parents/children/"referenced by N presets")
+  instead of requiring JSON inspection; replacing silent `(name)`-suffix duplication on import
+  with an explicit replace/merge/keep-both/rename prompt; a "why isn't this preset showing?"
+  inspector surfacing the specific `is_visible`/`compatible_printers` reason (would have caught
+  #12193's typo immediately instead of shipping it); fixing the known "detach" edge case
+  (**#13057**, detaching a child that itself has children needs further manual steps);
+  documenting the user-preset JSON schema so #12223's class of bug can't recur; and auditing
+  whether `sync_user_preset` needs a conflict-resolution UI rather than last-write-wins.
+
+  **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/Preset.hpp` · `src/libslic3r/PresetBundle.cpp` · `src/slic3r/GUI/SavePresetDialog.cpp` · `src/slic3r/GUI/PresetComboBoxes.cpp` · `src/slic3r/GUI/ConfigWizard.cpp` · `src/slic3r/GUI/Preferences.cpp`
+
 - [ ] **Score 3 🥈 · Class 3 — Travel acceleration incorrectly limited by extrusion acceleration (#8582)**
   — Travel moves capped to extruding accel, causing slower-than-configured travels. Feeds
   directly into G-code acceleration values — Known Risky Subsystem (G-code exporter). Open
@@ -502,6 +605,58 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   separate the GUI path from the G-code-hook path.
 
   **Context:** `src/slic3r/Utils/Http.cpp` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
+
+- [ ] **Score 3 🥈 · Class 2 — Auto-placement of added instances breaks down after the first copy (owner pain point, 2026-07-05)**
+  — Owner-reported: when adding copies of an object (e.g. the "+" instance-count control), the
+  first new copy lands in a sensible empty spot next to the original, but the second (and
+  further) copies don't get auto-placed at all — they end up stacked/overlapping instead.
+  **Confirmed root cause:** `Plater::increase_instances()` (`src/slic3r/GUI/Plater.cpp:14652-14671`)
+  does not use any collision-aware placement. For each new copy it just adds a fixed diagonal
+  offset (`get_size_proportional_to_max_bed_size(0.05)`, multiplied by loop index) to the last
+  instance's existing offset, with no check against other objects already on the plate. This is
+  inconsistent with the placement helper used elsewhere in this same file and in
+  `GUI_ObjectList.cpp`/`Selection.cpp`: `GLCanvas3D::get_nearest_empty_cell()`
+  (`src/slic3r/GUI/GLCanvas3D.cpp:5487`), which `load_model_objects()`
+  (`Plater.cpp:7147-7159`) calls when loading a model with no defined instance position. The
+  fixed-step offset happens to look fine for the first copy (often lands on genuinely empty
+  bed space), but every subsequent copy keeps advancing by the same fixed step regardless of
+  what's already there, so once the plate has any other content the added copies land on top
+  of existing objects instead of an empty cell.
+  **Fix approach:** have `increase_instances()` call `get_nearest_empty_cell()` (as
+  `load_model_objects()` and `GUI_ObjectList.cpp`'s copy path already do) per new instance
+  instead of the fixed diagonal-offset loop. Verify the "empty plate" case still feels like a
+  simple offset next to the original rather than snapping to plate center.
+
+  **Context:** `src/slic3r/GUI/Plater.cpp` (`increase_instances`, `load_model_objects`) · `src/slic3r/GUI/GLCanvas3D.cpp` (`get_nearest_empty_cell`)
+
+- [ ] **Score 3 🥈 · Class 2 — Support painting toolbox lacks a discoverable eraser tool and a "keep-out" mask to prevent accidental paint (owner pain point, 2026-07-05)**
+  — Owner's complaint: the Support Painting gizmo (Paint-on supports) has no obvious toolbox
+  control to erase previously-painted support marks, nor a way to paint a protected region
+  that blocks accidental support painting there.
+  **Partially already implemented but not discoverable:** `GLGizmoFdmSupports::on_init()`
+  (`src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:100-123`) already wires `Shift + Left mouse
+  button` to erase and `Right mouse button` to paint a "blocker"
+  (`EnforcerBlockerType::BLOCKER`, `GLGizmoFdmSupports.cpp:554`) — but both are modifier-key
+  shortcuts surfaced only in a tooltip list, not selectable toolbar buttons the way the
+  brush/smart-fill/gap-fill tool-type icons are (`on_render_input_window`,
+  `GLGizmoFdmSupports.cpp:260`). A "blocker" paint is also not the same thing as a persistent
+  "protect this region from any paint" mask the owner is asking for — today it just marks
+  triangles as block-support, which a stray enforcer stroke elsewhere can still overwrite if
+  painted back over the same area.
+  **Fix approach:** add explicit "Eraser" and "Block" tool-type buttons alongside the existing
+  Circle/Sphere/Fill/Gap-fill icons in `on_render_input_window` so both are discoverable
+  without reading a shortcut tooltip, and consider making blocker triangles resist being
+  silently overwritten by a later enforcer stroke (or a dedicated protect layer) so a region
+  painted "no support here" survives incidental brushing.
+  **Broader scope note (owner):** there's a larger open question of how far to invest in
+  polished mesh-painting UX — Support painting, MMU segmentation, Fuzzy skin, and Seam
+  painting all share `GLGizmoPainterBase`, so an eraser/keep-out-mask improvement made at the
+  base-class level would benefit all four. If pursued more broadly, the painting toolset needs
+  to be up to par with the best tools elsewhere (e.g. dedicated 3D sculpting/paint UIs), not
+  just a minimal patch. Treat this entry as the narrow "eraser + keep-out mask" ask; a full
+  painting-UX overhaul would need its own scoping pass.
+
+  **Context:** `src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp` · `src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp`
 
 ---
 
