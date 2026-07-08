@@ -4,6 +4,14 @@
 
 ### Bug Fixes
 
+- **Preset load errors silently deleted the user's custom preset file** (#13075)  
+  In `PresetCollection::load_presets()`, a JSON parse failure, an I/O error reading the file, or a runtime error while merging a user preset's diff against its parent (e.g. a vector-length mismatch after a vendor bundle update changes a `machine_max_*`/Motion Ability array's shape) each caught the error, logged it, and then deleted the preset's `.json` and `.info` files from disk before moving on. Any of these three error paths permanently destroyed the user's only copy of their custom Start/End G-code and Motion Ability settings, which then appeared to "silently revert to defaults" on the next launch because the file was gone. All three paths now just skip loading the affected preset and leave the file in place, so a transient error no longer costs the user their settings.  
+  File: `src/libslic3r/Preset.cpp`
+
+- **Added instances after the first stack on top of existing objects** (owner pain point)  
+  `Plater::increase_instances()` placed each new instance copy at a fixed diagonal offset from the previous one, with no collision check against other objects already on the plate. The first added copy usually looked fine (landing on empty bed space), but every following copy — or any copy added when the plate wasn't empty — advanced by the same fixed step regardless of what was already there, landing on top of existing geometry instead of an empty spot. Now each new instance is placed via `GLCanvas3D::get_nearest_empty_cell()`, the same collision-aware placement `load_model_objects()` and the object-list copy path already use.  
+  File: `src/slic3r/GUI/Plater.cpp`
+
 - **Klipper Device tab crash when WebKit2GTK is unavailable** (#10756)  
   On Linux, if `libwebkit2gtk` is not installed or fails to initialize, `PrinterWebView::m_browser` is null. Four call sites (`Show()`, `reload()`, `update_mode()`, `SendAPIKey()`) dereferenced this null pointer, causing a segfault when switching to the Device tab. All are now null-guarded. The panel now also displays a user-readable message instructing users to install the missing library.  
   File: `src/slic3r/GUI/PrinterWebView.cpp`

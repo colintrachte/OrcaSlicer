@@ -1644,12 +1644,11 @@ void PresetCollection::load_presets(
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
                     if (!reason.empty()) {
-                        fs::path file_path(preset.file);
-                        if (fs::exists(file_path))
-                            fs::remove(file_path);
-                        file_path.replace_extension(".info");
-                        if (fs::exists(file_path))
-                            fs::remove(file_path);
+                        // Don't delete the user's preset file on a parse failure - it may be a
+                        // transient read error (e.g. file locked/mid-write), and deleting it
+                        // destroys the user's only copy of their custom settings. Just skip
+                        // loading it; the file is left on disk for the user or a future version
+                        // to recover.
                         BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed")%preset.file;
                         ++m_errors;
                         continue;
@@ -1736,23 +1735,20 @@ void PresetCollection::load_presets(
                 } catch (const std::ifstream::failure &err) {
                     ++m_errors;
                     BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%")%preset.file %err.what();
-                    fs::path file_path(preset.file);
-                    if (fs::exists(file_path))
-                        fs::remove(file_path);
-                    file_path.replace_extension(".info");
-                    if (fs::exists(file_path))
-                        fs::remove(file_path);
+                    // Don't delete the user's preset file here - an I/O failure reading it may be
+                    // transient (locked by another process, momentary disk/AV hiccup on Windows),
+                    // and deleting it would permanently destroy the user's only copy of a custom
+                    // preset over what might just be a one-off read failure.
                     //throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
                     ++m_errors;
                     BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%")%preset.file %err.what();
                     //throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
-                    fs::path file_path(preset.file);
-                    if (fs::exists(file_path))
-                        fs::remove(file_path);
-                    file_path.replace_extension(".info");
-                    if (fs::exists(file_path))
-                        fs::remove(file_path);
+                    // Don't delete the user's preset file - a merge/parse error (e.g. a vector-
+                    // length mismatch between this preset's saved diff and its parent's current
+                    // shape after a vendor bundle update) is exactly the kind of recoverable
+                    // situation where destroying the user's custom Start/End G-code and Motion
+                    // Ability settings would be actual data loss (see GH #13075).
                 }
 
                 if (preset_loaded_fn != nullptr)

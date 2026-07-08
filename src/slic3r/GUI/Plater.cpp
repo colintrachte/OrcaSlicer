@@ -14746,12 +14746,15 @@ void Plater::increase_instances(size_t num)
 
     bool was_one_instance = model_object->instances.size()==1;
 
-    double offset_base = canvas3D()->get_size_proportional_to_max_bed_size(0.05);
-    double offset = offset_base;
-    for (size_t i = 0; i < num; i++, offset += offset_base) {
-        Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
+    // BBS: place each new copy in the nearest empty cell (collision-aware), instead of a
+    // fixed diagonal offset that only happens to avoid overlap for the first added copy.
+    Vec3d last_offset = model_instance->get_offset();
+    for (size_t i = 0; i < num; i++) {
+        Vec2f empty_cell = canvas3D()->get_nearest_empty_cell({ (float)last_offset(0), (float)last_offset(1) });
+        Vec3d offset_vec(empty_cell(0), empty_cell(1), last_offset(2));
         model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation(), model_instance->get_mirror());
 //        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
+        last_offset = offset_vec;
     }
 
 #ifdef SUPPORT_AUTO_CENTER

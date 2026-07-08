@@ -14,7 +14,10 @@ if "%BUILD_TYPE%"=="Debug" (
     set BUILD_DIR=build
 )
 
-set EXE=%CD%\%BUILD_DIR%\OrcaSlicer\OrcaSlicer.exe
+if /I "%PROCESSOR_ARCHITECTURE%"=="ARM64" set BUILD_DIR=%BUILD_DIR%-arm64
+if /I "%PROCESSOR_ARCHITEW6432%"=="ARM64" set BUILD_DIR=%BUILD_DIR%-arm64
+
+set EXE=%CD%\%BUILD_DIR%\OrcaSlicer\orca-slicer.exe
 
 if not exist "%EXE%" (
     echo ERROR: OrcaSlicer binary not found at %EXE%

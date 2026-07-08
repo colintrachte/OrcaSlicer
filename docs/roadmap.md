@@ -122,16 +122,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Chars:** ~49,441 total (largest: src/slic3r/GUI/WebViewDialog.cpp ~31,934) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   (wxfs URI scheme registration — unverified, needs a diff-time confirmation pass)
 
-- [ ] **Score 5 🥇 · Class 2 — Printer profiles silently lose custom Start/End G-code and Motion Ability settings after update (#13075)**
-  — Confirmed reproducible: user-authored Start/End G-code and Motion Ability settings
-  revert to defaults on relaunch, forcing re-entry every session. Real data loss of
-  user-authored config, independent of printer brand.
-
-  **Context:** `src/libslic3r/PresetBundle.cpp` (profile persistence/serialization path)
-  **Route:** kimi
-  **Effort:** 308
-  **Chars:** ~308,142 total (largest: src/libslic3r/PresetBundle.cpp ~308,142) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 5 🥇 · Class 2 — Slicing crashes with small-area flow compensation on non-English UI (#12476)**
   — High-confidence root cause: `small_area_infill_flow_compensation_model` is stored as
   `coStrings` (numeric coefficients as text) and likely fails locale-sensitive
@@ -285,8 +275,8 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/Preset.hpp` · `src/libslic3r/PresetBundle.cpp` · `src/slic3r/GUI/SavePresetDialog.cpp` · `src/slic3r/GUI/PresetComboBoxes.cpp` · `src/slic3r/GUI/ConfigWizard.cpp` · `src/slic3r/GUI/Preferences.cpp`
   **Route:** claude
-  **Effort:** 6223
-  **Chars:** ~889,000 total (largest: src/libslic3r/PresetBundle.cpp ~308,142) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 6225
+  **Chars:** ~889,339 total (largest: src/libslic3r/PresetBundle.cpp ~308,142) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Travel acceleration incorrectly limited by extrusion acceleration (#8582)**
   — Travel moves capped to extruding accel, causing slower-than-configured travels. Feeds
@@ -683,32 +673,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Effort:** 3138
   **Chars:** ~1,045,974 total (largest: src/libslic3r/PrintConfig.cpp ~566,682) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 2 — Auto-placement of added instances breaks down after the first copy (owner pain point, 2026-07-05)**
-  — Owner-reported: when adding copies of an object (e.g. the "+" instance-count control), the
-  first new copy lands in a sensible empty spot next to the original, but the second (and
-  further) copies don't get auto-placed at all — they end up stacked/overlapping instead.
-  **Confirmed root cause:** `Plater::increase_instances()` (`src/slic3r/GUI/Plater.cpp:14652-14671`)
-  does not use any collision-aware placement. For each new copy it just adds a fixed diagonal
-  offset (`get_size_proportional_to_max_bed_size(0.05)`, multiplied by loop index) to the last
-  instance's existing offset, with no check against other objects already on the plate. This is
-  inconsistent with the placement helper used elsewhere in this same file and in
-  `GUI_ObjectList.cpp`/`Selection.cpp`: `GLCanvas3D::get_nearest_empty_cell()`
-  (`src/slic3r/GUI/GLCanvas3D.cpp:5487`), which `load_model_objects()`
-  (`Plater.cpp:7147-7159`) calls when loading a model with no defined instance position. The
-  fixed-step offset happens to look fine for the first copy (often lands on genuinely empty
-  bed space), but every subsequent copy keeps advancing by the same fixed step regardless of
-  what's already there, so once the plate has any other content the added copies land on top
-  of existing objects instead of an empty cell.
-  **Fix approach:** have `increase_instances()` call `get_nearest_empty_cell()` (as
-  `load_model_objects()` and `GUI_ObjectList.cpp`'s copy path already do) per new instance
-  instead of the fixed diagonal-offset loop. Verify the "empty plate" case still feels like a
-  simple offset next to the original rather than snapping to plate center.
-
-  **Context:** `src/slic3r/GUI/Plater.cpp` (`increase_instances`, `load_model_objects`) · `src/slic3r/GUI/GLCanvas3D.cpp` (`get_nearest_empty_cell`)
-  **Route:** kimi
-  **Effort:** 2643
-  **Chars:** ~1,321,594 total (largest: src/slic3r/GUI/Plater.cpp ~833,312) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2 — Support painting toolbox lacks a discoverable eraser tool and a "keep-out" mask to prevent accidental paint (owner pain point, 2026-07-05)**
   — Owner's complaint: the Support Painting gizmo (Paint-on supports) has no obvious toolbox
   control to erase previously-painted support marks, nor a way to paint a protected region
@@ -874,8 +838,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/Plater.cpp`
   **Route:** kimi
-  **Effort:** 833
-  **Chars:** ~833,312 total (largest: src/slic3r/GUI/Plater.cpp ~833,312) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 834
+  **Chars:** ~833,541 total (largest: src/slic3r/GUI/Plater.cpp ~833,541) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — IDEX/IQEX parallel-printing support, "IMEX" (#13086)** — directly
   matches this fork's future Prusa INDX (toolchanging) hardware scope; touches
@@ -903,7 +867,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/Utils/MoonrakerPrinterAgent.cpp`
   **Route:** kimi
   **Effort:** 1826
-  **Chars:** ~912,774 total (largest: src/slic3r/GUI/Plater.cpp ~833,312) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~913,003 total (largest: src/slic3r/GUI/Plater.cpp ~833,541) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — "Ported Wipe Tower Features Fix" (#12742)** — touches
   `WipeTower`/`WipeTower2` (multi-tool sequencing, Known Risky Subsystem), same area as the
@@ -1006,7 +970,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/Preset.cpp`
   **Route:** kimi
   **Effort:** 204
-  **Chars:** ~203,945 total (largest: src/libslic3r/Preset.cpp ~203,945) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~204,284 total (largest: src/libslic3r/Preset.cpp ~204,284) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Add a slicing tolerance option (#9801)** — touches core
   mesh-slicing math; real, widely-wanted precision control.
@@ -1168,8 +1132,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
   **Route:** kimi
-  **Effort:** 1024
-  **Chars:** ~512,087 total (largest: src/libslic3r/PresetBundle.cpp ~308,142) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 1025
+  **Chars:** ~512,426 total (largest: src/libslic3r/PresetBundle.cpp ~308,142) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Fix bottom shell thickness + spiral vase interaction (#11496)**
   — tiny (1-line) real bug fix, excellent impact/effort ratio.
