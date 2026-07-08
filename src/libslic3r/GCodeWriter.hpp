@@ -55,7 +55,7 @@ public:
     std::string set_travel_acceleration(unsigned int acceleration)  { return set_acceleration_internal(Acceleration::Travel, acceleration); }
     std::string set_jerk_xy(double jerk);
     // Orca: set acceleration and jerk in one command for Klipper
-    std::string set_accel_and_jerk(unsigned int acceleration, double jerk, bool is_travel = false);
+    std::string set_accel_and_jerk(unsigned int acceleration, double jerk);
     std::string set_junction_deviation(double junction_deviation); 
     std::string set_pressure_advance(double pa) const;
     std::string set_input_shaping(char axis, float damp, float freq, std::string type) const;
@@ -135,22 +135,22 @@ public:
     bool            m_single_extruder_multi_material;
     std::vector<Extruder*> m_curr_filament_extruder;
     int        m_curr_extruder_id;
-    unsigned int    m_last_acceleration;
-    unsigned int    m_last_travel_acceleration;
-    unsigned int    m_max_travel_acceleration;
+    unsigned int              m_last_acceleration;
+    unsigned int              m_last_travel_acceleration;
+    std::vector<unsigned int> m_max_travel_acceleration;
 
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
-    // If set to zero, the limit is not in action.
-    unsigned int    m_max_acceleration;
-    double          m_max_jerk_x;
-    double          m_max_jerk_y;
-    double          m_last_jerk;
-    double          m_max_jerk_z;
-    double          m_max_jerk_e;
-    double          m_max_junction_deviation;
+    // If set to zero, the limit is not in action. Indexed by 0-based physical nozzle id.
+    std::vector<unsigned int> m_max_acceleration;
+    std::vector<double>       m_max_jerk_x;
+    std::vector<double>       m_max_jerk_y;
+    double                    m_last_jerk;
+    std::vector<double>       m_max_jerk_z;
+    std::vector<double>       m_max_jerk_e;
+    std::vector<double>       m_max_junction_deviation;
 
-    unsigned int  m_travel_acceleration;
-    unsigned int  m_travel_jerk;
+    // unsigned int  m_travel_acceleration;
+    // unsigned int  m_travel_jerk;
 
 
     //BBS
