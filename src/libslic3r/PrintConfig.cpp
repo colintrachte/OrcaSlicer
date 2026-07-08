@@ -4474,6 +4474,27 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comExpert;
     def->set_default_value(new ConfigOptionFloat(0.05));
 
+    def = this->add("stagger_perimeters", coBool);
+    def->label    = L("Stagger perimeters");
+    def->category = L("Strength");
+    def->tooltip  = L("Experimental: alternate the Z-height of inner-wall perimeters every other "
+                      "layer, like bricks in a wall, so vertical seams in adjacent layers don't "
+                      "line up. Requires the Arachne wall generator. The outer wall is left "
+                      "unaffected. Incompatible with Z contouring and spiral vase.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("stagger_perimeters_extrusion_multiplier", coFloat);
+    def->label    = L("Stagger perimeters extrusion multiplier");
+    def->category = L("Strength");
+    def->tooltip  = L("Extra flow applied to staggered inner-wall segments to compensate for the "
+                      "raised Z-height. Staggering without extra flow tends to print weaker than "
+                      "an unstaggered wall.");
+    def->min      = 1;
+    def->max      = 2;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.05));
+
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
     def->tooltip = L("This G-code is inserted at every layer change after the Z lift.");

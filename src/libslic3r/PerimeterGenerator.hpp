@@ -149,6 +149,7 @@ public:
     //BBS
     double      smaller_width_ext_mm3_per_mm()   const { return m_ext_mm3_per_mm_smaller_width; }
     Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
+    Polygons    upper_slices_polygons() const { return m_upper_slices_polygons; }
 
 private:
     std::vector<Polygons>     generate_lower_polygons_series(float width);
@@ -166,6 +167,9 @@ private:
     //BBS
     double      m_ext_mm3_per_mm_smaller_width;
     Polygons    m_lower_slices_polygons;
+    // Orca: cached upper_slices offset by half the nozzle diameter, used by stagger_perimeters
+    // to avoid staggering inner walls under a top surface (mirrors m_lower_slices_polygons).
+    Polygons    m_upper_slices_polygons;
 };
 
 }

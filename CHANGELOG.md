@@ -2,6 +2,12 @@
 
 ## [Unreleased] — 2026-07-03
 
+### Features
+
+- **Stagger perimeters ("brick layers" / vertical interlock walls)** (#7282)  
+  New experimental print-region option `stagger_perimeters` (plus `stagger_perimeters_extrusion_multiplier`, default 1.05) alternates the Z-height of inner-wall perimeter rings by layer parity, so vertical seams in adjacent layers offset like bricks in a wall instead of stacking straight up — intended to improve z-strength. Implemented directly in the Arachne wall pipeline (`PerimeterGenerator::traverse_extrusions()`) rather than as a G-code post-processing script, reusing the existing ZAA (`z_contoured`) per-path Z-offset infrastructure. Only inner walls (`inset_idx > 0`) on layers past the first two are eligible, and a new slope/top-surface guard (comparing against `upper_slices`, mirroring the existing `detect_steep_overhang()` check against `lower_slices`) skips staggering any wall segment not fully covered by the layer above — fixing a documented failure mode ("staggers even when visible from above") in the prior community attempt at this feature (PR #8181). Arachne-only; mutually exclusive with Z contouring, spiral vase, and the Inner/Outer/Inner wall sequence, enforced via new `ConfigManipulation.cpp` auto-fix dialogs. Off by default. Not compile-verified in this checkout (no build environment available) — manual code review only.  
+  Files: `src/libslic3r/PerimeterGenerator.cpp`, `src/libslic3r/PerimeterGenerator.hpp`, `src/libslic3r/GCode.cpp`, `src/libslic3r/ExtrusionEntity.hpp`, `src/libslic3r/ExtrusionEntity.cpp`, `src/libslic3r/PrintConfig.hpp`, `src/libslic3r/PrintConfig.cpp`, `src/libslic3r/Preset.cpp`, `src/slic3r/GUI/Tab.cpp`, `src/slic3r/GUI/ConfigManipulation.cpp`
+
 ### Bug Fixes
 
 - **Preset load errors silently deleted the user's custom preset file** (#13075)  

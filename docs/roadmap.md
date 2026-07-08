@@ -444,21 +444,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Effort:** 129
   **Chars:** ~64,295 total (largest: src/slic3r/Utils/OctoPrint.cpp ~49,873) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Vertical brick / interlock layer printing (#7282)**
-  — 76 rxn, most-requested pure engine feature in the Medium bucket. Alternate layer
-  orientation for stronger parts; touches perimeter/layer generation (Arachne-adjacent).
-  High effort (new algorithm spanning perimeter generation + layer sequencing + config) —
-  matches `TRIAGE_POLICY.md`'s own "Impact 2, Effort 3 → skip unless it uniquely matters to
-  owned hardware" example, so this is not scheduled ahead of the Critical/High items above,
-  but it stays tracked here rather than dropped given the demand signal. Open PR **#8181**
-  ("Brick Layers / Staggered Perimeter") in the PR queue below looks like it implements this
-  directly — read that diff first per the Cherry-pick tier before implementing from scratch.
-
-  **Context:** `src/libslic3r/Arachne/WallToolPaths.cpp` · `src/libslic3r/Arachne/SkeletalTrapezoidation.cpp`
-  **Route:** claude
-  **Effort:** 270
-  **Chars:** ~134,821 total (largest: src/libslic3r/Arachne/SkeletalTrapezoidation.cpp ~91,015) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 1 🥉 · Class 3 — Resin-style tree supports optimized for FDM (#8900)**
   — 19 rxn. Touches Support material (Known Risky Subsystem) for a niche support style;
   low priority relative to the Critical/High support-adjacent work above.

@@ -367,6 +367,42 @@ struct PerimeterGeneratorArachneExtrusion
     bool is_contour = false;
 };
 
+// Orca: stagger_perimeters ("brick layers"). Only inner-wall rings (inset_idx > 0) on layers past
+// the first couple (bed adhesion) are eligible; the outer wall is left untouched for dimensional
+// accuracy and surface finish. A ring is only staggered where it is fully covered by the layer
+// above - if any part of it isn't (a slope, or the object's topmost layer, where upper_slices is
+// empty), that whole path is left flat, since staggering it there would poke through or under a
+// visible top surface (the documented failure mode of prior staggered-perimeter attempts).
+static bool perimeter_stagger_path_is_safe(const PerimeterGenerator &perimeter_generator, const ExtrusionPath &path)
+{
+    Polygons upper_polygons = perimeter_generator.upper_slices_polygons();
+    if (upper_polygons.empty())
+        return false;
+    Polylines remaining = diff_pl(Polylines{ path.polyline.to_polyline() }, upper_polygons);
+    return remaining.empty();
+}
+
+static void apply_perimeter_stagger(const PerimeterGenerator &perimeter_generator, const Arachne::ExtrusionLine *extrusion, ExtrusionPaths &paths)
+{
+    if (!perimeter_generator.config->stagger_perimeters || extrusion->inset_idx == 0 || perimeter_generator.layer_id < 2)
+        return;
+    // Alternate which parity of layer gets the raised half of the ring, so consecutive layers'
+    // inner-wall seams offset like brick coursing instead of stacking straight up.
+    if (perimeter_generator.layer_id % 2 != 0)
+        return;
+
+    const coord_t z_shift = scale_(perimeter_generator.layer_height / 2.0);
+    for (ExtrusionPath &path : paths) {
+        if (path.role() == erOverhangPerimeter)
+            continue;
+        if (!perimeter_stagger_path_is_safe(perimeter_generator, path))
+            continue;
+        path.polyline = Polyline3(path.polyline.to_polyline(), z_shift);
+        path.z_contoured = true;
+        path.is_staggered = true;
+    }
+}
+
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
@@ -521,6 +557,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
             extrusion_paths_append(paths, *extrusion, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
         }
+
+        apply_perimeter_stagger(perimeter_generator, extrusion, paths);
 
         // Append paths to collection.
         if (!paths.empty()) {
@@ -2116,6 +2154,13 @@ void PerimeterGenerator::process_arachne()
         // in the current layer
         double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->outer_wall_filament_id - 1);
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
+    }
+
+    // Orca: prepare grown upper layer slices so stagger_perimeters can avoid staggering inner
+    // walls that are about to be covered by a top surface (mirrors the lower_slices prep above).
+    if (this->upper_slices != nullptr && this->config->stagger_perimeters) {
+        double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->outer_wall_filament_id - 1);
+        m_upper_slices_polygons = offset(*this->upper_slices, float(scale_(+nozzle_diameter / 2)));
     }
 
     Surfaces all_surfaces = this->slices->surfaces;

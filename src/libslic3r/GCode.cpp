@@ -6531,6 +6531,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         _mm3_per_mm *= m_config.scarf_joint_flow_ratio;
     }
 
+    // Orca: compensate flow on inner-wall rings raised by stagger_perimeters, matching the
+    // community-validated finding that Z-staggering alone (without extra flow) prints weaker
+    // than an unstaggered wall.
+    if (path.is_staggered) {
+        _mm3_per_mm *= m_config.stagger_perimeters_extrusion_multiplier;
+    }
+
     if (m_config.set_other_flow_ratios) {
         if (path.role() == erExternalPerimeter) {
             _mm3_per_mm *= m_config.outer_wall_flow_ratio;
@@ -7063,7 +7070,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         coordf_t z_diff = unscale_(line.b.z());
 
                         double extrusion_ratio = 1;
-                        if (path.role() != erIroning) {
+                        // Orca: stagger_perimeters already compensates flow via
+                        // stagger_perimeters_extrusion_multiplier (applied to _mm3_per_mm/dE above);
+                        // ZAA's height-ratio model would double-compensate a uniform brick-layer shift.
+                        if (path.role() != erIroning && !path.is_staggered) {
                             extrusion_ratio = (path.height + z_diff) / path.height;
                         }
 

@@ -1263,6 +1263,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool, zaa_dont_alternate_fill_direction))
     ((ConfigOptionFloat, zaa_min_z))
     ((ConfigOptionFloat, zaa_minimize_perimeter_height))
+
+    // Orca: stagger_perimeters ("brick layers" / staggered perimeter, #7282)
+    ((ConfigOptionBool,                 stagger_perimeters))
+    ((ConfigOptionFloat,                stagger_perimeters_extrusion_multiplier))
     )
 
 PRINT_CONFIG_CLASS_DEFINE(
