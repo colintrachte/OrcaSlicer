@@ -195,6 +195,9 @@ def _chat(base_url, model_id, extra_headers, system_msg, user_msg, max_tokens, m
             )
             time.sleep(wait)
 
+    if resp is None:
+        raise RuntimeError(f"no response received from {base_url} (max_retries={max_retries})")
+
     # A 200 response isn't necessarily a completion — some endpoints return an error
     # object or an empty choices list with a success status. Fail with the actual
     # payload rather than a bare KeyError that says nothing about what came back.

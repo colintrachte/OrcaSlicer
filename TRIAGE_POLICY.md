@@ -4,8 +4,10 @@ This document governs how issues and PRs from upstream [SoftFever/OrcaSlicer](ht
 are evaluated and implemented in this fork. It is written for an AI agent executing work on behalf of a user
 who wants maximum feature quality and reliability at minimum token cost.
 
-This fork (`colintrachte/OrcaSlicer`) currently has no `upstream` remote configured — only `origin`. If a triage
-pass requires diffing against upstream, add one first: `git remote add upstream https://github.com/SoftFever/OrcaSlicer.git`.
+This fork (`colintrachte/OrcaSlicer`) has an `upstream` remote configured (`https://github.com/OrcaSlicer/OrcaSlicer.git`,
+the project's current org after moving off `SoftFever/OrcaSlicer`), alongside `origin`. First sync done 2026-07-07;
+re-run `git fetch upstream && git log HEAD..upstream/main --oneline` periodically per §1 below, and cross-reference
+any new commits' PR numbers against `docs/roadmap.md`'s open `#NNNN` items before mining issues/PRs by hand.
 
 ---
 

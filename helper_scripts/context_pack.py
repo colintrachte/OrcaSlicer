@@ -66,16 +66,18 @@ MODEL_BUDGETS = {
     # The router's ≤3-file cutoff for Gemini is a task-size heuristic (small,
     # mechanical), not this upload cap.
     "gemini": {
-        "files": 10, "chars": 30_000,
-        "chars_note": "approximate — community-reported \"message too long\" threshold, not an official spec",
+        "files": 10,
+        "chars": 30_000,
+        "chars_note": 'approximate — community-reported "message too long" threshold, not an official spec',
     },
     # Kimi web app: a 45,821-char pack (task text + files) was flagged by Kimi itself as
     # "17% over the limit" for a regular chat entry, auto-converting to a file attachment
     # instead. Implies a real ceiling around ~39,000 chars; budgeted here with a margin
     # since this is a single observation, not a measured spec. Update if more data comes in.
     "kimi": {
-        "files": 20, "chars": 35_000,
-        "chars_note": "single observed data point (author hit \"17% over\" at ~45.8k chars, implying ~39k) — not an official spec, refine if it recurs",
+        "files": 20,
+        "chars": 35_000,
+        "chars_note": 'single observed data point (author hit "17% over" at ~45.8k chars, implying ~39k) — not an official spec, refine if it recurs',
     },
     # ChatGPT Free: pasting more than ~5,000 characters into the message box
     # silently turns the paste into a file attachment instead of inline text,
@@ -85,26 +87,44 @@ MODEL_BUDGETS = {
     # sources tie the paste-to-attachment behavior to paid tiers, so treat 5,000
     # as a conservative floor, not a hard spec.
     "chatgpt": {
-        "files": 3, "chars": 5_000,
-        "chars_note": "community-reported \"5K rule\" (2026); paste past this becomes a file attachment, burning one of the 3-uploads/24h cap — conservative floor, not an official spec",
+        "files": 3,
+        "chars": 5_000,
+        "chars_note": 'community-reported "5K rule" (2026); paste past this becomes a file attachment, burning one of the 3-uploads/24h cap — conservative floor, not an official spec',
     },
-    "meta": {"files": 0, "chars": None},       # no upload at all — paste the text body directly into chat
+    "meta": {
+        "files": 0,
+        "chars": None,
+    },  # no upload at all — paste the text body directly into chat
     # Perplexity free: pasting more than ~8,000 tokens (~20,000 chars) prompts
     # a switch to file upload instead. Community-reported (aggregator sites,
     # not Perplexity's own docs) — treat as approximate, not exact.
     "perplexity": {
-        "files": None, "chars": 20_000,
+        "files": None,
+        "chars": 20_000,
         "chars_note": "approximate — community-reported threshold before it prompts a file upload instead of inline paste",
     },
-    "qwen": {"files": None, "chars": None},       # programmatic via query_model.py — no paste-step limit
-    "openrouter": {"files": None, "chars": None}, # programmatic via query_model.py — no paste-step limit
+    "qwen": {"files": None, "chars": None},  # programmatic via query_model.py — no paste-step limit
+    "openrouter": {
+        "files": None,
+        "chars": None,
+    },  # programmatic via query_model.py — no paste-step limit
 }
 
 LANG_MAP = {
-    ".c": "c", ".h": "c", ".cpp": "cpp", ".hpp": "cpp",
-    ".py": "python", ".js": "javascript", ".ts": "typescript",
-    ".md": "markdown", ".json": "json", ".yaml": "yaml", ".yml": "yaml",
-    ".toml": "toml", ".sh": "bash", ".ini": "ini",
+    ".c": "c",
+    ".h": "c",
+    ".cpp": "cpp",
+    ".hpp": "cpp",
+    ".py": "python",
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".md": "markdown",
+    ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".toml": "toml",
+    ".sh": "bash",
+    ".ini": "ini",
 }
 
 
@@ -118,8 +138,11 @@ def repo_root() -> Path:
     except Exception:
         # Not fatal — but headers/relative paths now depend on where this was run from,
         # which is worth knowing when a pack's paths look wrong.
-        print("note: not inside a git repository — paths resolve relative to the "
-              "current directory instead of a repo root.", file=sys.stderr)
+        print(
+            "note: not inside a git repository — paths resolve relative to the "
+            "current directory instead of a repo root.",
+            file=sys.stderr,
+        )
         return Path.cwd()
 
 
@@ -142,7 +165,9 @@ def build_pack(paths, root: Path, fence: bool):
         n_lines = text.count("\n") + 1
         total_lines += n_lines
         resolved = p.resolve()
-        rel = resolved.relative_to(root).as_posix() if resolved.is_relative_to(root) else p.as_posix()
+        rel = (
+            resolved.relative_to(root).as_posix() if resolved.is_relative_to(root) else p.as_posix()
+        )
         if fence:
             lang = LANG_MAP.get(p.suffix.lower(), "")
             # A file that already contains a ``` fence (e.g. markdown with an
@@ -174,12 +199,18 @@ def model_fitness(per_file, n_chars):
         if budget["chars"] is not None:
             oversized = next((rel for rel, _, chars in per_file if chars > budget["chars"]), None)
             if oversized is not None:
-                fitness[model] = ("not viable", f"{oversized} alone exceeds the ~{budget['chars']:,}-char budget")
+                fitness[model] = (
+                    "not viable",
+                    f"{oversized} alone exceeds the ~{budget['chars']:,}-char budget",
+                )
                 continue
         over_files = budget["files"] not in (None, 0) and len(per_file) > budget["files"]
         over_chars = budget["chars"] is not None and n_chars > budget["chars"]
         if over_files or over_chars:
-            fitness[model] = ("trim", "exceeds the pack-wide budget; trim the file set or split across sessions")
+            fitness[model] = (
+                "trim",
+                "exceeds the pack-wide budget; trim the file set or split across sessions",
+            )
         else:
             fitness[model] = ("fits", "")
     return fitness
@@ -233,18 +264,32 @@ def wrap_chunk(bodies, index: int, total: int) -> str:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("files", nargs="+", help="Project-relative or absolute file paths to include.")
-    ap.add_argument("--model", choices=sorted(MODEL_BUDGETS), help="Warn if the bundle exceeds this model's known budget.")
-    ap.add_argument("--out", default="scratch.txt", help="Write the bundle here (default: scratch.txt).")
-    ap.add_argument("--stdout", action="store_true", help="Print the bundle to stdout instead of writing --out.")
-    ap.add_argument("--no-fence", action="store_true", help="Disable markdown code fences around each file.")
     ap.add_argument(
-        "--max-chars", type=int, default=DEFAULT_MAX_CHARS,
+        "--model",
+        choices=sorted(MODEL_BUDGETS),
+        help="Warn if the bundle exceeds this model's known budget.",
+    )
+    ap.add_argument(
+        "--out", default="scratch.txt", help="Write the bundle here (default: scratch.txt)."
+    )
+    ap.add_argument(
+        "--stdout", action="store_true", help="Print the bundle to stdout instead of writing --out."
+    )
+    ap.add_argument(
+        "--no-fence", action="store_true", help="Disable markdown code fences around each file."
+    )
+    ap.add_argument(
+        "--max-chars",
+        type=int,
+        default=DEFAULT_MAX_CHARS,
         help=f"Split the bundle into multiple paste-sized chunks of at most this many "
-             f"characters each (default: {DEFAULT_MAX_CHARS}, ~25k tokens — comfortably under every "
-             f"chat UI's paste limit). Chunk boundaries always fall between files, never "
-             f"mid-file. Pass 0 to disable chunking and keep a single block.",
+        f"characters each (default: {DEFAULT_MAX_CHARS}, ~25k tokens — comfortably under every "
+        f"chat UI's paste limit). Chunk boundaries always fall between files, never "
+        f"mid-file. Pass 0 to disable chunking and keep a single block.",
     )
     args = ap.parse_args()
 
@@ -266,19 +311,31 @@ def main():
     if args.model:
         budget = MODEL_BUDGETS[args.model]
         if budget["files"] == 0:
-            print(f"warning: {args.model} does not accept file uploads - paste this text directly into chat.", file=sys.stderr)
+            print(
+                f"warning: {args.model} does not accept file uploads - paste this text directly into chat.",
+                file=sys.stderr,
+            )
         elif budget["files"] is not None and n_files > budget["files"]:
-            print(f"warning: {n_files} files exceeds {args.model}'s ~{budget['files']}-file budget - trim the set or split across sessions.", file=sys.stderr)
+            print(
+                f"warning: {n_files} files exceeds {args.model}'s ~{budget['files']}-file budget - trim the set or split across sessions.",
+                file=sys.stderr,
+            )
         if budget["chars"] is not None:
             oversized = next((rel for rel, _, chars in per_file if chars > budget["chars"]), None)
             if oversized is not None:
-                print(f"warning: {oversized} alone exceeds {args.model}'s ~{budget['chars']}-char budget - "
-                      f"chunking can't split a single file, so no amount of trimming fixes this; "
-                      f"that file needs a different model.", file=sys.stderr)
+                print(
+                    f"warning: {oversized} alone exceeds {args.model}'s ~{budget['chars']}-char budget - "
+                    f"chunking can't split a single file, so no amount of trimming fixes this; "
+                    f"that file needs a different model.",
+                    file=sys.stderr,
+                )
             elif n_chars > budget["chars"]:
                 note = budget.get("chars_note")
                 suffix = f" ({note})" if note else " - trim the set."
-                print(f"warning: {n_chars} chars exceeds {args.model}'s ~{budget['chars']}-char budget{suffix}", file=sys.stderr)
+                print(
+                    f"warning: {n_chars} chars exceeds {args.model}'s ~{budget['chars']}-char budget{suffix}",
+                    file=sys.stderr,
+                )
 
     print(f"# {n_files} files, {total_lines} lines, {n_chars} chars", file=sys.stderr)
 
@@ -288,7 +345,10 @@ def main():
         print(f"# split into {total} chunk(s) at --max-chars={args.max_chars}", file=sys.stderr)
         for idx, fc in enumerate(file_chunks, start=1):
             chunk_text = wrap_chunk(fc, idx, total)
-            print(f"# chunk {idx}/{total}: {len(fc)} file(s), {len(chunk_text)} chars", file=sys.stderr)
+            print(
+                f"# chunk {idx}/{total}: {len(fc)} file(s), {len(chunk_text)} chars",
+                file=sys.stderr,
+            )
             if len(chunk_text) > args.max_chars:
                 print(
                     f"warning: chunk {idx}/{total} is {len(chunk_text)} chars, over "
@@ -300,7 +360,9 @@ def main():
                 print(file=sys.stderr)
             else:
                 out_path = Path(args.out)
-                chunk_path = out_path.with_name(f"{out_path.stem}.part{idx}of{total}{out_path.suffix}")
+                chunk_path = out_path.with_name(
+                    f"{out_path.stem}.part{idx}of{total}{out_path.suffix}"
+                )
                 chunk_path.write_text(chunk_text, encoding="utf-8")
                 print(f"written to {chunk_path}", file=sys.stderr)
         return

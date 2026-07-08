@@ -13,10 +13,10 @@
       "installed_at": "2026-07-04T04:56:01+00:00"
     },
     "helper_scripts/context_pack.py": {
-      "sha256": "389fed789fe0a9aa8c22e36088022de32d626d792b87f11552edf402b66dfdb1",
-      "template_sha256": "389fed789fe0a9aa8c22e36088022de32d626d792b87f11552edf402b66dfdb1",
+      "sha256": "fd17a32f8ab0027c921acfbc2b2be41fbe22bdf099615a72c4cf6642cf369b4a",
+      "template_sha256": "fd17a32f8ab0027c921acfbc2b2be41fbe22bdf099615a72c4cf6642cf369b4a",
       "template": "helper_scripts/context_pack.py",
-      "installed_at": "2026-07-05T21:41:13+00:00"
+      "installed_at": "2026-07-08T02:05:51+00:00"
     },
     "helper_scripts/route_tasks.py": {
       "sha256": "f03aa6c81fdd8979030c1f37c7099985b0b795fac5235db6c67ca23a62fe7530",
@@ -25,10 +25,10 @@
       "installed_at": "2026-07-05T21:41:13+00:00"
     },
     "helper_scripts/query_model.py": {
-      "sha256": "41dd6fcd06465c8d0cb17ee273062ff212b6f4c73cb83ef3ee1235e808ef916d",
-      "template_sha256": "41dd6fcd06465c8d0cb17ee273062ff212b6f4c73cb83ef3ee1235e808ef916d",
+      "sha256": "75258c00c20cd43c87fe110e67652f31aff44dcc00588613c766f6bac43058e1",
+      "template_sha256": "75258c00c20cd43c87fe110e67652f31aff44dcc00588613c766f6bac43058e1",
       "template": "helper_scripts/query_model.py",
-      "installed_at": "2026-07-05T21:41:13+00:00"
+      "installed_at": "2026-07-08T02:05:51+00:00"
     },
     "helper_scripts/pack_task.py": {
       "sha256": "1fdca3f4e2d3b72da2e8bfd41ed1af84c42ea1ae64838c37f16ded3956189cc0",
@@ -53,6 +53,18 @@
       "template_sha256": "60864aae264519399c7a7379382e411d40a3bd0f1641e669fb73183d223f6bd0",
       "template": "helper_scripts/effort_ceiling.txt",
       "installed_at": "2026-07-04T04:56:01+00:00"
+    },
+    "CONTRIBUTING.md": {
+      "sha256": "f6e376aa1d560d2113662ff43bb32f1ca66b3b8abdb0102357262be14debc153",
+      "template_sha256": "f6e376aa1d560d2113662ff43bb32f1ca66b3b8abdb0102357262be14debc153",
+      "template": "templates/CONTRIBUTING.template.md",
+      "installed_at": "2026-07-08T02:05:51+00:00"
+    },
+    "REVIEW_TIERS.md": {
+      "sha256": "ee59ba3f0db17dc1774f7b6d77e56ff43eb0fe387474c3d368fb7eefd9142168",
+      "template_sha256": "ee59ba3f0db17dc1774f7b6d77e56ff43eb0fe387474c3d368fb7eefd9142168",
+      "template": "templates/REVIEW_TIERS.template.md",
+      "installed_at": "2026-07-08T02:05:51+00:00"
     }
   }
 }
