@@ -68,6 +68,8 @@ void GLGizmoFdmSupports::on_opening()
 
     m_volume_ready = false;
     m_volume_valid = false;
+    // Orca: always re-open with the default paint mode rather than a sticky Eraser/Block choice.
+    m_left_click_paint_type = EnforcerBlockerType::ENFORCER;
 }
 
 std::string GLGizmoFdmSupports::on_get_name() const
@@ -91,6 +93,11 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["cursor_size"]        = _L("Brush size");
     m_desc["smart_fill_angle"]   = _L("Smart fill angle");
     m_desc["gap_area"]           = _L("Gap area");
+    // Orca: explicit paint-mode selector
+    m_desc["paint_mode"]         = _L("Paint mode");
+    m_desc["paint_mode_enforce"] = _L("Enforce");
+    m_desc["paint_mode_block"]   = _L("Block");
+    m_desc["paint_mode_erase"]   = _L("Eraser");
 
 
     const wxString ctrl  = GUI::shortkey_ctrl_prefix();
@@ -301,6 +308,46 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (m_current_tool != old_tool)
         this->tool_changed(old_tool, m_current_tool);
 
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+
+    // Orca: explicit Enforce / Block / Eraser buttons, so block/erase are discoverable in the
+    // toolbox itself instead of only via the right-click / Shift+click shortcuts (which remain
+    // available and unchanged alongside these buttons).
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(m_desc.at("paint_mode"));
+    {
+        struct PaintModeButton
+        {
+            EnforcerBlockerType type;
+            const char*         desc_key;
+            wxString            tooltip;
+        };
+        const std::array<PaintModeButton, 3> paint_mode_buttons = {{
+            {EnforcerBlockerType::ENFORCER, "paint_mode_enforce", _L("Paint supports (Left mouse button)")},
+            {EnforcerBlockerType::BLOCKER,  "paint_mode_block",   _L("Block supports (also: Right mouse button)")},
+            {EnforcerBlockerType::NONE,     "paint_mode_erase",   _L("Erase paint (also: Shift + Left mouse button)")},
+        }};
+        for (size_t i = 0; i < paint_mode_buttons.size(); ++i) {
+            const PaintModeButton& btn = paint_mode_buttons[i];
+            if (i != 0) ImGui::SameLine();
+
+            bool is_active = m_left_click_paint_type == btn.type;
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f * scale);
+            ImGui::PushStyleColor(ImGuiCol_Button, is_active ? ImVec4(0.f, .59f, .53f, .25f) : ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, is_active ? ImVec4(0.f, .59f, .53f, .25f) : ImVec4(.6f, .6f, .6f, .2f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, is_active ? ImVec4(0.f, .59f, .53f, .30f) : ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Border, is_active ? ImGuiWrapper::COL_ORCA : ImVec4(0, 0, 0, 0));
+            bool btn_clicked = m_imgui->button(m_desc.at(btn.desc_key));
+            ImGui::PopStyleColor(4);
+            ImGui::PopStyleVar(2);
+
+            if (btn_clicked)
+                m_left_click_paint_type = btn.type;
+            if (ImGui::IsItemHovered())
+                m_imgui->tooltip(btn.tooltip, max_tooltip_width);
+        }
+    }
     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
 
     if (m_current_tool == ImGui::CircleButtonIcon) {
@@ -657,12 +704,15 @@ wxString GLGizmoFdmSupports::handle_snapshot_action_name(bool shift_down, GLGizm
     wxString action_name;
     if (shift_down)
         action_name = ("Unselect all");
-    else {
-        if (button_down == Button::Left)
-            action_name = ("Enforce supports");
-        else
-            action_name = ("Block supports");
-    }
+    else if (button_down == Button::Left) {
+        // Orca: left click's action now depends on the selected paint mode (Enforce/Block/Eraser)
+        switch (m_left_click_paint_type) {
+        case EnforcerBlockerType::BLOCKER: action_name = ("Block supports"); break;
+        case EnforcerBlockerType::NONE:    action_name = ("Unselect all"); break;
+        default:                           action_name = ("Enforce supports"); break;
+        }
+    } else
+        action_name = ("Block supports");
     return action_name;
 }
 

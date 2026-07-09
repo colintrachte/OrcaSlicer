@@ -25,6 +25,8 @@
 #include <wx/fontutil.h>
 #include <wx/display.h>
 #include <wx/utils.h>
+#include <wx/filename.h>
+#include <wx/filedlg.h>
 
 #include "libslic3r/Config.hpp"
 
@@ -37,6 +39,23 @@ wxDEFINE_EVENT(EVT_HID_DEVICE_DETACHED, HIDDeviceDetachedEvent);
 wxDEFINE_EVENT(EVT_VOLUME_ATTACHED, VolumeAttachedEvent);
 wxDEFINE_EVENT(EVT_VOLUME_DETACHED, VolumeDetachedEvent);
 #endif // _WIN32
+
+void export_preset_to_file(wxWindow *parent, const Slic3r::Preset &preset)
+{
+    wxFileDialog dlg(parent, _L("Export preset to file"), wxGetApp().app_config->get_last_dir(),
+        from_u8(preset.name) + ".json", "JSON files (*.json)|*.json", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+
+    std::string path = into_u8(dlg.GetPath());
+    std::string from_str = preset.is_system ? "System" : (preset.is_from_bundle() ? "Bundle" : "User");
+    try {
+        preset.config.save_to_json(path, get_preset_bare_name(preset.name), from_str, preset.version.to_string());
+        wxGetApp().app_config->update_config_dir(wxFileName(path).GetPath().ToUTF8().data());
+    } catch (const std::exception &ex) {
+        show_error(parent, wxString::Format(_L("Failed to export preset to \"%s\": %s"), from_u8(path), ex.what()));
+    }
+}
 
 wxString format_nozzle_diameter(float diameter)
 {

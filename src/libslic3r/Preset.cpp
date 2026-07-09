@@ -768,7 +768,7 @@ std::string Preset::label(bool no_alias) const
         + ((no_alias || this->alias.empty()) ? this->name : this->alias);
 }
 
-bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
+bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer, std::string *reason)
 {
     // Orca: we allow cross vendor compatibility
 	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
@@ -779,16 +779,22 @@ bool is_compatible_with_print(const PresetWithVendorProfile &preset, const Prese
     bool  has_compatible_prints = compatible_prints != nullptr && ! compatible_prints->values.empty();
     if (! has_compatible_prints && ! condition.empty()) {
         try {
-            return PlaceholderParser::evaluate_boolean_expression(condition, active_print.preset.config);
+            bool ok = PlaceholderParser::evaluate_boolean_expression(condition, active_print.preset.config);
+            if (! ok && reason)
+                *reason = "Does not satisfy this preset's \"compatible_prints_condition\": " + condition;
+            return ok;
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
             printf("Preset::is_compatible_with_print - parsing error of compatible_prints_condition %s:\n%s\n", active_print.preset.name.c_str(), err.what());
             return true;
         }
     }
-    return preset.preset.is_default || active_print.preset.name.empty() || ! has_compatible_prints ||
+    bool result = preset.preset.is_default || active_print.preset.name.empty() || ! has_compatible_prints ||
         std::find(compatible_prints->values.begin(), compatible_prints->values.end(), active_print.preset.name) !=
             compatible_prints->values.end();
+    if (! result && reason)
+        *reason = "Process preset \"" + active_print.preset.name + "\" is not in this preset's \"compatible_prints\" list.";
+    return result;
 }
 
 //BBS: If one filament or process preset is compatible with one system printer preset,
@@ -806,7 +812,7 @@ bool is_compatible_with_parent_printer(const PresetWithVendorProfile& preset, co
                compatible_printers->values.end();
 }
 
-bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config)
+bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config, std::string *reason)
 {
     // Orca: we allow cross vendor compatibility
 	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
@@ -819,35 +825,44 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
         const auto  excluded         = preset.vendor->name == PresetBundle::ORCA_FILAMENT_LIBRARY &&
                               (excluded_printers.find(active_printer.preset.name) != excluded_printers.end() ||
                                excluded_printers.find(active_printer.preset.inherits()) != excluded_printers.end());
-        if (excluded)
+        if (excluded) {
+            if (reason)
+                *reason = "Excluded from printer \"" + active_printer.preset.name + "\" in the filament library.";
             return false;
+        }
     }
     auto &condition               = preset.preset.compatible_printers_condition();
     auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_printers"));
     bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
     if (! has_compatible_printers && ! condition.empty()) {
         try {
-            return PlaceholderParser::evaluate_boolean_expression(condition, active_printer.preset.config, extra_config);
+            bool ok = PlaceholderParser::evaluate_boolean_expression(condition, active_printer.preset.config, extra_config);
+            if (! ok && reason)
+                *reason = "Does not satisfy this preset's \"compatible_printers_condition\": " + condition;
+            return ok;
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": parsing error of compatible_printers_condition %1%: %2%")%active_printer.preset.name %err.what();
             return true;
         }
     }
-    return preset.preset.is_default || active_printer.preset.name.empty() || !has_compatible_printers ||
+    bool result = preset.preset.is_default || active_printer.preset.name.empty() || !has_compatible_printers ||
            std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.name) !=
                compatible_printers->values.end() ||
            (!active_printer.preset.is_system && is_compatible_with_parent_printer(preset, active_printer));
+    if (! result && reason)
+        *reason = "Printer \"" + active_printer.preset.name + "\" is not in this preset's \"compatible_printers\" list.";
+    return result;
 }
 
-bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer)
+bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, std::string *reason)
 {
     DynamicPrintConfig config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.preset.name));
     const ConfigOption *opt = active_printer.preset.config.option("nozzle_diameter");
     if (opt)
         config.set_key_value("num_extruders", new ConfigOptionInt((int)static_cast<const ConfigOptionFloats*>(opt)->values.size()));
-    return is_compatible_with_printer(preset, active_printer, &config);
+    return is_compatible_with_printer(preset, active_printer, &config, reason);
 }
 
 void Preset::set_visible_from_appconfig(const AppConfig &app_config)
@@ -2494,7 +2509,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // Select the preset after loading?
     LoadAndSelect                select,
     const Semver                file_version,
-    const std::string           filament_id)
+    const std::string           filament_id,
+    const std::function<int(const std::string &existing_name, std::string &renamed_to)> &on_name_collision)
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
@@ -2681,6 +2697,27 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" The preset %1% exists and it matches the values stored inside config.")%new_name;
             return std::make_pair(&(*it), false);
+        }
+        // ORCA: `new_name` is already taken by a preset with different content. Today's default
+        // (and the only behavior when no callback is supplied, e.g. headless/CLI loads) is to
+        // silently retry with an incremented suffix below. An interactive GUI caller may instead
+        // ask the user to Replace (reuse `new_name` as-is; `load_preset()` below overwrites it in
+        // place) or Rename (use a caller-supplied name instead), keeping full backward compatibility.
+        if (on_name_collision) {
+            std::string renamed_to;
+            int action = on_name_collision(new_name, renamed_to);
+            if (action == 1) {
+                // Replace: keep this exact name, load_preset() will overwrite it in place.
+                break;
+            } else if (action == 2 && !renamed_to.empty()) {
+                new_name = renamed_to;
+                it = this->find_preset_internal(new_name);
+                if (it == m_presets.end() || it->name != new_name)
+                    break;
+                // The user-chosen name is also taken with differing config: fall through and
+                // keep both under an auto-suffixed name rather than looping the prompt.
+            }
+            // action == 0 (keep both) falls through to the auto-suffix retry below.
         }
         // Form another profile name.
     }
@@ -3130,6 +3167,15 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
          preset == &child) ?
             nullptr :
             preset;
+}
+
+std::vector<const Preset*> PresetCollection::get_preset_children(const Preset& parent) const
+{
+    std::vector<const Preset*> children;
+    for (const Preset &preset : m_presets)
+        if (&preset != &parent && preset.inherits() == parent.name)
+            children.push_back(&preset);
+    return children;
 }
 
 const Preset *PresetCollection::get_preset_base(const Preset &child) const

@@ -292,6 +292,14 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_compare_btn->SetToolTip(_L("Compare presets"));
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
 
+        // ORCA always-visible export of the current process preset, even while the section is collapsed
+        m_process_export_btn = new Button(m_top_panel, _L("EXPORT"));
+        m_process_export_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
+        m_process_export_btn->SetToolTip(_L("Export the current process preset to a file"));
+        m_process_export_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+            export_preset_to_file(this, wxGetApp().get_tab(Preset::TYPE_PRINT)->get_presets()->get_edited_preset());
+        });
+
         m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
@@ -421,7 +429,8 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_mode_icon   , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
         m_mode_sizer->Add(m_mode_view   , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
         m_mode_sizer->Add(m_setting_btn , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
-        m_mode_sizer->Add(m_compare_btn , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::TitlebarMargin()));
+        m_mode_sizer->Add(m_compare_btn , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
+        m_mode_sizer->Add(m_process_export_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::TitlebarMargin()));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
         m_mode_sizer->SetMinSize(-1, FromDIP(30));

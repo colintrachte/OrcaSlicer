@@ -34,6 +34,7 @@
 #include <wx/string.h>
 #include <wx/wupdlock.h>
 #include <wx/numdlg.h>
+#include <wx/textdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
 #include <wx/event.h>
@@ -543,6 +544,7 @@ struct Sidebar::priv
     ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
+    Button*           m_filament_export = nullptr;
     int m_menu_filament_id = -1;
     wxScrolledWindow* m_panel_filament_content;
     wxScrolledWindow* m_scrolledWindow_filament_content;
@@ -560,6 +562,7 @@ struct Sidebar::priv
     ScalableButton* m_printer_connect = nullptr;
     ScalableButton* m_printer_bbl_sync = nullptr;
     ScalableButton* m_printer_setting = nullptr;
+    Button*         m_printer_export = nullptr;
     wxStaticText *  m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
 
@@ -1720,11 +1723,20 @@ Sidebar::Sidebar(Plater *parent)
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
             });
 
+        // ORCA always-visible export of the current printer preset, even while the section is collapsed
+        p->m_printer_export = new Button(p->m_panel_printer_title, _L("EXPORT"));
+        p->m_printer_export->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
+        p->m_printer_export->SetToolTip(_L("Export the current printer preset to a file"));
+        p->m_printer_export->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+            export_preset_to_file(this, wxGetApp().preset_bundle->printers.get_edited_preset());
+        });
+
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
         h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT, FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_text_printer_settings, 1, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
         //h_sizer_title->AddStretchSpacer();
+        h_sizer_title->Add(p->m_printer_export, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_printer_connect , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing())); // used larger margin to prevent accidental clicks
         h_sizer_title->Add(p->m_printer_bbl_sync, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing())); // used larger margin to prevent accidental clicks
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
@@ -2098,11 +2110,11 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
     p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
-        if (!p || !p->m_panel_filament_content || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
+        if (!p || !p->m_panel_filament_content || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_filament_export || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
             return;
         // ORCA exclude area of del button from titlebar collapse/expand feature to fix undesired collapse when user spams del filament button
         // also block fold/unfold feature when user clicks to spacing between icons
-        int exclude_pt = p->m_bpButton_set_filament->GetPosition().x; // maximum fixed item
+        int exclude_pt = p->m_filament_export->GetPosition().x; // maximum fixed item
         if      (p->m_flushing_volume_btn->IsShown())   exclude_pt = p->m_flushing_volume_btn->GetPosition().x;
         else if (p->m_bpButton_add_filament->IsShown()) exclude_pt = p->m_bpButton_add_filament->GetPosition().x - FromDIP(30); // reserve spacing for delete button
         else if (ams_btn->IsShown())                    exclude_pt = ams_btn->GetPosition().x;
@@ -2203,6 +2215,19 @@ Sidebar::Sidebar(Plater *parent)
     p->m_bpButton_set_filament = set_btn;
 
     bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
+
+    // ORCA always-visible export of the first/active filament preset, even while the section is collapsed
+    p->m_filament_export = new Button(p->m_panel_filament_title, _L("EXPORT"));
+    p->m_filament_export->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
+    p->m_filament_export->SetToolTip(_L("Export the current filament preset to a file"));
+    p->m_filament_export->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+        const Preset *filament = preset_bundle->filament_presets.empty() ? nullptr :
+            preset_bundle->filaments.find_preset(preset_bundle->filament_presets[0]);
+        if (filament)
+            export_preset_to_file(this, *filament);
+    });
+    bSizer39->Add(p->m_filament_export, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
     bSizer39->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
 
     // add filament content
@@ -5936,6 +5961,38 @@ void read_binary_stl(const std::string& filename, std::string& model_id, std::st
     return;
 }
 
+// ORCA: shown when a project (3MF) being loaded embeds a preset whose name matches one already
+// installed locally, but with different settings - replaces the previous silent auto-rename
+// (see PresetCollection::load_external_preset's on_name_collision callback).
+struct PresetImportConflictDialog : MessageDialog
+{
+    PresetImportConflictDialog(wxWindow *parent, const wxString &name)
+        : MessageDialog(parent,
+            wxString::Format(_L("This project contains a preset named \"%s\" whose settings differ "
+                                 "from the one already installed. What would you like to do?"), name),
+            _L("Preset name conflict"), wxYES_NO)
+    {
+        SetYesNoLabels(_L("Replace"), _L("Keep Both"));
+        add_button(wxID_APPLY, false, _L("Rename..."));
+    }
+};
+
+// Returns 0 = keep both (today's auto-suffixed name), 1 = replace the installed preset in place,
+// 2 = use a user-chosen name (via `renamed_to`).
+static int resolve_preset_import_conflict(wxWindow *parent, const std::string &existing_name, std::string &renamed_to)
+{
+    PresetImportConflictDialog dlg(parent, from_u8(existing_name));
+    int res = dlg.ShowModal();
+    if (res == wxID_YES)
+        return 1;
+    if (res == wxID_APPLY) {
+        wxTextEntryDialog rename_dlg(parent, _L("Enter a new name for the imported preset:"), _L("Rename preset"), from_u8(existing_name));
+        if (rename_dlg.ShowModal() == wxID_OK && !rename_dlg.GetValue().IsEmpty())
+            renamed_to = into_u8(rename_dlg.GetValue());
+    }
+    return 0;
+}
+
 // BBS: backup & restore
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi)
 {
@@ -6489,7 +6546,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             if (wipe_tower_y_opt)
                                 file_wipe_tower_y = *wipe_tower_y_opt;
 
-                            preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
+                            preset_bundle->load_config_model(filename.string(), std::move(config), file_version,
+                                [q](const std::string &existing_name, std::string &renamed_to) {
+                                    return resolve_preset_import_conflict(q, existing_name, renamed_to);
+                                });
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
                             if (bed_type_opt != nullptr) {

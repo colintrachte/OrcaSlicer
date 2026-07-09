@@ -116,6 +116,7 @@ class ParamsPanel : public wxPanel
         ScalableButton*		m_setting_btn { nullptr };
         ScalableButton*		m_search_btn { nullptr };
         ScalableButton*		m_compare_btn { nullptr };
+        Button*			m_process_export_btn { nullptr };
 
         wxBitmap m_toggle_on_icon;
         wxBitmap m_toggle_off_icon;

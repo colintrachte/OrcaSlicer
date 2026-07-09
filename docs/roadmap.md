@@ -685,6 +685,19 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   just a minimal patch. Treat this entry as the narrow "eraser + keep-out mask" ask; a full
   painting-UX overhaul would need its own scoping pass.
 
+  **Status (2026-07-09):** narrow "discoverable Eraser + Block buttons" half implemented —
+  added an explicit Enforce/Block/Eraser button row to `on_render_input_window`
+  (`GLGizmoFdmSupports.cpp`/`.hpp` only, not the shared `GLGizmoPainterBase` base class) that
+  drives what Left-click paints via a new `get_left_button_state_type()` override
+  (`m_left_click_paint_type`); Right-click still always blocks and Shift+click still always
+  erases, unchanged, so existing shortcuts keep working. `handle_snapshot_action_name` updated
+  to match so undo/redo history labels stay accurate. **Not yet build-verified** — this repo
+  checkout has no prebuilt deps (`deps/build/` and `build/` are both empty), so this needs a
+  local build + in-app click-through before merging. Not yet done: the "resist accidental
+  overwrite" / persistent keep-out-mask behavior (still just a "consider" in the fix approach
+  above) and the cross-gizmo base-class generalization — left for a follow-up if this is worth
+  extending to MMU/Fuzzy-skin/Seam painting too.
+
   **Context:** `src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp` · `src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp`
   **Route:** claude
   **Effort:** 574

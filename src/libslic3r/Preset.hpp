@@ -426,9 +426,12 @@ protected:
     friend class        PresetBundle;
 };
 
-bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer);
-bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config);
-bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer);
+// `reason`, when non-null, is filled with a short human-readable explanation whenever the
+// function returns false (left untouched otherwise). Purely additive/opt-in: existing callers
+// that don't pass it see no behavior change.
+bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer, std::string *reason = nullptr);
+bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config, std::string *reason = nullptr);
+bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, std::string *reason = nullptr);
 
 // Where a preset is being loaded from. `Auto` lets load_presets() infer from the directory path.
 struct PresetOrigin {
@@ -594,7 +597,13 @@ public:
         // Select the preset after loading?
         LoadAndSelect                select = LoadAndSelect::Always,
         const Semver                file_version = Semver(),
-        const std::string           filament_id = std::string());
+        const std::string           filament_id = std::string(),
+        // Called only when `original_name` collides with an existing preset of different config.
+        // Return: 0 = keep both (today's default silent auto-rename), 1 = replace the existing
+        // preset in place, 2 = rename (the returned `renamed_to` is used as the new name).
+        // Left null (the default), behavior is byte-for-byte identical to before this parameter
+        // existed - only interactive GUI callers that pass a real callback see a prompt.
+        const std::function<int(const std::string &existing_name, std::string &renamed_to)> &on_name_collision = nullptr);
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
@@ -644,6 +653,9 @@ public:
 	// where the "inherits" profile name is searched for in both m_presets and m_map_system_profile_renamed.
 	const Preset*	get_preset_parent(const Preset& child) const;
 	const Preset*	get_preset_base(const Preset& child) const;
+	// Reverse of get_preset_parent(): all presets in this collection whose "inherits" field
+	// names this preset. Used to show a "N presets depend on this" dependency hint in the UI.
+	std::vector<const Preset*> get_preset_children(const Preset& parent) const;
 	// Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }

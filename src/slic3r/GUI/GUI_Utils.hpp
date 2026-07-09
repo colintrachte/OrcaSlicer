@@ -25,6 +25,7 @@
 #include "Event.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Color.hpp"
+#include "libslic3r/Preset.hpp"
 
 
 class wxCheckBox;
@@ -50,6 +51,11 @@ static ColorRGBA decode_color_to_float_array(const std::string color)
 }
 
 extern CopyFileResult copy_file_gui(const std::string &from, const std::string &to, std::string& error_message, const bool with_check = false);
+
+// Exports a single active preset (printer/filament/process) to a standalone .json file the user
+// picks via a save dialog. Reuses the same DynamicPrintConfig::save_to_json() serialization
+// Preset::save() writes to disk, so the exported file is a normal, re-importable preset.
+void export_preset_to_file(wxWindow *parent, const Slic3r::Preset &preset);
 
 #ifdef _WIN32
 // USB HID attach / detach events from Windows OS.

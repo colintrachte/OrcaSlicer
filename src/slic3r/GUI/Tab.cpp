@@ -280,7 +280,8 @@ void Tab::create_preset_tab()
     add_scaled_bitmap(this, m_bmp_show_incompatible_presets, "flag_red");
     add_scaled_bitmap(this, m_bmp_hide_incompatible_presets, "flag_green");
 
-    //add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
+    add_scaled_button(m_top_panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
+    m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { toggle_show_hide_incompatible(); });
 
     //m_btn_compare_preset->SetToolTip(_L("Compare presets"));
     // TRN "Save current Settings"
@@ -418,6 +419,7 @@ void Tab::create_preset_tab()
 #endif
     m_top_sizer->Add(m_btn_save_preset  , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_btn_search       , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
     m_top_sizer->Add(m_search_item      , 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ContentMargin()));
 
@@ -7190,13 +7192,11 @@ void Tab::delete_preset()
             if (res != wxID_OK) return;
             confirm_delete_third_party_printer = true;
         }
-        int count = 0;
+        std::vector<const Preset*> children = m_presets->get_preset_children(current_preset);
+        int count = (int)children.size();
         wxString presets;
-        for (auto &preset2 : *m_presets)
-            if (preset2.inherits() == current_preset.name) {
-                ++count;
-                presets += "\n - " + preset2.name;
-            }
+        for (const Preset *preset2 : children)
+            presets += "\n - " + preset2->name;
         if (count > 0) {
             msg = _L("Presets inherited by other presets cannot be deleted!");
             msg += "\n";
@@ -7300,12 +7300,13 @@ void Tab::toggle_show_hide_incompatible()
 
 void Tab::update_show_hide_incompatible_button()
 {
-    //BBS: GUI refactor
-    /*m_btn_hide_incompatible_presets->SetBitmap_(m_show_incompatible_presets ?
+    if (!m_btn_hide_incompatible_presets)
+        return;
+    m_btn_hide_incompatible_presets->SetBitmap_(m_show_incompatible_presets ?
         m_bmp_show_incompatible_presets : m_bmp_hide_incompatible_presets);
     m_btn_hide_incompatible_presets->SetToolTip(m_show_incompatible_presets ?
-        "Both compatible an incompatible presets are shown. Click to hide presets not compatible with the current printer." :
-        "Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");*/
+        _L("Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process.") :
+        _L("Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."));
 }
 
 void Tab::update_ui_from_settings()
@@ -7317,7 +7318,8 @@ void Tab::update_ui_from_settings()
     //BBS: GUI refactor
     //Layout();
     m_parent->Layout();
-    //show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
+    if (m_btn_hide_incompatible_presets)
+        show ? m_btn_hide_incompatible_presets->Show() : m_btn_hide_incompatible_presets->Hide();
     // If the 'show / hide presets' button is hidden, hide the incompatible presets.
     if (show) {
         update_show_hide_incompatible_button();

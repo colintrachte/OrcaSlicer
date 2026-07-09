@@ -41,8 +41,16 @@ protected:
     std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Paint-on supports"); }
     std::string get_action_snapshot_name() const override { return _u8L("Paint-on supports editing"); }
 
+    // Orca: explicit, discoverable paint-mode selector (Enforce / Block / Eraser) driving what
+    // the left mouse button paints, so block/erase don't require knowing the right-click or
+    // Shift+click shortcuts. Right-click always blocks and Shift+click always erases regardless
+    // of this setting, preserving existing muscle-memory shortcuts.
+    EnforcerBlockerType get_left_button_state_type() const override { return m_left_click_paint_type; }
+
     // BBS
     wchar_t                           m_current_tool = 0;
+    // Orca
+    EnforcerBlockerType                m_left_click_paint_type = EnforcerBlockerType::ENFORCER;
 
 private:
     bool on_init() override;

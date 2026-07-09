@@ -323,6 +323,37 @@ wxString PresetComboBox::get_tooltip(const Preset &preset)
         }
     }
     
+    // ORCA: surface preset dependency info (inherits/inherited-by) and, for incompatible
+    // presets, *why* they're incompatible - additive to the tooltip only, does not change
+    // which presets are shown/filtered.
+    if (m_collection) {
+        const Preset *parent = m_collection->get_preset_parent(preset);
+        if (parent)
+            tooltip += "\n" + wxString::Format(_L("Based on: %s"), from_u8(parent->name));
+        size_t num_children = m_collection->get_preset_children(preset).size();
+        if (num_children > 0)
+            tooltip += "\n" + wxString::Format(_L_PLURAL("%d preset inherits from this", "%d presets inherit from this", (int)num_children), (int)num_children);
+    }
+    if (!preset.is_compatible && m_collection && m_preset_bundle) {
+        const PresetWithVendorProfile this_preset = m_collection->get_preset_with_vendor_profile(preset);
+        const PresetWithVendorProfile active_printer = m_preset_bundle->printers.get_edited_preset_with_vendor_profile();
+        DynamicPrintConfig extra_config;
+        extra_config.set_key_value("printer_preset", new ConfigOptionString(active_printer.preset.name));
+        const ConfigOption *nozzle_opt = active_printer.preset.config.option("nozzle_diameter");
+        if (nozzle_opt)
+            extra_config.set_key_value("num_extruders", new ConfigOptionInt((int)static_cast<const ConfigOptionFloats*>(nozzle_opt)->values.size()));
+        std::string reason;
+        if (!is_compatible_with_printer(this_preset, active_printer, &extra_config, &reason)) {
+            tooltip += "\n" + from_u8(reason);
+        } else if (m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) {
+            PresetCollection &print_collection = m_type == Preset::TYPE_SLA_MATERIAL ? m_preset_bundle->sla_prints : m_preset_bundle->prints;
+            const PresetWithVendorProfile active_print = print_collection.get_edited_preset_with_vendor_profile();
+            std::string print_reason;
+            if (!is_compatible_with_print(this_preset, active_print, active_printer, &print_reason))
+                tooltip += "\n" + from_u8(print_reason);
+        }
+    }
+
     // BBS: FIXME
 #if 0
     if (m_type == Preset::TYPE_FILAMENT) {
