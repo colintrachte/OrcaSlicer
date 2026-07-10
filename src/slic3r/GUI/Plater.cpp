@@ -5972,7 +5972,8 @@ struct PresetImportConflictDialog : MessageDialog
                                  "from the one already installed. What would you like to do?"), name),
             _L("Preset name conflict"), wxYES_NO)
     {
-        SetYesNoLabels(_L("Replace"), _L("Keep Both"));
+        SetButtonLabel(wxID_YES, _L("Replace"));
+        SetButtonLabel(wxID_NO, _L("Keep Both"));
         add_button(wxID_APPLY, false, _L("Rename..."));
     }
 };
@@ -6547,7 +6548,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 file_wipe_tower_y = *wipe_tower_y_opt;
 
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version,
-                                [q](const std::string &existing_name, std::string &renamed_to) {
+                                [this](const std::string &existing_name, std::string &renamed_to) {
                                     return resolve_preset_import_conflict(q, existing_name, renamed_to);
                                 });
 

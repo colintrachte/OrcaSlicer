@@ -18,6 +18,7 @@
 #include "nlohmann/json.hpp"
 
 #include <cstring>
+#include <openssl/md5.h>
 
 #ifndef NDEBUG
 //#define PRINTER_FILE_SYSTEM_TEST

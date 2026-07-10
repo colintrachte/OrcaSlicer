@@ -5,6 +5,11 @@ add_executable(${_TEST_NAME}_tests ${_TEST_NAME}_tests_main.cpp
     sla_supptgen_tests.cpp
     sla_raycast_tests.cpp)
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r Catch2::Catch2WithMain)
+if (WIN32)
+    # OpenSSL 3.x libcrypto's Windows cert-store provider needs crypt32 (the app
+    # gets it transitively via libcurl; this test links libslic3r->OpenSSL directly).
+    target_link_libraries(${_TEST_NAME}_tests crypt32)
+endif ()
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 orcaslicer_copy_test_dlls()

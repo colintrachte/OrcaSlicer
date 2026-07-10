@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <openssl/evp.h>
+#include <openssl/md5.h>
 #include <wx/dcgraph.h>
 #include <wx/tooltip.h>
 #include <wx/utils.h>
