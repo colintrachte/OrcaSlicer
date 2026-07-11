@@ -1,4 +1,4 @@
-@import '../../swiper-vars.scss';
+@import "../../swiper-vars.scss";
 
 :root {
   /*
@@ -60,8 +60,14 @@
   }
 }
 .swiper-pagination-bullet {
-  width: var(--swiper-pagination-bullet-width, var(--swiper-pagination-bullet-size, 8px));
-  height: var(--swiper-pagination-bullet-height, var(--swiper-pagination-bullet-size, 8px));
+  width: var(
+    --swiper-pagination-bullet-width,
+    var(--swiper-pagination-bullet-size, 8px)
+  );
+  height: var(
+    --swiper-pagination-bullet-height,
+    var(--swiper-pagination-bullet-size, 8px)
+  );
   display: inline-block;
   border-radius: 50%;
   background: var(--swiper-pagination-bullet-inactive-color, #000);
@@ -101,7 +107,9 @@
     width: 8px;
     .swiper-pagination-bullet {
       display: inline-block;
-      transition: 200ms transform, 200ms top;
+      transition:
+        200ms transform,
+        200ms top;
     }
   }
 }
@@ -115,12 +123,18 @@
     transform: translateX(-50%);
     white-space: nowrap;
     .swiper-pagination-bullet {
-      transition: 200ms transform, 200ms left;
+      transition:
+        200ms transform,
+        200ms left;
     }
   }
 }
-.swiper-horizontal.swiper-rtl > .swiper-pagination-bullets-dynamic .swiper-pagination-bullet {
-  transition: 200ms transform, 200ms right;
+.swiper-horizontal.swiper-rtl
+  > .swiper-pagination-bullets-dynamic
+  .swiper-pagination-bullet {
+  transition:
+    200ms transform,
+    200ms right;
 }
 /* Progress */
 .swiper-pagination-progressbar {

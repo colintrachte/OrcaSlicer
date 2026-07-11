@@ -1,16 +1,14 @@
 function checkOverflow() {
   const swiper = this;
-  const {
-    isLocked: wasLocked,
-    params
-  } = swiper;
-  const {
-    slidesOffsetBefore
-  } = params;
+  const { isLocked: wasLocked, params } = swiper;
+  const { slidesOffsetBefore } = params;
 
   if (slidesOffsetBefore) {
     const lastSlideIndex = swiper.slides.length - 1;
-    const lastSlideRightEdge = swiper.slidesGrid[lastSlideIndex] + swiper.slidesSizesGrid[lastSlideIndex] + slidesOffsetBefore * 2;
+    const lastSlideRightEdge =
+      swiper.slidesGrid[lastSlideIndex] +
+      swiper.slidesSizesGrid[lastSlideIndex] +
+      slidesOffsetBefore * 2;
     swiper.isLocked = swiper.size > lastSlideRightEdge;
   } else {
     swiper.isLocked = swiper.snapGrid.length === 1;
@@ -29,10 +27,10 @@ function checkOverflow() {
   }
 
   if (wasLocked !== swiper.isLocked) {
-    swiper.emit(swiper.isLocked ? 'lock' : 'unlock');
+    swiper.emit(swiper.isLocked ? "lock" : "unlock");
   }
 }
 
 export default {
-  checkOverflow
+  checkOverflow,
 };

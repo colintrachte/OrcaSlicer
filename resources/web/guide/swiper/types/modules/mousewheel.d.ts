@@ -1,5 +1,5 @@
-import Swiper from '../swiper-class';
-import { CSSSelector } from '../shared';
+import Swiper from "../swiper-class";
+import { CSSSelector } from "../shared";
 
 export interface MousewheelMethods {
   /**
@@ -57,7 +57,7 @@ export interface MousewheelOptions {
    *
    * @default 'container'
    */
-  eventsTarget?: 'container' | 'wrapper' | CSSSelector | HTMLElement;
+  eventsTarget?: "container" | "wrapper" | CSSSelector | HTMLElement;
 
   /**
    * Minimum mousewheel scroll delta to trigger swiper slide change

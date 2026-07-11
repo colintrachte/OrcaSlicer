@@ -5,10 +5,12 @@ This document describes how to use the CMake interface libraries created for the
 ## Available Libraries
 
 ### 1. **semver** (Static Library)
+
 - **Type**: Static library
 - **Target**: `semver` or `semver::semver`
 - **Headers**: `semver.h`
 - **Usage**:
+
 ```cmake
 target_link_libraries(your_target PRIVATE semver)
 # or
@@ -16,19 +18,23 @@ target_link_libraries(your_target PRIVATE semver::semver)
 ```
 
 ### 2. **hints** (Interface Library)
+
 - **Type**: Interface library (header-only)
 - **Target**: `hints`
 - **Utility**: `hintsToPot` executable
 - **Usage**:
+
 ```cmake
 target_link_libraries(your_target PRIVATE hints)
 ```
 
 ### 3. **stb_dxt** (Interface Library)
+
 - **Type**: Interface library (header-only)
 - **Target**: `stb_dxt` or `stb_dxt::stb_dxt`
 - **Headers**: `stb_dxt.h`
 - **Usage**:
+
 ```cmake
 target_link_libraries(your_target PRIVATE stb_dxt)
 # or
@@ -40,6 +46,7 @@ target_link_libraries(your_target PRIVATE stb_dxt::stb_dxt)
 ### From within the OrcaSlicer src/ directory:
 
 1. **In your CMakeLists.txt**, simply link the library:
+
 ```cmake
 add_executable(my_app main.cpp)
 target_link_libraries(my_app
@@ -51,6 +58,7 @@ target_link_libraries(my_app
 ```
 
 2. **In your C++ code**, include the headers:
+
 ```cpp
 // For semver
 #include <semver.h>

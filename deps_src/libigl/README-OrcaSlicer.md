@@ -12,5 +12,5 @@ distribution together with a minimal custom `CMakeLists.txt` file. In
 particular only the following files from the full libigl distribution are
 included;
 
-* README.md
-* include/igl/* -> igl/*
+- README.md
+- include/igl/* -> igl/*

@@ -7,15 +7,15 @@ per project" below for the one file you should add.
 
 ## What's here
 
-| File | What it does |
-|---|---|
-| `context_pack.py` | Assembles an explicit file list into one paste-ready block for a free-tier model, with per-model budget warnings and automatic chunking. Fully generic — no per-project edits needed. |
-| `route_tasks.py` | Parses `docs/roadmap.md`, stamps `**Route:**`/`**Effort:**`/`**Chars:**` on every open item per the routing rules, self-heals the score→medal mapping. Fully generic. |
-| `query_model.py` | Sends a context pack + task to a programmatic endpoint (local LM Studio / OpenRouter free tier) and captures the raw response. Reads `system_prompt.txt` (see below) for its guardrail prompt. |
-| `pack_task.py` | The Quest Board — a GUI wrapping the three scripts above: pick roadmap tasks from a sortable/filterable table, preview the assembled pack, page through chunks, edit the prompt, copy/save for manual paste or send straight to a programmatic model. Run with `python helper_scripts/pack_task.py`. |
-| `effort_ceiling.txt` | Persisted high-water mark for the largest `Effort` score ever seen, so the picker's value-density column stays on a stable scale across sessions. Starts at `1` in this template — it self-updates, don't hand-edit it beyond the initial reset. |
-| `external_refs.json` | `name -> search hint` for roadmap file-list entries that point outside this repo (a reference implementation, a vendor SDK, a spec doc). Starts empty in this template. |
-| `external_ref_paths.txt` (not committed — gitignore it) | `name=local/path` — when set, an external reference resolves straight from a local clone instead of only being described to a model as something to search for. Machine-specific, not a project fact. |
+| File                                                    | What it does                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context_pack.py`                                       | Assembles an explicit file list into one paste-ready block for a free-tier model, with per-model budget warnings and automatic chunking. Fully generic — no per-project edits needed.                                                                                                                |
+| `route_tasks.py`                                        | Parses `docs/roadmap.md`, stamps `**Route:**`/`**Effort:**`/`**Chars:**` on every open item per the routing rules, self-heals the score→medal mapping. Fully generic.                                                                                                                                |
+| `query_model.py`                                        | Sends a context pack + task to a programmatic endpoint (local LM Studio / OpenRouter free tier) and captures the raw response. Reads `system_prompt.txt` (see below) for its guardrail prompt.                                                                                                       |
+| `pack_task.py`                                          | The Quest Board — a GUI wrapping the three scripts above: pick roadmap tasks from a sortable/filterable table, preview the assembled pack, page through chunks, edit the prompt, copy/save for manual paste or send straight to a programmatic model. Run with `python helper_scripts/pack_task.py`. |
+| `effort_ceiling.txt`                                    | Persisted high-water mark for the largest `Effort` score ever seen, so the picker's value-density column stays on a stable scale across sessions. Starts at `1` in this template — it self-updates, don't hand-edit it beyond the initial reset.                                                     |
+| `external_refs.json`                                    | `name -> search hint` for roadmap file-list entries that point outside this repo (a reference implementation, a vendor SDK, a spec doc). Starts empty in this template.                                                                                                                              |
+| `external_ref_paths.txt` (not committed — gitignore it) | `name=local/path` — when set, an external reference resolves straight from a local clone instead of only being described to a model as something to search for. Machine-specific, not a project fact.                                                                                                |
 
 ## One-time setup per project
 
@@ -37,6 +37,7 @@ per project" below for the one file you should add.
    Do not propose new dependencies without explicit instruction.
    Do not propose implementation for this project's top review tier — read-only research only.
    ```
+
 3. If this project forks/tracks an upstream with reference material you'll want to pull
    into context packs, add entries to `external_refs.json` as you discover them.
 4. That's it — `route_tasks.py` and `pack_task.py` default to `docs/roadmap.md` and need no

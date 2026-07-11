@@ -5,24 +5,29 @@ export default function updateAutoHeight(speed) {
   let newHeight = 0;
   let i;
 
-  if (typeof speed === 'number') {
+  if (typeof speed === "number") {
     swiper.setTransition(speed);
   } else if (speed === true) {
     swiper.setTransition(swiper.params.speed);
   }
 
-  const getSlideByIndex = index => {
+  const getSlideByIndex = (index) => {
     if (isVirtual) {
-      return swiper.slides.filter(el => parseInt(el.getAttribute('data-swiper-slide-index'), 10) === index)[0];
+      return swiper.slides.filter(
+        (el) =>
+          parseInt(el.getAttribute("data-swiper-slide-index"), 10) === index,
+      )[0];
     }
 
     return swiper.slides.eq(index)[0];
   }; // Find slides currently in view
 
-
-  if (swiper.params.slidesPerView !== 'auto' && swiper.params.slidesPerView > 1) {
+  if (
+    swiper.params.slidesPerView !== "auto" &&
+    swiper.params.slidesPerView > 1
+  ) {
     if (swiper.params.centeredSlides) {
-      swiper.visibleSlides.each(slide => {
+      swiper.visibleSlides.each((slide) => {
         activeSlides.push(slide);
       });
     } else {
@@ -36,14 +41,12 @@ export default function updateAutoHeight(speed) {
     activeSlides.push(getSlideByIndex(swiper.activeIndex));
   } // Find new height from highest slide in view
 
-
   for (i = 0; i < activeSlides.length; i += 1) {
-    if (typeof activeSlides[i] !== 'undefined') {
+    if (typeof activeSlides[i] !== "undefined") {
       const height = activeSlides[i].offsetHeight;
       newHeight = height > newHeight ? height : newHeight;
     }
   } // Update Height
 
-
-  if (newHeight) swiper.$wrapperEl.css('height', `${newHeight}px`);
+  if (newHeight) swiper.$wrapperEl.css("height", `${newHeight}px`);
 }

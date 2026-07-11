@@ -1,12 +1,14 @@
-import React from 'react';
+import React from "react";
 
 function processChildren(c) {
   const slides = [];
-  React.Children.toArray(c).forEach(child => {
-    if (child.type && child.type.displayName === 'SwiperSlide') {
+  React.Children.toArray(c).forEach((child) => {
+    if (child.type && child.type.displayName === "SwiperSlide") {
       slides.push(child);
     } else if (child.props && child.props.children) {
-      processChildren(child.props.children).forEach(slide => slides.push(slide));
+      processChildren(child.props.children).forEach((slide) =>
+        slides.push(slide),
+      );
     }
   });
   return slides;
@@ -15,13 +17,13 @@ function processChildren(c) {
 function getChildren(c) {
   const slides = [];
   const slots = {
-    'container-start': [],
-    'container-end': [],
-    'wrapper-start': [],
-    'wrapper-end': []
+    "container-start": [],
+    "container-end": [],
+    "wrapper-start": [],
+    "wrapper-end": [],
   };
-  React.Children.toArray(c).forEach(child => {
-    if (child.type && child.type.displayName === 'SwiperSlide') {
+  React.Children.toArray(c).forEach((child) => {
+    if (child.type && child.type.displayName === "SwiperSlide") {
       slides.push(child);
     } else if (child.props && child.props.slot && slots[child.props.slot]) {
       slots[child.props.slot].push(child);
@@ -29,17 +31,17 @@ function getChildren(c) {
       const foundSlides = processChildren(child.props.children);
 
       if (foundSlides.length > 0) {
-        foundSlides.forEach(slide => slides.push(slide));
+        foundSlides.forEach((slide) => slides.push(slide));
       } else {
-        slots['container-end'].push(child);
+        slots["container-end"].push(child);
       }
     } else {
-      slots['container-end'].push(child);
+      slots["container-end"].push(child);
     }
   });
   return {
     slides,
-    slots
+    slots,
   };
 }
 

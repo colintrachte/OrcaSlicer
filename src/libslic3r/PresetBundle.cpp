@@ -364,22 +364,24 @@ PresetBundle::PresetBundle()
     this->sla_prints.default_preset().compatible_printers_condition();
     this->sla_prints.default_preset().inherits();
 
-    //this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()), "- default SLA -");
-    //this->printers.preset(1).printer_technology_ref() = ptSLA;
-    for (size_t i = 0; i < 1; ++i) {
+    this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()), "- default SLA -");
+    this->printers.preset(1).printer_technology_ref() = ptSLA;
+    for (size_t i = 0; i < 2; ++i) {
         // The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
         Preset &preset = this->printers.default_preset(i);
         for (const char *key : {"printer_settings_id", "printer_model", "printer_variant", "thumbnails"}) preset.config.optptr(key, true);
-        //if (i == 0) {
+        if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
-        //} else {
-        //    preset.config.optptr("default_sla_print_profile", true);
-        //    preset.config.optptr("default_sla_material_profile", true);
-        //}
-        // default_sla_material_profile
+        } else {
+            preset.config.optptr("default_sla_print_profile", true);
+            preset.config.optptr("default_sla_material_profile", true);
+        }
         preset.inherits();
     }
+
+    // Make the generic SLA printer selectable from the printer dropdown so SLA mode is reachable.
+    this->printers.preset(1).is_visible = true;
 
     // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.
     this->prints.select_preset(0);

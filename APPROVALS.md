@@ -10,7 +10,7 @@ Completed items are removed; see CHANGELOG.md for what was done.
 **Request:** A local, self-hosted alternative to Orca Cloud's profile-sync service, so users
 aren't dependent on a third-party-hosted sync backend.
 **Owner's read (2026-07-05):** doesn't use Bambu or their printers and never will, so this
-has no personal urgency — but wants the *value to other users* investigated before deciding,
+has no personal urgency — but wants the _value to other users_ investigated before deciding,
 since there isn't enough information yet to judge that.
 **Investigation so far:** `ICloudServiceAgent` (`src/slic3r/Utils/ICloudServiceAgent.hpp`) is
 a ~40-method interface, and settings sync is a small slice of it — login/OAuth (PKCE),

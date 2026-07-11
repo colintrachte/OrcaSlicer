@@ -8,7 +8,7 @@ For Catch2 mechanics (assertions, generators, matchers, random ordering, thread-
 
 **One file per subsystem. A subsystem is usually a single production class (`Flow`, `PrintObject`), but may be a cohesive feature that spans several (skirt/brim lives in `Brim.cpp`, `Print.cpp`, and `GCode.cpp`). That file owns every test for the subsystem: in-memory-state assertions and emitted-G-code assertions alike.**
 
-A test's home is decided by *what production code it exercises*, never by *how it observes the result*. A skirt test that inspects `print.skirt()` and one that greps the G-code for `; skirt` live in the same file.
+A test's home is decided by _what production code it exercises_, never by _how it observes the result_. A skirt test that inspects `print.skirt()` and one that greps the G-code for `; skirt` live in the same file.
 
 If you touched code in a subsystem, its test file is where your test goes. If a subsystem has no file yet, add `test_<subsystem>.cpp` and list it in `CMakeLists.txt`.
 
@@ -16,25 +16,25 @@ If you touched code in a subsystem, its test file is where your test goes. If a 
 
 ### Building blocks (one class, exercised through its API)
 
-| File | Source (`src/libslic3r/`) | Covers |
-|---|---|---|
-| `test_trianglemesh` | `TriangleMesh.{c,h}pp` | mesh stats, transforms, slicing, split/merge/cut |
-| `test_flow` | `Flow.{c,h}pp` | extrusion width / area math |
-| `test_extrusion_entity` | `ExtrusionEntity.{c,h}pp` | extrusion-collection geometry |
-| `test_gcodewriter` | `GCodeWriter.{c,h}pp`, `GCode.cpp` | low-level G-code emit primitives, origin |
-| `test_model` | `Model.{c,h}pp` | object / volume / instance construction |
+| File                    | Source (`src/libslic3r/`)          | Covers                                           |
+| ----------------------- | ---------------------------------- | ------------------------------------------------ |
+| `test_trianglemesh`     | `TriangleMesh.{c,h}pp`             | mesh stats, transforms, slicing, split/merge/cut |
+| `test_flow`             | `Flow.{c,h}pp`                     | extrusion width / area math                      |
+| `test_extrusion_entity` | `ExtrusionEntity.{c,h}pp`          | extrusion-collection geometry                    |
+| `test_gcodewriter`      | `GCodeWriter.{c,h}pp`, `GCode.cpp` | low-level G-code emit primitives, origin         |
+| `test_model`            | `Model.{c,h}pp`                    | object / volume / instance construction          |
 
 ### Slicing pipeline (build a `Print`, then assert state or G-code)
 
-| File | Source (`src/libslic3r/`) | Covers |
-|---|---|---|
-| `test_printobject` | `PrintObject.cpp` | layer heights, perimeter generation |
-| `test_fill` | `Fill/` | infill patterns and infill G-code |
-| `test_skirt_brim` | `Brim.cpp`, `Print.cpp` | skirt/brim loop counts, grouping, brim ears, emission order |
-| `test_support_material` | `Support/` | support & raft layers, contact distance |
-| `test_cooling` | `GCode/CoolingBuffer.cpp` | fan control, speed-marker consumption |
-| `test_multifilament` | `GCode/ToolOrdering.cpp` | per-feature and per-object filament routing |
-| `test_print` | `Print.{c,h}pp` | `validate()`, solid-shell behavior, sequential printing, custom G-code & config comments, default-slice smoke |
+| File                    | Source (`src/libslic3r/`) | Covers                                                                                                        |
+| ----------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `test_printobject`      | `PrintObject.cpp`         | layer heights, perimeter generation                                                                           |
+| `test_fill`             | `Fill/`                   | infill patterns and infill G-code                                                                             |
+| `test_skirt_brim`       | `Brim.cpp`, `Print.cpp`   | skirt/brim loop counts, grouping, brim ears, emission order                                                   |
+| `test_support_material` | `Support/`                | support & raft layers, contact distance                                                                       |
+| `test_cooling`          | `GCode/CoolingBuffer.cpp` | fan control, speed-marker consumption                                                                         |
+| `test_multifilament`    | `GCode/ToolOrdering.cpp`  | per-feature and per-object filament routing                                                                   |
+| `test_print`            | `Print.{c,h}pp`           | `validate()`, solid-shell behavior, sequential printing, custom G-code & config comments, default-slice smoke |
 
 Paths are under `src/libslic3r/`. A trailing `/` is a directory of related files; otherwise it is a single class. `{c,h}pp` means the `.cpp`/`.hpp` pair.
 

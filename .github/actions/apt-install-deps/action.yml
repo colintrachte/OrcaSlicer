@@ -1,7 +1,7 @@
-name: 'Apt Install Deps'
-description: 'Install the packages needed for building and deploying'
+name: "Apt Install Deps"
+description: "Install the packages needed for building and deploying"
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install dependencies from build_linux.sh
       shell: bash

@@ -5,5 +5,5 @@ export default function setTransition(duration, byController) {
     swiper.$wrapperEl.transition(duration);
   }
 
-  swiper.emit('setTransition', duration, byController);
+  swiper.emit("setTransition", duration, byController);
 }

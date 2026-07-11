@@ -17,5 +17,5 @@ export interface GridOptions {
    *
    * @default 'column'
    */
-  fill?: 'row' | 'column';
+  fill?: "row" | "column";
 }

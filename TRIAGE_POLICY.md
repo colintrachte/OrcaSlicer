@@ -40,6 +40,7 @@ any new commits' PR numbers against `docs/roadmap.md`'s open `#NNNN` items befor
 ## Hardware Scope
 
 This fork is used on:
+
 - **Custom FDM printers** (primary) — any issues touching custom printer profiles, third-party print-host support,
   or generic FDM slicing quality are high priority
 - **Flashforge Adventurer Pro 5** — uses WiFi upload via `slic3r/Utils/Flashforge.cpp`; Klipper-style G-code matters
@@ -66,11 +67,12 @@ Any diff that touches paths containing: `libslic3r/GCode`, `libslic3r/Print`, `l
 `deps/OpenSSL`, `deps/CURL`, `deps/Boost`, `deps/TBB`
 
 **OUT — skip unless there is also an IN-scope file:**
-Diff touches *only* paths containing: `localization/i18n`, `libslic3r/SLAPrint`, `libslic3r/SLAPrintSteps`,
+Diff touches _only_ paths containing: `localization/i18n`, `libslic3r/SLAPrint`, `libslic3r/SLAPrintSteps`,
 `GUI/Gizmos/GLGizmoSlaSupports`, `Wayland`, `sandboxes/`, `slic3r/Utils/BBLCloudServiceAgent` (Bambu-account-only
 paths), `bambu_networking` (Bambu-exclusive transport)
 
 **Ambiguous — apply the tie-breaker (any YES → IN scope; all NO → OUT scope):**
+
 - (a) Does it change any part of the input-to-G-code pipeline (config parsing, slicing math, path planning)?
 - (b) Does it change print-start, upload, or print-host handshake behavior?
 - (c) Does it change a slicer calculation that ends up in emitted G-code values?
@@ -91,13 +93,13 @@ paths), `bambu_networking` (Bambu-exclusive transport)
 
 Trigger a triage pass when **any** of these occur:
 
-| Trigger | Action |
-|---|---|
-| Upstream cuts a new minor version | Full triage pass — search new PRs merged since last pass |
-| A print failure traceable to a known upstream issue | Targeted search on that issue only |
-| A specific feature is wanted before the next print run | Targeted search for PRs/issues matching that feature |
-| Security advisory for a bundled dependency | Immediate: check `deps/` and update |
-| More than ~90 days since last pass | Light pass: scan merged PRs and new open bugs |
+| Trigger                                                | Action                                                   |
+| ------------------------------------------------------ | -------------------------------------------------------- |
+| Upstream cuts a new minor version                      | Full triage pass — search new PRs merged since last pass |
+| A print failure traceable to a known upstream issue    | Targeted search on that issue only                       |
+| A specific feature is wanted before the next print run | Targeted search for PRs/issues matching that feature     |
+| Security advisory for a bundled dependency             | Immediate: check `deps/` and update                      |
+| More than ~90 days since last pass                     | Light pass: scan merged PRs and new open bugs            |
 
 Do **not** run a triage pass on a fixed calendar schedule if nothing has changed. That wastes tokens re-reading
 already-triaged material.
@@ -115,56 +117,68 @@ Run these searches in the default order below, **except:** when the trigger was 
 known bug, jump directly to step 3 (high-confidence bugs) and run steps 1-2 after.
 
 ### 1. Merged upstream commits/PRs not yet synced (highest yield, lowest cost)
+
 ```
 - git fetch upstream && git log HEAD..upstream/main --oneline
 - Filter: commits that don't touch localization/i18n/ or generated headers
 ```
+
 This is the primary channel for engine improvements on this fork — a clean merge captures work upstream already
-reviewed and accepted. Expect a genuine mix of profile additions *and* real engine/feature fixes, not just profiles.
+reviewed and accepted. Expect a genuine mix of profile additions _and_ real engine/feature fixes, not just profiles.
 Resolve conflicts per the Adapt tier below.
 
 ### 2. Security dependency updates
+
 ```
 - Check deps/*/ cmake files: compare version strings against known EOL dates
 - CVE databases for bundled libs: OpenSSL, CURL, libpng, zlib, Boost, wxWidgets
 ```
+
 Always act on these. Dependency upgrades with no API break cost almost nothing.
 
 ### 3. High-confidence bugs in scope
+
 ```
 - Open issues labeled "bug" with a stacktrace or clear repro steps
 - Filter: affects FDM, G-code output, or print-host integration
 ```
+
 Read title + first comment only. If scope isn't clear from those, skip to the next item.
 Reporter activity is irrelevant — a silent issue with a clear repro is still actionable.
 For old issues (>1 year), verify the repro still applies to current HEAD before committing to implement.
 
 ### 4. Open PRs not yet merged upstream
+
 ```
 - Open PRs on SoftFever/OrcaSlicer, sorted by most recently updated
 - Filter: files changed don't touch localization/i18n, or generated headers
 - Filter: not a draft
 ```
+
 Given upstream's PR volume, good fixes can sit unmerged for weeks — this is still worth scanning, just don't assume
 "open and unmerged" implies upstream rejected it (unlike the PrusaSlicer case, silence here is far more likely to
 just mean maintainer backlog). Apply antipatterns; decompose bundles. Verify conflict-freedom at implementation
 start, not at triage time.
 
 ### 5. Closed-without-merge PRs worth resurrecting
+
 ```
 - Closed PRs where close reason is NOT "superseded by X" or "duplicate of X"
 - Filter: fits hardware scope above
 ```
+
 Less common here than on a stagnant fork, but still happens — process reasons (no tests, author inactive, doesn't
 fit maintainer's roadmap) can sink a good fix regardless of how active a project is. If a closed PR was reopened as
 a new number, track the live one; treat the closed one as historical context only.
 
 ### 6. Everything else
+
 ```
 - Feature requests, enhancements, cosmetic changes, low-comment bugs
 ```
+
 Score with: **Impact on print quality or workflow ÷ Implementation effort**. Upstream user count is not a factor —
-we care whether *this* user's printing is improved, not aggregate adoption.
+we care whether _this_ user's printing is improved, not aggregate adoption.
 When in doubt, skip. Missing a low-priority item costs nothing; implementing a low-value item wastes budget.
 
 ---
@@ -204,12 +218,14 @@ misleading; the code is what actually gets applied. Claude can infer the problem
 fix. A well-implemented change is self-documenting through the code itself.
 
 **Positive signals (read from the diff, not the description):**
+
 - The change is locally comprehensible — reading the modified functions is sufficient to understand what changed and why
 - The fix addresses an obvious code-level problem (wrong condition, missing guard, incorrect formula)
 - The scope is coherent — the files touched form a logical unit around one concept
 - Where behavior changes, the new behavior is clearly the correct one
 
 **Negative signals (also read from the diff):**
+
 - The change introduces variables, flags, or branches whose purpose cannot be inferred from the surrounding code
 - New code relies on invariants that aren't enforced or documented anywhere visible
 - The diff touches many unrelated files with no apparent connecting logic (possible bundle — assess decomposability)
@@ -262,12 +278,12 @@ Score each axis 0–3. **Take if Impact − Effort ≥ 1.**
 a repro verifiable against current HEAD, or a concrete failing input. Without any of these, route to
 Investigate+Implement rather than Implement directly. "This sounds like it causes crashes" is not evidence.
 
-| Score | Impact | Effort |
-|---|---|---|
-| 3 | Causes print failure, crash, or invalid G-code | Investigation required; root cause unknown; multi-file entangled |
-| 2 | Visibly degrades print quality or major workflow friction | Moderate diff; some coupling; 2–5 files |
-| 1 | UX convenience; minor friction | Localized single-file change |
-| 0 | Cosmetic; no behavioral change | Trivial (URL/hash bump, one-liner) |
+| Score | Impact                                                    | Effort                                                           |
+| ----- | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| 3     | Causes print failure, crash, or invalid G-code            | Investigation required; root cause unknown; multi-file entangled |
+| 2     | Visibly degrades print quality or major workflow friction | Moderate diff; some coupling; 2–5 files                          |
+| 1     | UX convenience; minor friction                            | Localized single-file change                                     |
+| 0     | Cosmetic; no behavioral change                            | Trivial (URL/hash bump, one-liner)                               |
 
 Examples: crash fix with clear root cause = Impact 3, Effort 1 → take. Cosmetic UI change = Impact 0, Effort 1 → skip.
 Feature touching perimeter generator + supports + config = Impact 2, Effort 3 → skip (−1) unless it uniquely
@@ -281,6 +297,7 @@ These patterns indicate an issue or PR that will cost more than it delivers. Ski
 upstream merge status, or apparent simplicity.
 
 ### Scope antipatterns
+
 - **SLA-only**: Touches only `libslic3r/SLAPrint*`, `libslic3r/SLAPrintSteps*`, or
   `src/slic3r/GUI/Gizmos/GLGizmoSlaSupports*`. Zero value here.
 - **Bambu-cloud only**: Touches only Bambu Cloud, Bambu Handy app integration, or account/store features in
@@ -292,7 +309,7 @@ upstream merge status, or apparent simplicity.
 ### Conflict-surface antipatterns
 
 These are not about whether AI can maintain the code — Claude can maintain well-structured C++ indefinitely.
-They are about whether the change will cause perpetual merge conflicts with upstream, which is a *different*
+They are about whether the change will cause perpetual merge conflicts with upstream, which is a _different_
 cost paid on every future sync.
 
 - **Global rename / mass refactor**: PR renames types, methods, or namespaces across 20+ files. Even if upstream
@@ -311,6 +328,7 @@ cost paid on every future sync.
 This replaces the old human-bandwidth definition of "maintainability."
 
 **Claude can maintain indefinitely:**
+
 - Any well-structured C++ with clear data flow and named interfaces
 - Abstractions with self-evident purpose — a new class or layer is fine if its invariants are visible in its
   interface and don't require reading the full codebase to understand
@@ -320,6 +338,7 @@ This replaces the old human-bandwidth definition of "maintainability."
   contracts
 
 **Claude needs help with:**
+
 - Code with hidden invariants — magic numbers, load-bearing ordering dependencies, or assumptions that are
   nowhere in the source (e.g., "this must be called before X or the global state is wrong")
 - Threading code where correctness depends on memory ordering that isn't enforced by the type system
@@ -328,7 +347,7 @@ This replaces the old human-bandwidth definition of "maintainability."
 - Code that requires running the real hardware to verify (no unit test possible)
 
 **Practical implication:** "Adds a new abstraction layer" is no longer an antipattern in itself. The question
-is whether the abstraction is *well-designed*. A clean factory or manager class that encapsulates a real concept
+is whether the abstraction is _well-designed_. A clean factory or manager class that encapsulates a real concept
 is maintainable by Claude. An abstraction that exists to paper over technical debt without resolving it is not.
 
 ### Upstream "wontfix" decisions we do not inherit
@@ -346,17 +365,19 @@ Upstream closes issues for reasons that do not apply to this fork. Do not automa
 - **"Feature not aligned with our roadmap"**: Upstream may decline features that don't fit their product direction.
   This fork has no such roadmap constraint.
 
-**Exception — intentional removals:** If upstream *removed* a feature (not merely declined to add it), treat
+**Exception — intentional removals:** If upstream _removed_ a feature (not merely declined to add it), treat
 reimplementation as an Implement-from-scratch effort. Find why it was removed before proceeding — the removal
 may have been for correctness, stability, or licensing reasons that still apply.
 
 ### Security-surface antipatterns
+
 - **New networking or IPC endpoint**: Any PR adding a listening socket, localhost HTTP server, named pipe,
   or other inbound communication channel — even opt-in — requires explicit security review before TAKE.
   The opt-in nature does not eliminate the attack surface once enabled; it just reduces exposure. Read the
   networking code, assess what can reach it and what it can do, then decide.
 
 ### Competitor port antipatterns
+
 - **Feature ported from a competing slicer without license audit**: Ports from PrusaSlicer, SuperSlicer, Cura,
   etc. require a license compatibility check before any other evaluation. These projects have different licenses
   (AGPL, LGPL, proprietary); porting their code without confirming compatibility could introduce license obligations.
@@ -371,6 +392,7 @@ may have been for correctness, stability, or licensing reasons that still apply.
   feature as if it came from a closed-source competitor and skip rather than reimplement from binary observation.
 
 ### Behavior-tightening antipatterns
+
 - **Parser or protocol change that increases strictness**: A change that makes a previously permissive behavior
   strict (e.g., case-sensitive G-code matching, stricter config validation, rejecting previously-accepted input)
   is a regression risk even if logically correct. Require evidence that the stricter behavior does not break
@@ -381,6 +403,7 @@ may have been for correctness, stability, or licensing reasons that still apply.
   seems conservative" is not sufficient; conservative limits often exist because someone got burned.
 
 ### Dependency antipatterns
+
 - **New external library via FetchContent or bundled source**: Adding a new dependency means a deps rebuild on
   every machine and a new maintenance surface. Before TAKE: check that the library is actively maintained, has a
   compatible license, and that the feature benefit justifies the permanent build cost. A single-purpose library
@@ -389,6 +412,7 @@ may have been for correctness, stability, or licensing reasons that still apply.
   waiting to happen and will never be updated by the community. Don't add it regardless of feature value.
 
 ### Draft PR rule
+
 - **Draft PRs**: Skip at triage time. Add a note to revisit when draft status is lifted. Do not implement
   from a draft — the author is signaling the work is incomplete.
 - **WIP without draft flag**: PRs with no description AND a title indicating work-in-progress ("wip",
@@ -396,8 +420,9 @@ may have been for correctness, stability, or licensing reasons that still apply.
   GitHub's draft state is opt-in; authors don't always use it.
 
 ### Quality antipatterns
+
 - **No repro, no stacktrace, and low importance**: A crash report with no steps, no stack trace, and no reason
-  to think it affects this fork's use cases. Skip. If the crash *does* seem relevant, Claude can investigate
+  to think it affects this fork's use cases. Skip. If the crash _does_ seem relevant, Claude can investigate
   independently — reporter activity is not required (see Investigation tier below).
 - **Works on my machine only, and the machine is irrelevant**: Reporter's environment is the only known context
   and it's a platform or config this fork doesn't use. Skip. If the environment could be relevant (custom printer,
@@ -408,14 +433,15 @@ may have been for correctness, stability, or licensing reasons that still apply.
   without an accompanying reproduction test. The blast radius of a wrong threading fix is severe and silent.
 - **Large OpenSSL/CURL API migration with no test coverage**: Upgrading a crypto dependency where the fix
   touches `EVP_*`, TLS config, or cert validation paths without any test that exercises the changed code path.
-  (Simple URL/hash dep upgrades with no API change are fine — this antipattern is about *code* changes in the
+  (Simple URL/hash dep upgrades with no API change are fine — this antipattern is about _code_ changes in the
   TLS stack.) Relevant right now: `deps/OpenSSL`, `deps/CURL`, `deps/Boost`, and `deps/TBB` all currently show
   local modifications — apply this check to whichever of those is a real API-affecting change versus a pure bump.
 
 ### Cost antipatterns
+
 - **Investigation required + low importance**: Root cause unknown AND the issue doesn't affect active printing.
   The fix is not known, the reporter isn't providing more info, and there's no reason to prioritize it now.
-  Defer. If it *does* affect active printing, move it to the Investigate tier — Claude can chase it down.
+  Defer. If it _does_ affect active printing, move it to the Investigate tier — Claude can chase it down.
 - **"Just needs a bit of cleanup first"**: A PR requiring another fix before it can be applied. Cascading
   dependencies multiply token cost unpredictably. Break the dependency chain: take each item separately.
 - **Genuinely monolithic PR with no verification path**: A large PR where all changes are interdependent (cannot
@@ -430,19 +456,21 @@ may have been for correctness, stability, or licensing reasons that still apply.
 PR size is not a skip criterion. It is a signal to assess decomposability before integration.
 
 **Bundle** — changes that happen to be in one PR but are logically independent:
+
 - Different subsystems modified for unrelated reasons
 - Refactor + bug fix in the same PR
 - Multiple feature improvements grouped by the author for convenience
-→ **Decompose.** Apply each independent piece separately. Each piece is evaluated on its own merits.
-→ **Regret rule:** When decomposing a bundle, take the highest-impact piece first. If tokens run out mid-bundle,
+  → **Decompose.** Apply each independent piece separately. Each piece is evaluated on its own merits.
+  → **Regret rule:** When decomposing a bundle, take the highest-impact piece first. If tokens run out mid-bundle,
   the most valuable work is already done.
 
 **Monolith** — changes that are genuinely interdependent:
+
 - A new data structure plus all the code that uses it
 - A pipeline refactor where every stage was rewritten together
 - A multi-file fix where the invariant spans all the files
-→ **Evaluate as a unit.** Read the whole diff. Decide whether the complete change is worth taking.
-   If the monolith touches a subsystem with no verification path, flag it for a print-test before committing.
+  → **Evaluate as a unit.** Read the whole diff. Decide whether the complete change is worth taking.
+  If the monolith touches a subsystem with no verification path, flag it for a print-test before committing.
 
 **Soft size threshold:** If the diff exceeds ~800 lines changed, attempt decomposition before proceeding. If
 the diff exceeds ~1500 lines and no seam is found, defer pending a human review of the approach.
@@ -452,17 +480,17 @@ without the other, it's a bundle. If every change depends on every other change,
 
 ## Outcome Tiers
 
-| Tier | Condition | Token Cost | Action |
-|---|---|---|---|
-| **DONE** | Already applied in this fork | Near-zero | Verify fix still exists in current HEAD; then skip |
-| **Security-patch** | CVE or EOL for bundled dep; API-compatible upgrade | Low | Update URL + SHA256 in deps cmake; record |
-| **Cherry-pick** | PR exists, no conflict, no antipattern | Low | Apply diff; verify compiles |
-| **Adapt** | PR exists, minor conflicts | Low-medium | Resolve conflicts, apply |
-| **Implement** | No PR; clear root cause and bounded scope | Medium | Write fix directly |
-| **Investigate + Implement** | Root cause unknown; Impact ≥ 2 | High | Bound the investigation; record what was ruled out |
-| **Defer** | Valid, in scope, but blocked or lower priority than active work | Zero now | Record reason + re-check condition (e.g., date, upstream event) |
-| **Monitor** | Draft PR or early-stage work on a high-value feature | Zero now | Note to revisit when draft is lifted |
-| **Skip** | Antipattern, out of scope, or Impact − Effort < 1 | Zero | Record reason; move on |
+| Tier                        | Condition                                                       | Token Cost | Action                                                          |
+| --------------------------- | --------------------------------------------------------------- | ---------- | --------------------------------------------------------------- |
+| **DONE**                    | Already applied in this fork                                    | Near-zero  | Verify fix still exists in current HEAD; then skip              |
+| **Security-patch**          | CVE or EOL for bundled dep; API-compatible upgrade              | Low        | Update URL + SHA256 in deps cmake; record                       |
+| **Cherry-pick**             | PR exists, no conflict, no antipattern                          | Low        | Apply diff; verify compiles                                     |
+| **Adapt**                   | PR exists, minor conflicts                                      | Low-medium | Resolve conflicts, apply                                        |
+| **Implement**               | No PR; clear root cause and bounded scope                       | Medium     | Write fix directly                                              |
+| **Investigate + Implement** | Root cause unknown; Impact ≥ 2                                  | High       | Bound the investigation; record what was ruled out              |
+| **Defer**                   | Valid, in scope, but blocked or lower priority than active work | Zero now   | Record reason + re-check condition (e.g., date, upstream event) |
+| **Monitor**                 | Draft PR or early-stage work on a high-value feature            | Zero now   | Note to revisit when draft is lifted                            |
+| **Skip**                    | Antipattern, out of scope, or Impact − Effort < 1               | Zero       | Record reason; move on                                          |
 
 **DONE verification:** Run a quick search (`git log --grep=<issue#>` or grep the relevant fix) to confirm the
 change still exists in HEAD. Upstream rebases and our own refactors can silently drop a cherry-pick. If the fix
@@ -506,6 +534,7 @@ relevant portion of the G-code output before recording completion.
 ## After Implementation
 
 **Verification checklist (minimum):**
+
 1. Build succeeds for the current target platform.
 2. No new compiler warnings in the modified files.
 3. If G-code output is affected: slice a representative model with the same profile and confirm the output
@@ -517,6 +546,7 @@ relevant portion of the G-code output before recording completion.
 For known risky subsystems (above): additionally inspect the relevant G-code section around the changed path.
 
 **Record-keeping:**
+
 - Mark the item `[x]` in `TODO.md`
 - Add an entry to `CHANGELOG.md` using the format:
   ```
@@ -536,6 +566,7 @@ Applying a well-understood, fully-specified change is cheap and can be delegated
 (e.g., Qwen 3 Coder 35B via Ollama, Aider, Continue.dev, or similar — no API key required).
 
 **Keep in the senior agent (needs context):**
+
 - Triage pass: reading PRs, applying antipatterns, scoring Impact ÷ Effort
 - Blast radius assessment: requires knowing the fork's divergence points
 - Investigation: open-ended root cause search
@@ -543,6 +574,7 @@ Applying a well-understood, fully-specified change is cheap and can be delegated
 - Any task where the brief would require more than ~5 sentences to fully specify
 
 **Good delegation candidates (execution only):**
+
 - Applying a clean cherry-pick where the exact file, function, and change are identified
 - Updating a dependency URL + SHA256 in a cmake file
 - Applying a batch of spelling/typo fixes across a list of specified files
@@ -561,11 +593,12 @@ codebase. A good brief removes all judgment from the task:
    an explicit boundary they may attempt to "improve" surrounding code in ways that conflict with the fork.
 
 Example brief:
+
 > File: `src/libslic3r/Extruder.cpp`, function `Extruder::retract()`.
 > Change this line:
->   `if (to_retract > 0.f) this->m_restart_extra = restart_extra;`
+> `if (to_retract > 0.f) this->m_restart_extra = restart_extra;`
 > to:
->   `this->m_restart_extra = restart_extra;`
+> `this->m_restart_extra = restart_extra;`
 > That is the complete change. Do not modify surrounding code — this codebase has invariants
 > you're not aware of. Report the before and after lines only.
 

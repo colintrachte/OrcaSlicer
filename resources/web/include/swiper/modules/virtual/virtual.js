@@ -1,10 +1,6 @@
-import $ from '../../shared/dom.js';
-import { setCSSProperty } from '../../shared/utils.js';
-export default function Virtual({
-  swiper,
-  extendParams,
-  on
-}) {
+import $ from "../../shared/dom.js";
+import { setCSSProperty } from "../../shared/utils.js";
+export default function Virtual({ swiper, extendParams, on }) {
   extendParams({
     virtual: {
       enabled: false,
@@ -14,8 +10,8 @@ export default function Virtual({
       renderExternal: null,
       renderExternalUpdate: true,
       addSlidesBefore: 0,
-      addSlidesAfter: 0
-    }
+      addSlidesAfter: 0,
+    },
   });
   let cssModeTimeout;
   swiper.virtual = {
@@ -24,7 +20,7 @@ export default function Virtual({
     to: undefined,
     slides: [],
     offset: 0,
-    slidesGrid: []
+    slidesGrid: [],
   };
 
   function renderSlide(slide, index) {
@@ -34,28 +30,26 @@ export default function Virtual({
       return swiper.virtual.cache[index];
     }
 
-    const $slideEl = params.renderSlide ? $(params.renderSlide.call(swiper, slide, index)) : $(`<div class="${swiper.params.slideClass}" data-swiper-slide-index="${index}">${slide}</div>`);
-    if (!$slideEl.attr('data-swiper-slide-index')) $slideEl.attr('data-swiper-slide-index', index);
+    const $slideEl = params.renderSlide
+      ? $(params.renderSlide.call(swiper, slide, index))
+      : $(
+          `<div class="${swiper.params.slideClass}" data-swiper-slide-index="${index}">${slide}</div>`,
+        );
+    if (!$slideEl.attr("data-swiper-slide-index"))
+      $slideEl.attr("data-swiper-slide-index", index);
     if (params.cache) swiper.virtual.cache[index] = $slideEl;
     return $slideEl;
   }
 
   function update(force) {
-    const {
-      slidesPerView,
-      slidesPerGroup,
-      centeredSlides
-    } = swiper.params;
-    const {
-      addSlidesBefore,
-      addSlidesAfter
-    } = swiper.params.virtual;
+    const { slidesPerView, slidesPerGroup, centeredSlides } = swiper.params;
+    const { addSlidesBefore, addSlidesAfter } = swiper.params.virtual;
     const {
       from: previousFrom,
       to: previousTo,
       slides,
       slidesGrid: previousSlidesGrid,
-      offset: previousOffset
+      offset: previousOffset,
     } = swiper.virtual;
 
     if (!swiper.params.cssMode) {
@@ -64,13 +58,16 @@ export default function Virtual({
 
     const activeIndex = swiper.activeIndex || 0;
     let offsetProp;
-    if (swiper.rtlTranslate) offsetProp = 'right';else offsetProp = swiper.isHorizontal() ? 'left' : 'top';
+    if (swiper.rtlTranslate) offsetProp = "right";
+    else offsetProp = swiper.isHorizontal() ? "left" : "top";
     let slidesAfter;
     let slidesBefore;
 
     if (centeredSlides) {
-      slidesAfter = Math.floor(slidesPerView / 2) + slidesPerGroup + addSlidesAfter;
-      slidesBefore = Math.floor(slidesPerView / 2) + slidesPerGroup + addSlidesBefore;
+      slidesAfter =
+        Math.floor(slidesPerView / 2) + slidesPerGroup + addSlidesAfter;
+      slidesBefore =
+        Math.floor(slidesPerView / 2) + slidesPerGroup + addSlidesBefore;
     } else {
       slidesAfter = slidesPerView + (slidesPerGroup - 1) + addSlidesAfter;
       slidesBefore = slidesPerGroup + addSlidesBefore;
@@ -83,7 +80,7 @@ export default function Virtual({
       from,
       to,
       offset,
-      slidesGrid: swiper.slidesGrid
+      slidesGrid: swiper.slidesGrid,
     });
 
     function onRendered() {
@@ -97,7 +94,10 @@ export default function Virtual({
     }
 
     if (previousFrom === from && previousTo === to && !force) {
-      if (swiper.slidesGrid !== previousSlidesGrid && offset !== previousOffset) {
+      if (
+        swiper.slidesGrid !== previousSlidesGrid &&
+        offset !== previousOffset
+      ) {
         swiper.slides.css(offsetProp, `${offset}px`);
       }
 
@@ -110,7 +110,7 @@ export default function Virtual({
         offset,
         from,
         to,
-        slides: function getSlides() {
+        slides: (function getSlides() {
           const slidesToRender = [];
 
           for (let i = from; i <= to; i += 1) {
@@ -118,7 +118,7 @@ export default function Virtual({
           }
 
           return slidesToRender;
-        }()
+        })(),
       });
 
       if (swiper.params.virtual.renderExternalUpdate) {
@@ -136,14 +136,18 @@ export default function Virtual({
     } else {
       for (let i = previousFrom; i <= previousTo; i += 1) {
         if (i < from || i > to) {
-          swiper.$wrapperEl.find(`.${swiper.params.slideClass}[data-swiper-slide-index="${i}"]`).remove();
+          swiper.$wrapperEl
+            .find(
+              `.${swiper.params.slideClass}[data-swiper-slide-index="${i}"]`,
+            )
+            .remove();
         }
       }
     }
 
     for (let i = 0; i < slides.length; i += 1) {
       if (i >= from && i <= to) {
-        if (typeof previousTo === 'undefined' || force) {
+        if (typeof previousTo === "undefined" || force) {
           appendIndexes.push(i);
         } else {
           if (i > previousTo) appendIndexes.push(i);
@@ -152,18 +156,20 @@ export default function Virtual({
       }
     }
 
-    appendIndexes.forEach(index => {
+    appendIndexes.forEach((index) => {
       swiper.$wrapperEl.append(renderSlide(slides[index], index));
     });
-    prependIndexes.sort((a, b) => b - a).forEach(index => {
-      swiper.$wrapperEl.prepend(renderSlide(slides[index], index));
-    });
-    swiper.$wrapperEl.children('.swiper-slide').css(offsetProp, `${offset}px`);
+    prependIndexes
+      .sort((a, b) => b - a)
+      .forEach((index) => {
+        swiper.$wrapperEl.prepend(renderSlide(slides[index], index));
+      });
+    swiper.$wrapperEl.children(".swiper-slide").css(offsetProp, `${offset}px`);
     onRendered();
   }
 
   function appendSlide(slides) {
-    if (typeof slides === 'object' && 'length' in slides) {
+    if (typeof slides === "object" && "length" in slides) {
       for (let i = 0; i < slides.length; i += 1) {
         if (slides[i]) swiper.virtual.slides.push(slides[i]);
       }
@@ -193,12 +199,15 @@ export default function Virtual({
     if (swiper.params.virtual.cache) {
       const cache = swiper.virtual.cache;
       const newCache = {};
-      Object.keys(cache).forEach(cachedIndex => {
+      Object.keys(cache).forEach((cachedIndex) => {
         const $cachedEl = cache[cachedIndex];
-        const cachedElIndex = $cachedEl.attr('data-swiper-slide-index');
+        const cachedElIndex = $cachedEl.attr("data-swiper-slide-index");
 
         if (cachedElIndex) {
-          $cachedEl.attr('data-swiper-slide-index', parseInt(cachedElIndex, 10) + numberOfNewSlides);
+          $cachedEl.attr(
+            "data-swiper-slide-index",
+            parseInt(cachedElIndex, 10) + numberOfNewSlides,
+          );
         }
 
         newCache[parseInt(cachedIndex, 10) + numberOfNewSlides] = $cachedEl;
@@ -211,7 +220,7 @@ export default function Virtual({
   }
 
   function removeSlide(slidesIndexes) {
-    if (typeof slidesIndexes === 'undefined' || slidesIndexes === null) return;
+    if (typeof slidesIndexes === "undefined" || slidesIndexes === null) return;
     let activeIndex = swiper.activeIndex;
 
     if (Array.isArray(slidesIndexes)) {
@@ -251,7 +260,7 @@ export default function Virtual({
     swiper.slideTo(0, 0);
   }
 
-  on('beforeInit', () => {
+  on("beforeInit", () => {
     if (!swiper.params.virtual.enabled) return;
     swiper.virtual.slides = swiper.params.virtual.slides;
     swiper.classNames.push(`${swiper.params.containerModifierClass}virtual`);
@@ -262,7 +271,7 @@ export default function Virtual({
       update();
     }
   });
-  on('setTranslate', () => {
+  on("setTranslate", () => {
     if (!swiper.params.virtual.enabled) return;
 
     if (swiper.params.cssMode && !swiper._immediateVirtual) {
@@ -274,11 +283,15 @@ export default function Virtual({
       update();
     }
   });
-  on('init update resize', () => {
+  on("init update resize", () => {
     if (!swiper.params.virtual.enabled) return;
 
     if (swiper.params.cssMode) {
-      setCSSProperty(swiper.wrapperEl, '--swiper-virtual-size', `${swiper.virtualSize}px`);
+      setCSSProperty(
+        swiper.wrapperEl,
+        "--swiper-virtual-size",
+        `${swiper.virtualSize}px`,
+      );
     }
   });
   Object.assign(swiper.virtual, {
@@ -286,6 +299,6 @@ export default function Virtual({
     prependSlide,
     removeSlide,
     removeAllSlides,
-    update
+    update,
   });
 }

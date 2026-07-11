@@ -38,12 +38,12 @@
 
 All four dependency upgrades update the version URL and SHA256 hash in the corresponding `deps/` cmake file. No source-level API changes are required for TBB or Boost. OpenSSL 3.x deprecates several low-level APIs used in OrcaSlicer; the deprecated calls are addressed as follows:
 
-- **OpenSSL 1.1.1w → 3.4.6** (LTS, supported until Oct 2028) — EOL since Sept 2023.  
-  - `MD5_CTX`/`MD5_Init`/`MD5_Update`/`MD5_Final` in `bbs_3mf.cpp` and `utils.cpp` migrated to `EVP_DigestInit_ex` / `EVP_DigestUpdate` / `EVP_DigestFinal_ex`.  
-  - `HMAC()` one-shot and `SHA256()` one-shot (deprecated in 3.x, still available) suppressed via `OPENSSL_SUPPRESS_DEPRECATED` in `GUI_App.cpp` and `OrcaCloudServiceAgent.cpp`.  
-  - `no-dynamic-engine` configure flag (removed in 3.x) replaced with `no-engine`.  
+- **OpenSSL 1.1.1w → 3.4.6** (LTS, supported until Oct 2028) — EOL since Sept 2023.
+  - `MD5_CTX`/`MD5_Init`/`MD5_Update`/`MD5_Final` in `bbs_3mf.cpp` and `utils.cpp` migrated to `EVP_DigestInit_ex` / `EVP_DigestUpdate` / `EVP_DigestFinal_ex`.
+  - `HMAC()` one-shot and `SHA256()` one-shot (deprecated in 3.x, still available) suppressed via `OPENSSL_SUPPRESS_DEPRECATED` in `GUI_App.cpp` and `OrcaCloudServiceAgent.cpp`.
+  - `no-dynamic-engine` configure flag (removed in 3.x) replaced with `no-engine`.
   - Redundant `#include <openssl/md5.h>` removed from `CreatePresetsDialog.cpp`.  
-  Files: `deps/OpenSSL/OpenSSL.cmake`, `src/libslic3r/Utils.hpp`, `src/libslic3r/utils.cpp`, `src/libslic3r/Format/bbs_3mf.cpp`, `src/slic3r/GUI/GUI_App.cpp`, `src/slic3r/GUI/CreatePresetsDialog.cpp`, `src/slic3r/Utils/OrcaCloudServiceAgent.cpp`
+    Files: `deps/OpenSSL/OpenSSL.cmake`, `src/libslic3r/Utils.hpp`, `src/libslic3r/utils.cpp`, `src/libslic3r/Format/bbs_3mf.cpp`, `src/slic3r/GUI/GUI_App.cpp`, `src/slic3r/GUI/CreatePresetsDialog.cpp`, `src/slic3r/Utils/OrcaCloudServiceAgent.cpp`
 
 - **CURL 7.75.0 → 8.20.0** — over 5 years of CVE fixes.  
   File: `deps/CURL/CURL.cmake`

@@ -1,24 +1,19 @@
 /* eslint no-bitwise: ["error", { "allow": [">>"] }] */
-import { nextTick } from '../../shared/utils.js';
-export default function Controller({
-  swiper,
-  extendParams,
-  on
-}) {
+import { nextTick } from "../../shared/utils.js";
+export default function Controller({ swiper, extendParams, on }) {
   extendParams({
     controller: {
       control: undefined,
       inverse: false,
-      by: 'slide' // or 'container'
-
-    }
+      by: "slide", // or 'container'
+    },
   });
   swiper.controller = {
-    control: undefined
+    control: undefined,
   };
 
   function LinearSpline(x, y) {
-    const binarySearch = function search() {
+    const binarySearch = (function search() {
       let maxIndex;
       let minIndex;
       let guess;
@@ -27,7 +22,7 @@ export default function Controller({
         maxIndex = array.length;
 
         while (maxIndex - minIndex > 1) {
-          guess = maxIndex + minIndex >> 1;
+          guess = (maxIndex + minIndex) >> 1;
 
           if (array[guess] <= val) {
             minIndex = guess;
@@ -38,7 +33,7 @@ export default function Controller({
 
         return maxIndex;
       };
-    }();
+    })();
 
     this.x = x;
     this.y = y;
@@ -56,16 +51,21 @@ export default function Controller({
       i1 = i3 - 1; // We have our indexes i1 & i3, so we can calculate already:
       // y2 := ((x2−x1) × (y3−y1)) ÷ (x3−x1) + y1
 
-      return (x2 - this.x[i1]) * (this.y[i3] - this.y[i1]) / (this.x[i3] - this.x[i1]) + this.y[i1];
+      return (
+        ((x2 - this.x[i1]) * (this.y[i3] - this.y[i1])) /
+          (this.x[i3] - this.x[i1]) +
+        this.y[i1]
+      );
     };
 
     return this;
   } // xxx: for now i will just save one spline function to to
 
-
   function getInterpolateFunction(c) {
     if (!swiper.controller.spline) {
-      swiper.controller.spline = swiper.params.loop ? new LinearSpline(swiper.slidesGrid, c.slidesGrid) : new LinearSpline(swiper.snapGrid, c.snapGrid);
+      swiper.controller.spline = swiper.params.loop
+        ? new LinearSpline(swiper.slidesGrid, c.slidesGrid)
+        : new LinearSpline(swiper.snapGrid, c.snapGrid);
     }
   }
 
@@ -80,18 +80,23 @@ export default function Controller({
       // x is the Grid of the scrolled scroller and y will be the controlled scroller
       // it makes sense to create this only once and recall it for the interpolation
       // the function does a lot of value caching for performance
-      const translate = swiper.rtlTranslate ? -swiper.translate : swiper.translate;
+      const translate = swiper.rtlTranslate
+        ? -swiper.translate
+        : swiper.translate;
 
-      if (swiper.params.controller.by === 'slide') {
+      if (swiper.params.controller.by === "slide") {
         getInterpolateFunction(c); // i am not sure why the values have to be multiplicated this way, tried to invert the snapGrid
         // but it did not work out
 
         controlledTranslate = -swiper.controller.spline.interpolate(-translate);
       }
 
-      if (!controlledTranslate || swiper.params.controller.by === 'container') {
-        multiplier = (c.maxTranslate() - c.minTranslate()) / (swiper.maxTranslate() - swiper.minTranslate());
-        controlledTranslate = (translate - swiper.minTranslate()) * multiplier + c.minTranslate();
+      if (!controlledTranslate || swiper.params.controller.by === "container") {
+        multiplier =
+          (c.maxTranslate() - c.minTranslate()) /
+          (swiper.maxTranslate() - swiper.minTranslate());
+        controlledTranslate =
+          (translate - swiper.minTranslate()) * multiplier + c.minTranslate();
       }
 
       if (swiper.params.controller.inverse) {
@@ -135,7 +140,7 @@ export default function Controller({
         c.$wrapperEl.transitionEnd(() => {
           if (!controlled) return;
 
-          if (c.params.loop && swiper.params.controller.by === 'slide') {
+          if (c.params.loop && swiper.params.controller.by === "slide") {
             c.loopFix();
           }
 
@@ -164,28 +169,28 @@ export default function Controller({
     }
   }
 
-  on('beforeInit', () => {
+  on("beforeInit", () => {
     swiper.controller.control = swiper.params.controller.control;
   });
-  on('update', () => {
+  on("update", () => {
     removeSpline();
   });
-  on('resize', () => {
+  on("resize", () => {
     removeSpline();
   });
-  on('observerUpdate', () => {
+  on("observerUpdate", () => {
     removeSpline();
   });
-  on('setTranslate', (_s, translate, byController) => {
+  on("setTranslate", (_s, translate, byController) => {
     if (!swiper.controller.control) return;
     swiper.controller.setTranslate(translate, byController);
   });
-  on('setTransition', (_s, duration, byController) => {
+  on("setTransition", (_s, duration, byController) => {
     if (!swiper.controller.control) return;
     swiper.controller.setTransition(duration, byController);
   });
   Object.assign(swiper.controller, {
     setTranslate,
-    setTransition
+    setTransition,
   });
 }

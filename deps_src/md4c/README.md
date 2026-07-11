@@ -1,57 +1,54 @@
-
 # MD4C Readme
 
-* Home: http://github.com/mity/md4c
-* Wiki: http://github.com/mity/md4c/wiki
-* Issue tracker: http://github.com/mity/md4c/issues
+- Home: http://github.com/mity/md4c
+- Wiki: http://github.com/mity/md4c/wiki
+- Issue tracker: http://github.com/mity/md4c/issues
 
 MD4C stands for "Markdown for C" and that's exactly what this project is about.
-
 
 ## What is Markdown
 
 In short, Markdown is the markup language this `README.md` file is written in.
 
 The following resources can explain more if you are unfamiliar with it:
-* [Wikipedia article](http://en.wikipedia.org/wiki/Markdown)
-* [CommonMark site](http://commonmark.org)
 
+- [Wikipedia article](http://en.wikipedia.org/wiki/Markdown)
+- [CommonMark site](http://commonmark.org)
 
 ## What is MD4C
 
 MD4C is Markdown parser implementation in C, with the following features:
 
-* **Compliance:** Generally, MD4C aims to be compliant to the latest version of
+- **Compliance:** Generally, MD4C aims to be compliant to the latest version of
   [CommonMark specification](http://spec.commonmark.org/). Currently, we are
   fully compliant to CommonMark 0.31.
 
-* **Extensions:** MD4C supports some commonly requested and accepted extensions.
+- **Extensions:** MD4C supports some commonly requested and accepted extensions.
   See below.
 
-* **Performance:** MD4C is [very fast](https://talk.commonmark.org/t/2520).
+- **Performance:** MD4C is [very fast](https://talk.commonmark.org/t/2520).
 
-* **Compactness:** MD4C parser is implemented in one source file and one header
+- **Compactness:** MD4C parser is implemented in one source file and one header
   file. There are no dependencies other than standard C library.
 
-* **Embedding:** MD4C parser is easy to reuse in other projects, its API is
+- **Embedding:** MD4C parser is easy to reuse in other projects, its API is
   very straightforward: There is actually just one function, `md_parse()`.
 
-* **Push model:** MD4C parses the complete document and calls few callback
+- **Push model:** MD4C parses the complete document and calls few callback
   functions provided by the application to inform it about a start/end of
   every block, a start/end of every span, and with any textual contents.
 
-* **Portability:** MD4C builds and works on Windows and POSIX-compliant OSes.
+- **Portability:** MD4C builds and works on Windows and POSIX-compliant OSes.
   (It should be simple to make it run also on most other platforms, at least as
   long as the platform provides C standard library, including a heap memory
   management.)
 
-* **Encoding:** MD4C by default expects UTF-8 encoding of the input document.
+- **Encoding:** MD4C by default expects UTF-8 encoding of the input document.
   But it can be compiled to recognize ASCII-only control characters (i.e. to
   disable all Unicode-specific code), or (on Windows) to expect UTF-16 (i.e.
   what is on Windows commonly called just "Unicode"). See more details below.
 
-* **Permissive license:** MD4C is available under the [MIT license](LICENSE.md).
-
+- **Permissive license:** MD4C is available under the [MIT license](LICENSE.md).
 
 ## Using MD4C
 
@@ -71,7 +68,6 @@ leaving any Markdown block or span; and when outputting any textual content of
 the document), allowing application to convert it into another format or render
 it onto the screen.
 
-
 ### Converting to HTML
 
 If you need to convert Markdown to HTML, include `md4c-html.h` and link against
@@ -83,7 +79,6 @@ input and calls the provided callback function. The callback is fed with
 chunks of the HTML output. Typical callback implementation just appends the
 chunks into a buffer or writes them to a file.
 
-
 ## Markdown Extensions
 
 The default behavior is to recognize only Markdown syntax defined by the
@@ -92,46 +87,45 @@ The default behavior is to recognize only Markdown syntax defined by the
 However, with appropriate flags, the behavior can be tuned to enable some
 extensions:
 
-* With the flag `MD_FLAG_COLLAPSEWHITESPACE`, a non-trivial whitespace is
+- With the flag `MD_FLAG_COLLAPSEWHITESPACE`, a non-trivial whitespace is
   collapsed into a single space.
 
-* With the flag `MD_FLAG_TABLES`, GitHub-style tables are supported.
+- With the flag `MD_FLAG_TABLES`, GitHub-style tables are supported.
 
-* With the flag `MD_FLAG_TASKLISTS`, GitHub-style task lists are supported.
+- With the flag `MD_FLAG_TASKLISTS`, GitHub-style task lists are supported.
 
-* With the flag `MD_FLAG_STRIKETHROUGH`, strike-through spans are enabled
+- With the flag `MD_FLAG_STRIKETHROUGH`, strike-through spans are enabled
   (text enclosed in tilde marks, e.g. `~foo bar~`).
 
-* With the flag `MD_FLAG_PERMISSIVEURLAUTOLINKS` permissive URL autolinks
+- With the flag `MD_FLAG_PERMISSIVEURLAUTOLINKS` permissive URL autolinks
   (not enclosed in `<` and `>`) are supported.
 
-* With the flag `MD_FLAG_PERMISSIVEEMAILAUTOLINKS`, permissive e-mail
+- With the flag `MD_FLAG_PERMISSIVEEMAILAUTOLINKS`, permissive e-mail
   autolinks (not enclosed in `<` and `>`) are supported.
 
-* With the flag `MD_FLAG_PERMISSIVEWWWAUTOLINKS` permissive WWW autolinks
+- With the flag `MD_FLAG_PERMISSIVEWWWAUTOLINKS` permissive WWW autolinks
   without any scheme specified (e.g. `www.example.com`) are supported. MD4C
   then assumes `http:` scheme.
 
-* With the flag `MD_FLAG_LATEXMATHSPANS` LaTeX math spans (`$...$`) and
+- With the flag `MD_FLAG_LATEXMATHSPANS` LaTeX math spans (`$...$`) and
   LaTeX display math spans (`$$...$$`) are supported. (Note though that the
   HTML renderer outputs them verbatim in a custom tag `<x-equation>`.)
 
-* With the flag `MD_FLAG_WIKILINKS`, wiki-style links (`[[link label]]` and
+- With the flag `MD_FLAG_WIKILINKS`, wiki-style links (`[[link label]]` and
   `[[target article|link label]]`) are supported. (Note that the HTML renderer
   outputs them in a custom tag `<x-wikilink>`.)
 
-* With the flag `MD_FLAG_UNDERLINE`, underscore (`_`) denotes an underline
+- With the flag `MD_FLAG_UNDERLINE`, underscore (`_`) denotes an underline
   instead of an ordinary emphasis or strong emphasis.
 
 Few features of CommonMark (those some people see as mis-features) may be
 disabled with the following flags:
 
-* With the flag `MD_FLAG_NOHTMLSPANS` or `MD_FLAG_NOHTMLBLOCKS`, raw inline
+- With the flag `MD_FLAG_NOHTMLSPANS` or `MD_FLAG_NOHTMLBLOCKS`, raw inline
   HTML or raw HTML blocks respectively are disabled.
 
-* With the flag `MD_FLAG_NOINDENTEDCODEBLOCKS`, indented code blocks are
+- With the flag `MD_FLAG_NOINDENTEDCODEBLOCKS`, indented code blocks are
   disabled.
-
 
 ## Input/Output Encoding
 
@@ -169,12 +163,12 @@ The two situations (word boundary detection and link reference matching) where
 MD4C has to understand Unicode are handled as specified by the following
 preprocessor macros (as specified at the time MD4C is being built):
 
-* If preprocessor macro `MD4C_USE_UTF8` is defined, MD4C assumes UTF-8 for the
+- If preprocessor macro `MD4C_USE_UTF8` is defined, MD4C assumes UTF-8 for the
   word boundary detection and for the case-insensitive matching of link labels.
 
   When none of these macros is explicitly used, this is the default behavior.
 
-* On Windows, if preprocessor macro `MD4C_USE_UTF16` is defined, MD4C uses
+- On Windows, if preprocessor macro `MD4C_USE_UTF16` is defined, MD4C uses
   `WCHAR` instead of `char` and assumes UTF-16 encoding in those situations.
   (UTF-16 is what Windows developers usually call just "Unicode" and what
   Win32API generally works with.)
@@ -187,13 +181,12 @@ preprocessor macros (as specified at the time MD4C is being built):
   renderer does not support this and you will have to write your own custom
   renderer to use this feature.
 
-* If preprocessor macro `MD4C_USE_ASCII` is defined, MD4C assumes nothing but
+- If preprocessor macro `MD4C_USE_ASCII` is defined, MD4C assumes nothing but
   an ASCII input.
 
   That effectively means that non-ASCII whitespace or punctuation characters
   won't be recognized as such and that link reference matching will work in
   a case-insensitive way only for ASCII letters (`[a-zA-Z]`).
-
 
 ## Documentation
 
@@ -203,7 +196,6 @@ Similarly, the markdown-to-html API is described in its header `md4c-html.h`.
 There is also [project wiki](http://github.com/mity/md4c/wiki) which provides
 some more comprehensive documentation. However note it is incomplete and some
 details may be somewhat outdated.
-
 
 ## FAQ
 
@@ -256,42 +248,40 @@ If you need to validate that the input is, say, a well-formed UTF-8 document,
 you have to do it on your own. The easiest way how to do this is to simply
 validate the whole document before passing it to the MD4C parser.
 
-
 ## License
 
 MD4C is covered with MIT license, see the file `LICENSE.md`.
-
 
 ## Links to Related Projects
 
 Ports and bindings to other languages:
 
-* [commonmark-d](https://github.com/AuburnSounds/commonmark-d):
+- [commonmark-d](https://github.com/AuburnSounds/commonmark-d):
   Port of MD4C to D language.
 
-* [markdown-wasm](https://github.com/rsms/markdown-wasm):
+- [markdown-wasm](https://github.com/rsms/markdown-wasm):
   Port of MD4C to WebAssembly.
 
-* [PyMD4C](https://github.com/dominickpastore/pymd4c):
+- [PyMD4C](https://github.com/dominickpastore/pymd4c):
   Python bindings for MD4C
 
 Software using MD4C:
 
-* [imgui_md](https://github.com/mekhontsev/imgui_md):
+- [imgui_md](https://github.com/mekhontsev/imgui_md):
   Markdown renderer for [Dear ImGui](https://github.com/ocornut/imgui)
 
-* [MarkDown Monolith Assembler](https://github.com/1Hyena/mdma):
+- [MarkDown Monolith Assembler](https://github.com/1Hyena/mdma):
   A command line tool for building browser-based books.
 
-* [QOwnNotes](https://www.qownnotes.org/):
+- [QOwnNotes](https://www.qownnotes.org/):
   A plain-text file notepad and todo-list manager with markdown support and
   ownCloud / Nextcloud integration.
 
-* [Qt](https://www.qt.io/):
+- [Qt](https://www.qt.io/):
   Cross-platform C++ GUI framework.
 
-* [Textosaurus](https://github.com/martinrotter/textosaurus):
+- [Textosaurus](https://github.com/martinrotter/textosaurus):
   Cross-platform text editor based on Qt and Scintilla.
 
-* [8th](https://8th-dev.com/):
+- [8th](https://8th-dev.com/):
   Cross-platform concatenative programming language.

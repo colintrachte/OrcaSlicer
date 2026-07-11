@@ -109,7 +109,7 @@ public:
     // to remove
     MachineObject* insert_local_device(const BBLocalMachine& machine,
         std::string connection_type, std::string bind_state, std::string version,
-        std::string access_code);
+        std::string access_code, bool is_bbl_printer = true);
     static void update_local_machine(const MachineObject& m);
 };
 

@@ -1,6 +1,6 @@
-import { Dom7Array } from 'dom7';
-import { CSSSelector } from '../shared';
-import Swiper from '../swiper-class';
+import { Dom7Array } from "dom7";
+import { CSSSelector } from "../shared";
+import Swiper from "../swiper-class";
 
 export interface LazyMethods {
   /**
@@ -19,11 +19,19 @@ export interface LazyEvents {
   /**
    * Event will be fired in the beginning of lazy loading of image
    */
-  lazyImageLoad: (swiper: Swiper, slideEl: HTMLElement, imageEl: HTMLElement) => void;
+  lazyImageLoad: (
+    swiper: Swiper,
+    slideEl: HTMLElement,
+    imageEl: HTMLElement,
+  ) => void;
   /**
    * Event will be fired when lazy loading image will be loaded
    */
-  lazyImageReady: (swiper: Swiper, slideEl: HTMLElement, imageEl: HTMLElement) => void;
+  lazyImageReady: (
+    swiper: Swiper,
+    slideEl: HTMLElement,
+    imageEl: HTMLElement,
+  ) => void;
 }
 
 export interface LazyOptions {

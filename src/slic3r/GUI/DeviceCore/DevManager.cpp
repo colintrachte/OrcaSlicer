@@ -342,7 +342,7 @@ namespace Slic3r
 
     MachineObject* DeviceManager::insert_local_device(const BBLocalMachine& machine,
         std::string connection_type, std::string bind_state,
-        std::string version, std::string access_code)
+        std::string version, std::string access_code, bool is_bbl_printer)
     {
         MachineObject* obj;
         auto           it = localMachineList.find(machine.dev_id);
@@ -352,7 +352,11 @@ namespace Slic3r
             obj = new MachineObject(this, m_agent, machine.dev_name, machine.dev_id, machine.dev_ip);
             localMachineList.insert(std::make_pair(machine.dev_id, obj));
         }
-        if (machine.printer_type.empty())
+        if (!is_bbl_printer)
+            // Non-Bambu printers (e.g. Klipper/Octoprint hosts) have no entry under
+            // resources/printers/, so skip the Bambu-specific type normalization/validation.
+            obj->printer_type = machine.printer_type;
+        else if (machine.printer_type.empty())
             obj->printer_type = _parse_printer_type("C11");
         else
             obj->printer_type = _parse_printer_type(machine.printer_type);

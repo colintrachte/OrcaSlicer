@@ -1,1 +1,1 @@
-export * from './angular/src/public-api';
+export * from "./angular/src/public-api";

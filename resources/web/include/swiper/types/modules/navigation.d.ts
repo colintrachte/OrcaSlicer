@@ -1,5 +1,5 @@
-import { CSSSelector } from '../shared';
-import Swiper from '../swiper-class';
+import { CSSSelector } from "../shared";
+import Swiper from "../swiper-class";
 
 export interface NavigationMethods {
   /**

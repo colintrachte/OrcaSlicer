@@ -19,8 +19,8 @@ declaration (mdns.h) and implementation (mdns.c) files.
 
 Thin C++ wrapper over mdns.{h,c} that exposes a single function:
 
-  std::vector<machine_info> syncDiscoveryService(
-      const std::vector<std::string>& prefix);
+std::vector<machine_info> syncDiscoveryService(
+const std::vector<std::string>& prefix);
 
 It sends a DNS-SD meta-discovery query (`_services._dns-sd._udp.local.`),
 listens for ~5 seconds, and returns `{ip, service_name}` for every

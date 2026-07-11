@@ -1,16 +1,18 @@
-import { getWindow } from 'ssr-window';
+import { getWindow } from "ssr-window";
 
 function deleteProps(obj) {
   const object = obj;
-  Object.keys(object).forEach(key => {
+  Object.keys(object).forEach((key) => {
     try {
       object[key] = null;
-    } catch (e) {// no getter for object
+    } catch (e) {
+      // no getter for object
     }
 
     try {
       delete object[key];
-    } catch (e) {// something got wrong
+    } catch (e) {
+      // something got wrong
     }
   });
 }
@@ -42,7 +44,7 @@ function getComputedStyle(el) {
   return style;
 }
 
-function getTranslate(el, axis = 'x') {
+function getTranslate(el, axis = "x") {
   const window = getWindow();
   let matrix;
   let curTransform;
@@ -52,29 +54,45 @@ function getTranslate(el, axis = 'x') {
   if (window.WebKitCSSMatrix) {
     curTransform = curStyle.transform || curStyle.webkitTransform;
 
-    if (curTransform.split(',').length > 6) {
-      curTransform = curTransform.split(', ').map(a => a.replace(',', '.')).join(', ');
+    if (curTransform.split(",").length > 6) {
+      curTransform = curTransform
+        .split(", ")
+        .map((a) => a.replace(",", "."))
+        .join(", ");
     } // Some old versions of Webkit choke when 'none' is passed; pass
     // empty string instead in this case
 
-
-    transformMatrix = new window.WebKitCSSMatrix(curTransform === 'none' ? '' : curTransform);
+    transformMatrix = new window.WebKitCSSMatrix(
+      curTransform === "none" ? "" : curTransform,
+    );
   } else {
-    transformMatrix = curStyle.MozTransform || curStyle.OTransform || curStyle.MsTransform || curStyle.msTransform || curStyle.transform || curStyle.getPropertyValue('transform').replace('translate(', 'matrix(1, 0, 0, 1,');
-    matrix = transformMatrix.toString().split(',');
+    transformMatrix =
+      curStyle.MozTransform ||
+      curStyle.OTransform ||
+      curStyle.MsTransform ||
+      curStyle.msTransform ||
+      curStyle.transform ||
+      curStyle
+        .getPropertyValue("transform")
+        .replace("translate(", "matrix(1, 0, 0, 1,");
+    matrix = transformMatrix.toString().split(",");
   }
 
-  if (axis === 'x') {
+  if (axis === "x") {
     // Latest Chrome and webkits Fix
-    if (window.WebKitCSSMatrix) curTransform = transformMatrix.m41; // Crazy IE10 Matrix
-    else if (matrix.length === 16) curTransform = parseFloat(matrix[12]); // Normal Browsers
+    if (window.WebKitCSSMatrix)
+      curTransform = transformMatrix.m41; // Crazy IE10 Matrix
+    else if (matrix.length === 16)
+      curTransform = parseFloat(matrix[12]); // Normal Browsers
     else curTransform = parseFloat(matrix[4]);
   }
 
-  if (axis === 'y') {
+  if (axis === "y") {
     // Latest Chrome and webkits Fix
-    if (window.WebKitCSSMatrix) curTransform = transformMatrix.m42; // Crazy IE10 Matrix
-    else if (matrix.length === 16) curTransform = parseFloat(matrix[13]); // Normal Browsers
+    if (window.WebKitCSSMatrix)
+      curTransform = transformMatrix.m42; // Crazy IE10 Matrix
+    else if (matrix.length === 16)
+      curTransform = parseFloat(matrix[13]); // Normal Browsers
     else curTransform = parseFloat(matrix[5]);
   }
 
@@ -82,12 +100,20 @@ function getTranslate(el, axis = 'x') {
 }
 
 function isObject(o) {
-  return typeof o === 'object' && o !== null && o.constructor && Object.prototype.toString.call(o).slice(8, -1) === 'Object';
+  return (
+    typeof o === "object" &&
+    o !== null &&
+    o.constructor &&
+    Object.prototype.toString.call(o).slice(8, -1) === "Object"
+  );
 }
 
 function isNode(node) {
   // eslint-disable-next-line
-  if (typeof window !== 'undefined' && typeof window.HTMLElement !== 'undefined') {
+  if (
+    typeof window !== "undefined" &&
+    typeof window.HTMLElement !== "undefined"
+  ) {
     return node instanceof HTMLElement;
   }
 
@@ -96,15 +122,25 @@ function isNode(node) {
 
 function extend(...args) {
   const to = Object(args[0]);
-  const noExtend = ['__proto__', 'constructor', 'prototype'];
+  const noExtend = ["__proto__", "constructor", "prototype"];
 
   for (let i = 1; i < args.length; i += 1) {
     const nextSource = args[i];
 
-    if (nextSource !== undefined && nextSource !== null && !isNode(nextSource)) {
-      const keysArray = Object.keys(Object(nextSource)).filter(key => noExtend.indexOf(key) < 0);
+    if (
+      nextSource !== undefined &&
+      nextSource !== null &&
+      !isNode(nextSource)
+    ) {
+      const keysArray = Object.keys(Object(nextSource)).filter(
+        (key) => noExtend.indexOf(key) < 0,
+      );
 
-      for (let nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex += 1) {
+      for (
+        let nextIndex = 0, len = keysArray.length;
+        nextIndex < len;
+        nextIndex += 1
+      ) {
         const nextKey = keysArray[nextIndex];
         const desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
 
@@ -138,22 +174,21 @@ function setCSSProperty(el, varName, varValue) {
   el.style.setProperty(varName, varValue);
 }
 
-function animateCSSModeScroll({
-  swiper,
-  targetPosition,
-  side
-}) {
+function animateCSSModeScroll({ swiper, targetPosition, side }) {
   const window = getWindow();
   const startPosition = -swiper.translate;
   let startTime = null;
   let time;
   const duration = swiper.params.speed;
-  swiper.wrapperEl.style.scrollSnapType = 'none';
+  swiper.wrapperEl.style.scrollSnapType = "none";
   window.cancelAnimationFrame(swiper.cssModeFrameID);
-  const dir = targetPosition > startPosition ? 'next' : 'prev';
+  const dir = targetPosition > startPosition ? "next" : "prev";
 
   const isOutOfBound = (current, target) => {
-    return dir === 'next' && current >= target || dir === 'prev' && current <= target;
+    return (
+      (dir === "next" && current >= target) ||
+      (dir === "prev" && current <= target)
+    );
   };
 
   const animate = () => {
@@ -165,23 +200,24 @@ function animateCSSModeScroll({
 
     const progress = Math.max(Math.min((time - startTime) / duration, 1), 0);
     const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
-    let currentPosition = startPosition + easeProgress * (targetPosition - startPosition);
+    let currentPosition =
+      startPosition + easeProgress * (targetPosition - startPosition);
 
     if (isOutOfBound(currentPosition, targetPosition)) {
       currentPosition = targetPosition;
     }
 
     swiper.wrapperEl.scrollTo({
-      [side]: currentPosition
+      [side]: currentPosition,
     });
 
     if (isOutOfBound(currentPosition, targetPosition)) {
-      swiper.wrapperEl.style.overflow = 'hidden';
-      swiper.wrapperEl.style.scrollSnapType = '';
+      swiper.wrapperEl.style.overflow = "hidden";
+      swiper.wrapperEl.style.scrollSnapType = "";
       setTimeout(() => {
-        swiper.wrapperEl.style.overflow = '';
+        swiper.wrapperEl.style.overflow = "";
         swiper.wrapperEl.scrollTo({
-          [side]: currentPosition
+          [side]: currentPosition,
         });
       });
       window.cancelAnimationFrame(swiper.cssModeFrameID);
@@ -194,4 +230,14 @@ function animateCSSModeScroll({
   animate();
 }
 
-export { animateCSSModeScroll, deleteProps, nextTick, now, getTranslate, isObject, extend, getComputedStyle, setCSSProperty };
+export {
+  animateCSSModeScroll,
+  deleteProps,
+  nextTick,
+  now,
+  getTranslate,
+  isObject,
+  extend,
+  getComputedStyle,
+  setCSSProperty,
+};

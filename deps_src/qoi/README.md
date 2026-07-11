@@ -1,7 +1,6 @@
 Bundled with PrusaSlicer: commit 6c0831f91ffde5dfe2ceef32cbaff91d62b0e0ee
 Original README follows:
 
-
 ![QOI Logo](https://qoiformat.org/qoi-logo.svg)
 
 # QOI - The “Quite OK Image Format” for fast, lossless image compression
@@ -13,37 +12,33 @@ the documentation and format specification.
 
 More info at https://qoiformat.org
 
-
 ## Why?
 
 Compared to stb_image and stb_image_write QOI offers 20x-50x faster encoding,
 3x-4x faster decoding and 20% better compression. It's also stupidly simple and
 fits in about 300 lines of C.
 
-
 ## Example Usage
 
 - [qoiconv.c](https://github.com/phoboslab/qoi/blob/master/qoiconv.c)
-converts between png <> qoi
- - [qoibench.c](https://github.com/phoboslab/qoi/blob/master/qoibench.c)
-a simple wrapper to benchmark stbi, libpng and qoi
-
+  converts between png <> qoi
+- [qoibench.c](https://github.com/phoboslab/qoi/blob/master/qoibench.c)
+  a simple wrapper to benchmark stbi, libpng and qoi
 
 ## Limitations
 
-The QOI file format allows for huge images with up to 18 exa-pixels. A streaming 
-en-/decoder can handle these with minimal RAM requirements, assuming there is 
+The QOI file format allows for huge images with up to 18 exa-pixels. A streaming
+en-/decoder can handle these with minimal RAM requirements, assuming there is
 enough storage space.
 
-This particular implementation of QOI however is limited to images with a 
+This particular implementation of QOI however is limited to images with a
 maximum size of 400 million pixels. It will safely refuse to en-/decode anything
 larger than that. This is not a streaming en-/decoder. It loads the whole image
-file into RAM before doing any work and is not extensively optimized for 
+file into RAM before doing any work and is not extensively optimized for
 performance (but it's still very fast).
 
-If this is a limitation for your use case, please look into any of the other 
+If this is a limitation for your use case, please look into any of the other
 implementations listed below.
-
 
 ## Tools
 
@@ -55,7 +50,6 @@ implementations listed below.
 - https://apps.apple.com/br/app/qoiconverterx/id1602159820 QOI <=> PNG converter available on the Mac App Store
 - https://github.com/kaetemi/qoi-max - QOI Bitmap I/O Plugin for 3ds Max
 - https://raylibtech.itch.io/rtexviewer - texture viewer, supports QOI
-
 
 ## Implementations & Bindings of QOI
 
@@ -82,7 +76,6 @@ implementations listed below.
 - https://github.com/LightHouseSoftware/qoiformats (D)
 - https://github.com/mhoward540/qoi-nim (Nim)
 
-
 ## QOI Support in Other Software
 
 - [SerenityOS](https://github.com/SerenityOS/serenity) supports decoding QOI system wide through a custom [cpp implementation in LibGfx](https://github.com/SerenityOS/serenity/blob/master/Userland/Libraries/LibGfx/QOILoader.h)
@@ -92,11 +85,9 @@ implementations listed below.
 - [SAIL](https://github.com/HappySeaFox/sail) image decoding library, supports decoding and encoding QOI images
 - [Orx](https://github.com/orx/orx) 2D game engine, supports QOI natively
 
-
 ## Packages
 
 [AUR](https://aur.archlinux.org/pkgbase/qoi-git/) - system-wide qoi.h, qoiconv and qoibench install as split packages.
-
 
 ## Implementations not yet conforming to the final specification
 
@@ -105,4 +96,3 @@ These implementations are based on the pre-release version of QOI. Resulting fil
 - https://github.com/ChevyRay/qoi_rs (Rust)
 - https://github.com/panzi/jsqoi (TypeScript)
 - https://github.com/0xd34df00d/hsqoi (Haskell)
-

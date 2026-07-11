@@ -448,6 +448,11 @@ void PartPlate::calc_exclude_triangles(const ExPolygon &poly)
 {
     m_exclude_triangles.reset();
 
+    // Most printer profiles have no exclude area defined, so an empty poly here
+    // is the common case, not an error.
+    if (poly.empty())
+        return;
+
     if (!init_model_from_poly(m_exclude_triangles, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create exclude triangles\n";
 }

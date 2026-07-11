@@ -19,6 +19,7 @@ It's based on ideas from [FIST: Fast Industrial-Strength Triangulation of Polygo
 ```cpp
 #include <earcut.hpp>
 ```
+
 ```cpp
 // The number type to use for tessellation
 using Coord = double;
@@ -45,7 +46,6 @@ std::vector<N> indices = mapbox::earcut<N>(polygon);
 ```
 
 Earcut can triangulate a simple, planar polygon of any winding order including holes. It will even return a robust, acceptable solution for non-simple poygons. Earcut works on a 2D plane. If you have three or more dimensions, you can project them onto a 2D surface before triangulation, or use a more suitable library for the task (e.g [CGAL](https://doc.cgal.org/latest/Triangulation_3/index.html)).
-
 
 It is also possible to use your custom point type as input. There are default accessors defined for `std::tuple`, `std::pair`, and `std::array`. For a custom type (like Clipper's `IntPoint` type), do this:
 
@@ -81,6 +81,7 @@ You can also use a custom container type for your polygon. Similar to std::vecto
 </p>
 
 ## Additional build instructions
+
 In case you just want to use the earcut triangulation library; copy and include the header file [`<earcut.hpp>`](https://github.com/mapbox/earcut.hpp/blob/master/include/mapbox/earcut.hpp) in your project and follow the steps documented in the section [Usage](#usage).
 
 If you want to build the test, benchmark and visualization programs instead, follow these instructions:
@@ -88,10 +89,11 @@ If you want to build the test, benchmark and visualization programs instead, fol
 ### Dependencies
 
 Before you continue, make sure to have the following tools and libraries installed:
- * git ([Ubuntu](https://help.ubuntu.com/lts/serverguide/git.html)/[Windows/macOS](http://git-scm.com/downloads))
- * cmake 3.2+ ([Ubuntu](https://launchpad.net/~george-edison55/+archive/ubuntu/cmake-3.x)/[Windows/macOS](https://cmake.org/download/))
- * OpenGL SDK ([Ubuntu](http://packages.ubuntu.com/de/trusty/libgl1-mesa-dev)/[Windows](https://dev.windows.com/en-us/downloads/windows-10-sdk)/[macOS](https://developer.apple.com/opengl/))
- * Compiler such as [GCC 4.9+, Clang 3.4+](https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test), [MSVC12+](https://www.visualstudio.com/)
+
+- git ([Ubuntu](https://help.ubuntu.com/lts/serverguide/git.html)/[Windows/macOS](http://git-scm.com/downloads))
+- cmake 3.2+ ([Ubuntu](https://launchpad.net/~george-edison55/+archive/ubuntu/cmake-3.x)/[Windows/macOS](https://cmake.org/download/))
+- OpenGL SDK ([Ubuntu](http://packages.ubuntu.com/de/trusty/libgl1-mesa-dev)/[Windows](https://dev.windows.com/en-us/downloads/windows-10-sdk)/[macOS](https://developer.apple.com/opengl/))
+- Compiler such as [GCC 4.9+, Clang 3.4+](https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test), [MSVC12+](https://www.visualstudio.com/)
 
 Note: On some operating systems such as Windows, manual steps are required to add cmake and [git](http://blog.countableset.ch/2012/06/07/adding-git-to-windows-7-path/) to your PATH environment variable.
 
@@ -119,8 +121,8 @@ cd project
 cmake .. -G "Visual Studio 14 2015"
 ::you can also generate projects for "Visual Studio 12 2013", "XCode", "Eclipse CDT4 - Unix Makefiles"
 ```
-After completion, open the generated project with your IDE.
 
+After completion, open the generated project with your IDE.
 
 ### [CLion](https://www.jetbrains.com/clion/), [Visual Studio 2017+](https://www.visualstudio.com/)
 

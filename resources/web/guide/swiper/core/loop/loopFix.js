@@ -1,6 +1,6 @@
 export default function loopFix() {
   const swiper = this;
-  swiper.emit('beforeLoopFix');
+  swiper.emit("beforeLoopFix");
   const {
     activeIndex,
     slides,
@@ -8,7 +8,7 @@ export default function loopFix() {
     allowSlidePrev,
     allowSlideNext,
     snapGrid,
-    rtlTranslate: rtl
+    rtlTranslate: rtl,
   } = swiper;
   let newIndex;
   swiper.allowSlidePrev = true;
@@ -37,5 +37,5 @@ export default function loopFix() {
 
   swiper.allowSlidePrev = allowSlidePrev;
   swiper.allowSlideNext = allowSlideNext;
-  swiper.emit('loopFix');
+  swiper.emit("loopFix");
 }

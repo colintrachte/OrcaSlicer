@@ -10,6 +10,6 @@
  * Released on: October 27, 2021
  */
 
-import Swiper from './swiper.svelte';
-import SwiperSlide from './swiper-slide.svelte';
+import Swiper from "./swiper.svelte";
+import SwiperSlide from "./swiper-slide.svelte";
 export { Swiper, SwiperSlide };

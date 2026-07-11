@@ -10,6 +10,6 @@
  * Released on: October 27, 2021
  */
 
-import { Swiper } from './swiper.js';
-import { SwiperSlide } from './swiper-slide.js';
+import { Swiper } from "./swiper.js";
+import { SwiperSlide } from "./swiper-slide.js";
 export { Swiper, SwiperSlide };

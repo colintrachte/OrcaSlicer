@@ -14,27 +14,27 @@ https://github.com/nigels-com/glew
 
 ## Table of Contents
 
-* [Downloads](#downloads)
-	* [Recent snapshots](#recent-snapshots)
-* [Build](#build)
-	* [Linux and Mac](#linux-and-mac)
-		* [Using GNU Make](#using-gnu-make)
-		* [Install build tools](#install-build-tools)
-		* [Build](#build-1)
-		* [Linux EGL](#linux-egl)
-		* [Linux mingw-w64](#linux-mingw-w64)
-	* [Using cmake](#using-cmake)
-		* [Install build tools](#install-build-tools-1)
-		* [Build](#build-2)
-	* [Windows](#windows)
-		* [Visual Studio](#visual-studio)
-		* [MSYS/Mingw](#msysmingw)
-		* [MSYS2/Mingw-w64](#msys2mingw-w64)
-* [glewinfo](#glewinfo)
-* [Code Generation](#code-generation)
-* [Authors](#authors)
-* [Contributions](#contributions)
-* [Copyright and Licensing](#copyright-and-licensing)
+- [Downloads](#downloads)
+  - [Recent snapshots](#recent-snapshots)
+- [Build](#build)
+  - [Linux and Mac](#linux-and-mac)
+    - [Using GNU Make](#using-gnu-make)
+    - [Install build tools](#install-build-tools)
+    - [Build](#build-1)
+    - [Linux EGL](#linux-egl)
+    - [Linux mingw-w64](#linux-mingw-w64)
+  - [Using cmake](#using-cmake)
+    - [Install build tools](#install-build-tools-1)
+    - [Build](#build-2)
+  - [Windows](#windows)
+    - [Visual Studio](#visual-studio)
+    - [MSYS/Mingw](#msysmingw)
+    - [MSYS2/Mingw-w64](#msys2mingw-w64)
+- [glewinfo](#glewinfo)
+- [Code Generation](#code-generation)
+- [Authors](#authors)
+- [Contributions](#contributions)
+- [Copyright and Licensing](#copyright-and-licensing)
 
 ## Downloads
 
@@ -51,9 +51,9 @@ Windows binaries for [32-bit and 64-bit](https://sourceforge.net/projects/glew/f
 
 Snapshots may contain new features, bug-fixes or new OpenGL extensions ahead of tested, official releases.
 
-[glew-20200115.tgz](https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20200115.tgz/download) *GLEW 2.2.0 RC3: fixes*
+[glew-20200115.tgz](https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20200115.tgz/download) _GLEW 2.2.0 RC3: fixes_
 
-[glew-20190928.tgz](https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20190928.tgz/download) *GLEW 2.2.0 RC2: New extensions, bug fixes*
+[glew-20190928.tgz](https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20190928.tgz/download) _GLEW 2.2.0 RC2: New extensions, bug fixes_
 
 ## Build
 
@@ -71,34 +71,34 @@ It includes targets for building the sources and headers, for maintenance purpos
 
 ##### Install build tools
 
-Debian/Ubuntu/Mint:    `$ sudo apt-get install build-essential libxmu-dev libxi-dev libgl-dev`
+Debian/Ubuntu/Mint: `$ sudo apt-get install build-essential libxmu-dev libxi-dev libgl-dev`
 
-RedHat/CentOS/Fedora:  `$ sudo yum install libXmu-devel libXi-devel libGL-devel`
+RedHat/CentOS/Fedora: `$ sudo yum install libXmu-devel libXi-devel libGL-devel`
 
 FreeBSD: `# pkg install xorg lang/gcc git cmake gmake bash python perl5`
 
 ##### Build
 
-	$ make
-	$ sudo make install
-	$ make clean
+    $ make
+    $ sudo make install
+    $ make clean
 
-Targets:    `all, glew.lib (sub-targets: glew.lib.shared, glew.lib.static), glew.bin, clean, install, uninstall`
+Targets: `all, glew.lib (sub-targets: glew.lib.shared, glew.lib.static), glew.bin, clean, install, uninstall`
 
-Variables:  `SYSTEM=linux-clang, GLEW_DEST=/usr/local, STRIP=`
+Variables: `SYSTEM=linux-clang, GLEW_DEST=/usr/local, STRIP=`
 
-_Note: you may need to call `make` in the  **auto** folder first_
+_Note: you may need to call `make` in the **auto** folder first_
 
 ##### Linux EGL
 
-	$ sudo apt install libegl1-mesa-dev
-	$ make SYSTEM=linux-egl
+    $ sudo apt install libegl1-mesa-dev
+    $ make SYSTEM=linux-egl
 
 ##### Linux mingw-w64
 
-	$ sudo apt install mingw-w64
-	$ make SYSTEM=linux-mingw32
-	$ make SYSTEM=linux-mingw64
+    $ sudo apt install mingw-w64
+    $ make SYSTEM=linux-mingw32
+    $ make SYSTEM=linux-mingw64
 
 #### Using cmake
 
@@ -106,35 +106,35 @@ The cmake build is mostly contributer maintained.
 Due to the multitude of use cases this is maintained on a _best effort_ basis.
 Pull requests are welcome.
 
-*CMake 2.8.12 or higher is required.*
+_CMake 2.8.12 or higher is required._
 
 ##### Install build tools
 
-Debian/Ubuntu/Mint:   `$ sudo apt-get install build-essential libxmu-dev libxi-dev libgl-dev cmake git`
+Debian/Ubuntu/Mint: `$ sudo apt-get install build-essential libxmu-dev libxi-dev libgl-dev cmake git`
 
 RedHat/CentOS/Fedora: `$ sudo yum install libXmu-devel libXi-devel libGL-devel cmake git`
 
 ##### Build
 
-	$ cd build
-	$ cmake ./cmake
-	$ make -j4
+    $ cd build
+    $ cmake ./cmake
+    $ make -j4
 
-| Target     | Description |
-| ---------- | ----------- |
-| glew       | Build the glew shared library. |
-| glew_s     | Build the glew static library. |
-| glewinfo   | Build the `glewinfo` executable (requires `BUILD_UTILS` to be `ON`). |
+| Target     | Description                                                            |
+| ---------- | ---------------------------------------------------------------------- |
+| glew       | Build the glew shared library.                                         |
+| glew_s     | Build the glew static library.                                         |
+| glewinfo   | Build the `glewinfo` executable (requires `BUILD_UTILS` to be `ON`).   |
 | visualinfo | Build the `visualinfo` executable (requires `BUILD_UTILS` to be `ON`). |
-| install    | Install all enabled targets into `CMAKE_INSTALL_PREFIX`. |
-| clean      | Clean up build artifacts. |
-| all        | Build all enabled targets (default target). |
+| install    | Install all enabled targets into `CMAKE_INSTALL_PREFIX`.               |
+| clean      | Clean up build artifacts.                                              |
+| all        | Build all enabled targets (default target).                            |
 
-| Variables       | Description |
-| --------------- | ----------- |
-| BUILD_UTILS     | Build the `glewinfo` and `visualinfo` executables. |
-| GLEW_REGAL      | Build in Regal mode. |
-| BUILD_FRAMEWORK | Build as MacOSX Framework.  Setting `CMAKE_INSTALL_PREFIX` to `/Library/Frameworks` is recommended. |
+| Variables       | Description                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------- |
+| BUILD_UTILS     | Build the `glewinfo` and `visualinfo` executables.                                                 |
+| GLEW_REGAL      | Build in Regal mode.                                                                               |
+| BUILD_FRAMEWORK | Build as MacOSX Framework. Setting `CMAKE_INSTALL_PREFIX` to `/Library/Frameworks` is recommended. |
 
 ### Windows
 
@@ -150,11 +150,11 @@ Available from [Mingw](http://www.mingw.org/)
 
 Requirements: bash, make, gcc
 
-	$ mingw32-make
-	$ mingw32-make install
-	$ mingw32-make install.all
+    $ mingw32-make
+    $ mingw32-make install
+    $ mingw32-make install.all
 
-Alternative toolchain:  `SYSTEM=mingw-win32`
+Alternative toolchain: `SYSTEM=mingw-win32`
 
 #### MSYS2/Mingw-w64
 
@@ -162,39 +162,39 @@ Available from [Msys2](http://msys2.github.io/) and/or [Mingw-w64](http://mingw-
 
 Requirements: bash, make, gcc
 
-	$ pacman -S gcc make mingw-w64-i686-gcc mingw-w64-x86_64-gcc
-	$ make
-	$ make install
-	$ make install.all
+    $ pacman -S gcc make mingw-w64-i686-gcc mingw-w64-x86_64-gcc
+    $ make
+    $ make install
+    $ make install.all
 
-Alternative toolchain:  `SYSTEM=msys, SYSTEM=msys-win32, SYSTEM=msys-win64`
+Alternative toolchain: `SYSTEM=msys, SYSTEM=msys-win32, SYSTEM=msys-win64`
 
 ## glewinfo
 
 `glewinfo` is a command-line tool useful for inspecting the capabilities of an
-OpenGL implementation and GLEW support for that.  Please include `glewinfo.txt`
+OpenGL implementation and GLEW support for that. Please include `glewinfo.txt`
 with bug reports, as appropriate.
 
-	---------------------------
-	    GLEW Extension Info
-	---------------------------
+    ---------------------------
+        GLEW Extension Info
+    ---------------------------
 
-	GLEW version 2.0.0
-	Reporting capabilities of pixelformat 3
-	Running on a Intel(R) HD Graphics 3000 from Intel
-	OpenGL version 3.1.0 - Build 9.17.10.4229 is supported
+    GLEW version 2.0.0
+    Reporting capabilities of pixelformat 3
+    Running on a Intel(R) HD Graphics 3000 from Intel
+    OpenGL version 3.1.0 - Build 9.17.10.4229 is supported
 
-	GL_VERSION_1_1:                                                OK
-	---------------
+    GL_VERSION_1_1:                                                OK
+    ---------------
 
-	GL_VERSION_1_2:                                                OK
-	---------------
-	  glCopyTexSubImage3D:                                         OK
-	  glDrawRangeElements:                                         OK
-	  glTexImage3D:                                                OK
-	  glTexSubImage3D:                                             OK
+    GL_VERSION_1_2:                                                OK
+    ---------------
+      glCopyTexSubImage3D:                                         OK
+      glDrawRangeElements:                                         OK
+      glTexImage3D:                                                OK
+      glTexSubImage3D:                                             OK
 
-	...
+    ...
 
 ## Code Generation
 
@@ -202,7 +202,7 @@ A Unix or Mac environment is needed for building GLEW from scratch to
 include new extensions, or customize the code generation. The extension
 data is regenerated from the top level source directory with:
 
-	make extensions
+    make extensions
 
 An alternative to generating the GLEW sources from scratch is to
 download a pre-generated (unsupported) snapshot:
@@ -221,22 +221,22 @@ assisted with the design and debugging process.
 
 The acronym GLEW originates from Aaron Lefohn.
 Pasi K&auml;rkk&auml;inen identified and fixed several problems with
-GLX and SDL.  Nate Robins created the `wglinfo` utility, to
+GLX and SDL. Nate Robins created the `wglinfo` utility, to
 which modifications were made by Michael Wimmer.
 
 ## Contributions
 
-GLEW welcomes community contributions.  Typically these are co-ordinated
+GLEW welcomes community contributions. Typically these are co-ordinated
 via [Issues](https://github.com/nigels-com/glew/issues) or
 [Pull Requests](https://github.com/nigels-com/glew/pulls) in the
 GitHub web interface.
 
 Be sure to mention platform and compiler toolchain details when filing
-a bug report.  The output of `glewinfo` can be quite useful for discussion
+a bug report. The output of `glewinfo` can be quite useful for discussion
 also.
 
 Generally GLEW is usually released once a year, around the time of the Siggraph
-computer graphics conference.  If you're not using the current release
+computer graphics conference. If you're not using the current release
 version of GLEW, be sure to check if the issue or bug is fixed there.
 
 ## Copyright and Licensing

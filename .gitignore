@@ -49,3 +49,20 @@ internal_docs/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Compiled/build outputs that can land outside the ignored build*/ trees
+# (e.g. an alternate out-of-source dir, or a CMake Tools copy at repo root)
+out/
+cmake-build-*/
+compile_commands.json
+*.exe
+!tools/*.exe
+*.pdb
+*.ilk
+*.exp
+*.tlog
+*.idb
+*.iobj
+*.ipdb
+*.pch
+*.res

@@ -1,8 +1,8 @@
 {
-	"type": "filament",
-	"name": "DREMC ASA CF @System",
-	"inherits": "DREMC ASA CF @base",
-	"from": "system",
-	"instantiation": "false",
-	"compatible_printers": []
+  "type": "filament",
+  "name": "DREMC ASA CF @System",
+  "inherits": "DREMC ASA CF @base",
+  "from": "system",
+  "instantiation": "false",
+  "compatible_printers": []
 }

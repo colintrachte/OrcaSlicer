@@ -1,0 +1,20 @@
+{
+  "name": "Generic Resin",
+  "version": "02.04.00.01",
+  "force_update": "0",
+  "description": "Generic MSLA / resin (SLA) printers",
+  "machine_model_list": [
+    {
+      "name": "Generic Resin Printer",
+      "sub_path": "machine/Generic Resin Printer.json"
+    }
+  ],
+  "process_list": [],
+  "filament_list": [],
+  "machine_list": [
+    {
+      "name": "Generic MSLA",
+      "sub_path": "machine/Generic MSLA.json"
+    }
+  ]
+}

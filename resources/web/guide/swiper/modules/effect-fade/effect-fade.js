@@ -1,22 +1,16 @@
-import effectInit from '../../shared/effect-init.js';
-import effectTarget from '../../shared/effect-target.js';
-import effectVirtualTransitionEnd from '../../shared/effect-virtual-transition-end.js';
-export default function EffectFade({
-  swiper,
-  extendParams,
-  on
-}) {
+import effectInit from "../../shared/effect-init.js";
+import effectTarget from "../../shared/effect-target.js";
+import effectVirtualTransitionEnd from "../../shared/effect-virtual-transition-end.js";
+export default function EffectFade({ swiper, extendParams, on }) {
   extendParams({
     fadeEffect: {
       crossFade: false,
-      transformEl: null
-    }
+      transformEl: null,
+    },
   });
 
   const setTranslate = () => {
-    const {
-      slides
-    } = swiper;
+    const { slides } = swiper;
     const params = swiper.params.fadeEffect;
 
     for (let i = 0; i < slides.length; i += 1) {
@@ -31,30 +25,34 @@ export default function EffectFade({
         tx = 0;
       }
 
-      const slideOpacity = swiper.params.fadeEffect.crossFade ? Math.max(1 - Math.abs($slideEl[0].progress), 0) : 1 + Math.min(Math.max($slideEl[0].progress, -1), 0);
+      const slideOpacity = swiper.params.fadeEffect.crossFade
+        ? Math.max(1 - Math.abs($slideEl[0].progress), 0)
+        : 1 + Math.min(Math.max($slideEl[0].progress, -1), 0);
       const $targetEl = effectTarget(params, $slideEl);
-      $targetEl.css({
-        opacity: slideOpacity
-      }).transform(`translate3d(${tx}px, ${ty}px, 0px)`);
+      $targetEl
+        .css({
+          opacity: slideOpacity,
+        })
+        .transform(`translate3d(${tx}px, ${ty}px, 0px)`);
     }
   };
 
-  const setTransition = duration => {
-    const {
-      transformEl
-    } = swiper.params.fadeEffect;
-    const $transitionElements = transformEl ? swiper.slides.find(transformEl) : swiper.slides;
+  const setTransition = (duration) => {
+    const { transformEl } = swiper.params.fadeEffect;
+    const $transitionElements = transformEl
+      ? swiper.slides.find(transformEl)
+      : swiper.slides;
     $transitionElements.transition(duration);
     effectVirtualTransitionEnd({
       swiper,
       duration,
       transformEl,
-      allSlides: true
+      allSlides: true,
     });
   };
 
   effectInit({
-    effect: 'fade',
+    effect: "fade",
     swiper,
     on,
     setTranslate,
@@ -64,7 +62,7 @@ export default function EffectFade({
       slidesPerGroup: 1,
       watchSlidesProgress: true,
       spaceBetween: 0,
-      virtualTranslate: !swiper.params.cssMode
-    })
+      virtualTranslate: !swiper.params.cssMode,
+    }),
   });
 }

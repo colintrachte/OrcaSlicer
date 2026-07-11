@@ -6,9 +6,9 @@ export default function effectInit(params) {
     setTranslate,
     setTransition,
     overwriteParams,
-    perspective
+    perspective,
   } = params;
-  on('beforeInit', () => {
+  on("beforeInit", () => {
     if (swiper.params.effect !== effect) return;
     swiper.classNames.push(`${swiper.params.containerModifierClass}${effect}`);
 
@@ -20,11 +20,11 @@ export default function effectInit(params) {
     Object.assign(swiper.params, overwriteParamsResult);
     Object.assign(swiper.originalParams, overwriteParamsResult);
   });
-  on('setTranslate', () => {
+  on("setTranslate", () => {
     if (swiper.params.effect !== effect) return;
     setTranslate();
   });
-  on('setTransition', (_s, duration) => {
+  on("setTransition", (_s, duration) => {
     if (swiper.params.effect !== effect) return;
     setTransition(duration);
   });

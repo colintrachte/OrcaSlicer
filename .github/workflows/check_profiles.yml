@@ -2,21 +2,20 @@ name: Check profiles
 on:
   pull_request:
     branches:
-    - main
+      - main
     paths:
-    - 'resources/profiles/**'
-    - ".github/workflows/check_profiles.yml"
+      - "resources/profiles/**"
+      - ".github/workflows/check_profiles.yml"
 
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'
+        description: "Log level"
         required: true
-        default: 'warning'
+        default: "warning"
 
 permissions:
   contents: read
-
 
 jobs:
   check_profiles:

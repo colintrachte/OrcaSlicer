@@ -1,10 +1,10 @@
 function getChildren(originalSlots = {}, slidesRef, oldSlidesRef) {
   const slides = [];
   const slots = {
-    'container-start': [],
-    'container-end': [],
-    'wrapper-start': [],
-    'wrapper-end': []
+    "container-start": [],
+    "container-end": [],
+    "wrapper-start": [],
+    "wrapper-end": [],
   };
 
   const getSlidesFromElements = (els, slotName) => {
@@ -12,13 +12,17 @@ function getChildren(originalSlots = {}, slidesRef, oldSlidesRef) {
       return;
     }
 
-    els.forEach(vnode => {
-      const isFragment = typeof vnode.type === 'symbol';
-      if (slotName === 'default') slotName = 'container-end';
+    els.forEach((vnode) => {
+      const isFragment = typeof vnode.type === "symbol";
+      if (slotName === "default") slotName = "container-end";
 
       if (isFragment && vnode.children) {
-        getSlidesFromElements(vnode.children, 'default');
-      } else if (vnode.type && (vnode.type.name === 'SwiperSlide' || vnode.type.name === 'AsyncComponentWrapper')) {
+        getSlidesFromElements(vnode.children, "default");
+      } else if (
+        vnode.type &&
+        (vnode.type.name === "SwiperSlide" ||
+          vnode.type.name === "AsyncComponentWrapper")
+      ) {
         slides.push(vnode);
       } else if (slots[slotName]) {
         slots[slotName].push(vnode);
@@ -26,7 +30,7 @@ function getChildren(originalSlots = {}, slidesRef, oldSlidesRef) {
     });
   };
 
-  Object.keys(originalSlots).forEach(slotName => {
+  Object.keys(originalSlots).forEach((slotName) => {
     const els = originalSlots[slotName]();
     getSlidesFromElements(els, slotName);
   });
@@ -34,7 +38,7 @@ function getChildren(originalSlots = {}, slidesRef, oldSlidesRef) {
   slidesRef.value = slides;
   return {
     slides,
-    slots
+    slots,
   };
 }
 

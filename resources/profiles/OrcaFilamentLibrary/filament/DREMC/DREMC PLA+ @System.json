@@ -1,11 +1,9 @@
 {
-	"type": "filament",
-	"name": "DREMC PLA+ @System",
-	"inherits": "DREMC PLA+ @base",
-	"from": "system",
-	"instantiation": "false",
-	"filament_max_volumetric_speed": [
-		"18"
-	],
-	"compatible_printers": []
+  "type": "filament",
+  "name": "DREMC PLA+ @System",
+  "inherits": "DREMC PLA+ @base",
+  "from": "system",
+  "instantiation": "false",
+  "filament_max_volumetric_speed": ["18"],
+  "compatible_printers": []
 }

@@ -1,6 +1,6 @@
 {
-	"type": "filament",
-	"name": "fdm_filament_common",
-	"from": "system",
-	"instantiation": "false"
+  "type": "filament",
+  "name": "fdm_filament_common",
+  "from": "system",
+  "instantiation": "false"
 }

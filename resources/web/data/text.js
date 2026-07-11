@@ -109,7 +109,8 @@ var LangText = {
     orca1: "Edit Project Info",
     orca2: "No model information",
     orca3: "Stealth Mode",
-    orca4: "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option.",
+    orca4:
+      "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option.",
     orca5: "Enable Stealth Mode.",
     orca6: "Bambu Cloud",
     orca7: "Orca Cloud Account",
@@ -117,7 +118,8 @@ var LangText = {
     orca9: "Bambu Cloud Account",
     orca10: "Not connected",
     orca11: "Connected",
-    orca12: "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud.",
+    orca12:
+      "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud.",
   },
   ca_ES: {
     t1: "Benvingut a Orca Slicer",
@@ -1775,4 +1777,3 @@ function TranslatePage() {
     }
   }
 }
-

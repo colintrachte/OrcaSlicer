@@ -21,16 +21,16 @@ prompt fixes that — split the task or pick a different model.
 
 ## 1. The model roster
 
-| Model | Intelligence | Hard limits | Output capture |
-|---|---|---|---|
-| **Claude** (you) | High | Full repo access via tools | Edits files directly |
-| **Gemini** | Low | 3 files per session; pasting past **~30,000 characters** produces a "message too long" error (community-reported, not an official spec — treat as approximate) | Paste back; verify carefully — low intelligence means check correctness, not just plausibility |
-| **ChatGPT** (free tier) | Domain depends on custom GPT used | ~4 user messages/session; free-tier upload cap **3 files per 24h, account-wide** (not per-session); **pasted text over ~10,000 characters silently becomes a file attachment instead of inline message body**, burning one of those 3 uploads — keep any inline paste under that threshold | One-shot only — the entire question and all context must fit message 1 |
-| **Kimi** | Medium | 20 files per session; ~35,000 chars per paste (single observed data point — refine if more data comes in) | Paste back |
-| **Meta.ai** | High | No file export — text in, text out only; no reported message-length cap. Observed to sometimes act on an in-prompt "search for it yourself" instruction by attempting its own lookup rather than working only from pasted context — treat anything it claims to have found this way as unverified until checked, same as any other citation (§5.1) | Paste back; you re-apply as a diff yourself, since it can't hand you a file |
-| **Perplexity** | Medium, deep research/manual corpus | No documented hard cap on the model side; pasting past **~20,000 characters (~8,000 tokens)** prompts a switch to file upload instead. Observed to **hard-refuse the entire task**, not just degrade, when an in-prompt instruction tells it to look something up and that lookup fails — always pair any "search for it yourself" instruction with an explicit fallback ("if that fails, don't refuse — answer from what you know and mark it `[UNVERIFIED]`") | Paste back; independently verify anything it cites against a primary source |
-| **Qwen (LM Studio)** | Medium | No file-count limit; programmatic — see §8 | `query_model.py` captures response to file; the senior model runs the fusion protocol before applying |
-| **OpenRouter (free)** | Varies by model | Rate limits apply; programmatic — see §8 | `query_model.py` captures response to file; the senior model runs the fusion protocol before applying |
+| Model                   | Intelligence                        | Hard limits                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output capture                                                                                        |
+| ----------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Claude** (you)        | High                                | Full repo access via tools                                                                                                                                                                                                                                                                                                                                                                                                                                      | Edits files directly                                                                                  |
+| **Gemini**              | Low                                 | 3 files per session; pasting past **~30,000 characters** produces a "message too long" error (community-reported, not an official spec — treat as approximate)                                                                                                                                                                                                                                                                                                  | Paste back; verify carefully — low intelligence means check correctness, not just plausibility        |
+| **ChatGPT** (free tier) | Domain depends on custom GPT used   | ~4 user messages/session; free-tier upload cap **3 files per 24h, account-wide** (not per-session); **pasted text over ~10,000 characters silently becomes a file attachment instead of inline message body**, burning one of those 3 uploads — keep any inline paste under that threshold                                                                                                                                                                      | One-shot only — the entire question and all context must fit message 1                                |
+| **Kimi**                | Medium                              | 20 files per session; ~35,000 chars per paste (single observed data point — refine if more data comes in)                                                                                                                                                                                                                                                                                                                                                       | Paste back                                                                                            |
+| **Meta.ai**             | High                                | No file export — text in, text out only; no reported message-length cap. Observed to sometimes act on an in-prompt "search for it yourself" instruction by attempting its own lookup rather than working only from pasted context — treat anything it claims to have found this way as unverified until checked, same as any other citation (§5.1)                                                                                                              | Paste back; you re-apply as a diff yourself, since it can't hand you a file                           |
+| **Perplexity**          | Medium, deep research/manual corpus | No documented hard cap on the model side; pasting past **~20,000 characters (~8,000 tokens)** prompts a switch to file upload instead. Observed to **hard-refuse the entire task**, not just degrade, when an in-prompt instruction tells it to look something up and that lookup fails — always pair any "search for it yourself" instruction with an explicit fallback ("if that fails, don't refuse — answer from what you know and mark it `[UNVERIFIED]`") | Paste back; independently verify anything it cites against a primary source                           |
+| **Qwen (LM Studio)**    | Medium                              | No file-count limit; programmatic — see §8                                                                                                                                                                                                                                                                                                                                                                                                                      | `query_model.py` captures response to file; the senior model runs the fusion protocol before applying |
+| **OpenRouter (free)**   | Varies by model                     | Rate limits apply; programmatic — see §8                                                                                                                                                                                                                                                                                                                                                                                                                        | `query_model.py` captures response to file; the senior model runs the fusion protocol before applying |
 
 Free-tier constraints shift with provider policy — if a model's behavior stops matching this
 table, update it; don't silently work around a stale assumption.
@@ -40,8 +40,9 @@ table, update it; don't silently work around a stale assumption.
 fallback that always works is pasting a context pack into a chat window and copying the
 response back out.
 
-**Preference order within free tier vs. paid:** §2's routing rules pick a model by *task
-type*. Within whichever tier that lands you in:
+**Preference order within free tier vs. paid:** §2's routing rules pick a model by _task
+type_. Within whichever tier that lands you in:
+
 - **Free-tier:** start with the most intelligent model available for that task type and step
   down only when you actually hit a limitation (message/file cap reached, or the answer is
   wrong/low-confidence) — don't pre-emptively downgrade.
@@ -61,7 +62,7 @@ bad prints rather than a build error. `docs/roadmap.md`'s `Class 3` maps onto th
 
 1. **Does it touch a Known Risky Subsystem, or otherwise affect emitted G-code
    correctness?** No free-tier model writes that code, ever — unattended or not. Free-tier
-   models may produce *read-only research* that feeds the decision, but the implementation
+   models may produce _read-only research_ that feeds the decision, but the implementation
    is Claude + author review only, including a slice-and-inspect pass per
    `TRIAGE_POLICY.md`'s "Known Risky Subsystems" verification note.
 2. **Is it an external-knowledge lookup** — a library's documented behavior, a vendor
@@ -187,7 +188,7 @@ dependencies without checking this project's stated non-goals first.
   file(s) to change explicitly — don't make it figure out which file owns the change.
 - **ChatGPT:** the entire template goes in message 1, including the full context pack
   inline (not as an attachment, given the upload cap). Budget remaining messages for
-  follow-up questions *it* asks, not ones you initiate.
+  follow-up questions _it_ asks, not ones you initiate.
 - **Kimi:** can take a full component folder via `CONTEXT.md` + every source file; ask for
   a structured finding list (severity/location/current/proposed) so it's easy to triage.
 - **Meta.ai:** since it can't return files, explicitly ask for unified-diff-style output
@@ -205,12 +206,12 @@ codebase. Run them through the same scrutiny as any unverified claim:
    trusted because it looks specific. `[NOT FOUND]` markers are honest; confident-sounding
    fabricated line numbers are not — and low-intelligence models produce these more often.
 2. **Classify before merging.** Apply this project's review-tier taxonomy
-   (`REVIEW_TIERS.template.md`) to whatever the response *proposes*, not to the task as
+   (`REVIEW_TIERS.template.md`) to whatever the response _proposes_, not to the task as
    originally framed — a free-tier model can wander into the top tier without flagging it.
 3. **Reconcile disagreement, don't average it.** If two models propose conflicting
    approaches, that's a signal to think about the tradeoff yourself, not to split the
    difference. State which one you're taking and why in the commit/PR description.
-4. **Surgical application still applies.** A free-tier model's output is a *proposal*, not
+4. **Surgical application still applies.** A free-tier model's output is a _proposal_, not
    a diff to apply verbatim — pull only what answers the actual task; don't import its
    incidental reformatting or unrelated "improvements."
 5. **A free-tier model never gets the last word on your top tier.** Even a unanimous
@@ -305,7 +306,7 @@ python helper_scripts/query_model.py \
 
 **Environment variables:**
 
-| Variable | Required for | Default |
-|---|---|---|
-| `QWEN_LM_STUDIO_URL` | `qwen` model | `http://localhost:1234/v1` |
-| `OPENROUTER_API_KEY` | `openrouter/*` models | (none — required) |
+| Variable             | Required for          | Default                    |
+| -------------------- | --------------------- | -------------------------- |
+| `QWEN_LM_STUDIO_URL` | `qwen` model          | `http://localhost:1234/v1` |
+| `OPENROUTER_API_KEY` | `openrouter/*` models | (none — required)          |

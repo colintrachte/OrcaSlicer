@@ -10,6 +10,7 @@ Repository: OrcaSlicer/OrcaSlicer
 Task overview:
 
 1. First, get all open bugs updated in the last 3 days with at least 50 engagements:
+
    ```bash
    gh issue list --repo OrcaSlicer/OrcaSlicer --state open --label bug --limit 1000 --json number,title,updatedAt,comments,reactions | jq -r '.[] | select((.updatedAt >= (now - 259200 | strftime("%Y-%m-%dT%H:%M:%SZ"))) and ((.comments | length) + ([.reactions[].content] | length) >= 50)) | "\(.number)"'
    ```
@@ -34,6 +35,7 @@ Task overview:
    - If no issues qualified, state that clearly
 
 Important:
+
 - Process ALL issues in your TODO list systematically
 - Don't post any comments to issues
 - Only add the "oncall" label, never remove it

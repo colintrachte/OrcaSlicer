@@ -1,8 +1,8 @@
 // ========= Data Stores =========
-const bundlesById = new Map();        // bundleId -> bundle object
-const printersByBundle = new Map();   // bundleId -> Map(index -> printerName)
-const filamentsByBundle = new Map();  // bundleId -> Map(index -> filamentName)
-const processesByBundle = new Map();    // bundleId -> Map(index -> presetName)
+const bundlesById = new Map(); // bundleId -> bundle object
+const printersByBundle = new Map(); // bundleId -> Map(index -> printerName)
+const filamentsByBundle = new Map(); // bundleId -> Map(index -> filamentName)
+const processesByBundle = new Map(); // bundleId -> Map(index -> presetName)
 const UPDATE_TOOLTIP = "Update available";
 const UNAUTHORIZED_TOOLTIP = "Unauthorized bundle";
 
@@ -20,42 +20,40 @@ let selectedBundleId = null;
 
 // ========= Init =========
 function OnInit() {
-
-   topList = document.getElementById("topList");
-   bottomList = document.getElementById("bottomList");
-   ctxMenu = document.getElementById("ctxMenu");
-   ctxMenuSubscribed = document.getElementById("unsubscribe_btn");
-   ctxMenuDelete = document.getElementById("delete_btn");
+  topList = document.getElementById("topList");
+  bottomList = document.getElementById("bottomList");
+  ctxMenu = document.getElementById("ctxMenu");
+  ctxMenuSubscribed = document.getElementById("unsubscribe_btn");
+  ctxMenuDelete = document.getElementById("delete_btn");
   const closeBtn = document.getElementById("close_btn");
-   const exportbtn = document.getElementById("export_btn");
-   const refreshBtn = document.getElementById("refresh_btn");                                                                                                                                                                                                                           
+  const exportbtn = document.getElementById("export_btn");
+  const refreshBtn = document.getElementById("refresh_btn");
   const autoUpdateToggle = document.getElementById("auto_update_toggle");
 
   if (!topList || !bottomList) return;
   TranslatePage();
 
   // If wx side needs to request bundles after page load:
-    RequestBundles();
+  RequestBundles();
 
+  refreshBtn?.addEventListener("click", () => {
+    const tSend = {
+      sequence_id: Math.round(Date.now() / 1000),
+      command: "refresh_bundles",
+    };
+    SendWXMessage(JSON.stringify(tSend));
+  });
 
-    refreshBtn?.addEventListener("click", () => {                                                                                                                                                                                                                                        
-    const tSend = {                                                                                                                                                                                                                                                                    
-      sequence_id: Math.round(Date.now() / 1000),                                                                                                                                                                                                                                      
-      command: "refresh_bundles"                                                                                                                                                                                                                                                       
-    };                                                                                                                                                                                                                                                                                 
-    SendWXMessage(JSON.stringify(tSend));                                                                                                                                                                                                                                              
-  });                                                                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                                                                       
-  autoUpdateToggle?.addEventListener("change", () => {                                                                                                                                                                                                                                 
-    const tSend = {                                                                                                                                                                                                                                                                    
-      sequence_id: Math.round(Date.now() / 1000),                                                                                                                                                                                                                                      
-      command: "set_auto_update",                                                                                                                                                                                                                                                      
-      enabled: !!autoUpdateToggle.checked                                                                                                                                                                                                                                              
-    };                                                                                                                                                                                                                                                                                 
-    SendWXMessage(JSON.stringify(tSend));                                                                                                                                                                                                                                              
+  autoUpdateToggle?.addEventListener("change", () => {
+    const tSend = {
+      sequence_id: Math.round(Date.now() / 1000),
+      command: "set_auto_update",
+      enabled: !!autoUpdateToggle.checked,
+    };
+    SendWXMessage(JSON.stringify(tSend));
   });
   // Hook selection on top list
-  topList.addEventListener("click", (e) => {                                                                                                                                                                                                                                                                                                                     
+  topList.addEventListener("click", (e) => {
     const cloudLink = e.target.closest(".bundle-cloud-link");
     if (cloudLink) {
       e.preventDefault();
@@ -71,27 +69,27 @@ function OnInit() {
       return;
     }
 
-    const updateBtn = e.target.closest(".bundle-update-btn");                                                                                                                                                                                                                                                                                                    
-    if (updateBtn) {                                                                                                                                                                                                                                                                                                                                             
-      e.stopPropagation();                                                                                                                                                                                                                                                                                                                                       
-      if (updateBtn.disabled) return;                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                 
-      const row = updateBtn.closest(".row");                                                                                                                                                                                                                                                                                                                     
-      if (!row) return;                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                 
-      selectTopRow(row);                                                                                                                                                                                                                                                                                                                                         
-      selectedBundleId = String(row.dataset.id || "");                                                                                                                                                                                                                                                                                                           
-      renderBottomForBundle(selectedBundleId);                                                                                                                                                                                                                                                                                                                   
-      sendUpdateBundleCommand(selectedBundleId);                                                                                                                                                                                                                                                                                                                 
-      return;                                                                                                                                                                                                                                                                                                                                                    
-    }                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                 
-    const row = e.target.closest(".row");                                                                                                                                                                                                                                                                                                                        
-    if (!row) return;                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                 
-    selectTopRow(row);                                                                                                                                                                                                                                                                                                                                           
-    selectedBundleId = String(row.dataset.id || "");                                                                                                                                                                                                                                                                                                             
-    renderBottomForBundle(selectedBundleId);                                                                                                                                                                                                                                                                                                                     
+    const updateBtn = e.target.closest(".bundle-update-btn");
+    if (updateBtn) {
+      e.stopPropagation();
+      if (updateBtn.disabled) return;
+
+      const row = updateBtn.closest(".row");
+      if (!row) return;
+
+      selectTopRow(row);
+      selectedBundleId = String(row.dataset.id || "");
+      renderBottomForBundle(selectedBundleId);
+      sendUpdateBundleCommand(selectedBundleId);
+      return;
+    }
+
+    const row = e.target.closest(".row");
+    if (!row) return;
+
+    selectTopRow(row);
+    selectedBundleId = String(row.dataset.id || "");
+    renderBottomForBundle(selectedBundleId);
   });
 
   // for top list rows if right click open context menu
@@ -130,7 +128,7 @@ function OnInit() {
       sequence_id: Math.round(Date.now() / 1000),
       command: "top_row_menu_action",
       action: String(btn.dataset.action || ""),
-      bundle_id: String(contextRow.dataset.id || "")
+      bundle_id: String(contextRow.dataset.id || ""),
     };
     SendWXMessage(JSON.stringify(tSend));
     hideMenu();
@@ -139,7 +137,7 @@ function OnInit() {
   closeBtn?.addEventListener("click", () => {
     const tSend = {
       sequence_id: Math.round(Date.now() / 1000),
-      command: "close_page"
+      command: "close_page",
     };
     SendWXMessage(JSON.stringify(tSend));
   });
@@ -147,7 +145,7 @@ function OnInit() {
   exportbtn?.addEventListener("click", () => {
     const tSend = {
       sequence_id: Math.round(Date.now() / 1000),
-      command: "export_page"
+      command: "export_page",
     };
     SendWXMessage(JSON.stringify(tSend));
   });
@@ -162,16 +160,15 @@ function OnInit() {
 // ========= wx bridge requests =========
 
 function RequestBundles() {
-    var tSend={};
-	  tSend['sequence_id']=Math.round(new Date() / 1000);
-	  tSend['command']="request_bundles";
+  var tSend = {};
+  tSend["sequence_id"] = Math.round(new Date() / 1000);
+  tSend["command"] = "request_bundles";
 
-    SendWXMessage(JSON.stringify(tSend));
+  SendWXMessage(JSON.stringify(tSend));
 }
 
 function HandleStudio(pVal) {
-
-  const msg = (typeof pVal === "string") ? safeJsonParse(pVal) : pVal;
+  const msg = typeof pVal === "string" ? safeJsonParse(pVal) : pVal;
   if (!msg || typeof msg !== "object") return;
 
   const strCmd = msg.command;
@@ -181,8 +178,8 @@ function HandleStudio(pVal) {
     // auto-select first bundle if none selected
     autoSelectFirstBundle();
 
-    const autoUpdateToggle = document.getElementById("auto_update_toggle");                                                                                                                                                                                                            
-    if (autoUpdateToggle) {                                                                                                                                                                                                                                                            
+    const autoUpdateToggle = document.getElementById("auto_update_toggle");
+    if (autoUpdateToggle) {
       autoUpdateToggle.checked = !!msg.auto_update_enabled;
     }
   }
@@ -200,38 +197,53 @@ function unpackPayload(payload) {
     const id = String(bundle.id ?? "");
     if (!id) continue;
 
-    bundlesById.set(id, {                                                                                                                                                                                                                                                                                                                                          
-    id,                                                                                                                                                                                                                                                                                                                                                          
-    name: bundle.name ?? "",
-    type: bundle.type ?? "",                                                                                                                                                                                                                                                                                                                                     
-    version: bundle.version ?? "",                                                                                                                                                                                                                                                                                                                               
-    path: bundle.path ?? "",                                                                                                                                                                                                                                                                                                                                     
-    update_available: Boolean(bundle.update_available) ,   
-    unauthorized: Boolean(bundle.unauthorized)                                                                                                                                                                                                                                                                                                           
-  });  
+    bundlesById.set(id, {
+      id,
+      name: bundle.name ?? "",
+      type: bundle.type ?? "",
+      version: bundle.version ?? "",
+      path: bundle.path ?? "",
+      update_available: Boolean(bundle.update_available),
+      unauthorized: Boolean(bundle.unauthorized),
+    });
 
-    printersByBundle.set(id, new Map((bundle.printers || []).map((name, i) => [i, name])));
-    filamentsByBundle.set(id, new Map((bundle.filaments || []).map((name, i) => [i, name])));
-    processesByBundle.set(id, new Map((bundle.processes || []).map((name, i) => [i, name])));
+    printersByBundle.set(
+      id,
+      new Map((bundle.printers || []).map((name, i) => [i, name])),
+    );
+    filamentsByBundle.set(
+      id,
+      new Map((bundle.filaments || []).map((name, i) => [i, name])),
+    );
+    processesByBundle.set(
+      id,
+      new Map((bundle.processes || []).map((name, i) => [i, name])),
+    );
   }
 }
 
 // ========= Render: top =========
-function renderTop() {                                                                                                                                                                                                                                                                                                                                         
-    const bundles = Array.from(bundlesById.values());                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                 
-    topList.innerHTML = bundles.map(b => `                                                                                                                                                                                                                                                                                                                       
+function renderTop() {
+  const bundles = Array.from(bundlesById.values());
+
+  topList.innerHTML = bundles
+    .map(
+      (
+        b,
+      ) => `                                                                                                                                                                                                                                                                                                                       
       <div class="row" data-id="${escapeAttr(b.id)}" data-bundle-type="${escapeAttr(String(b.type || "").toLowerCase())}">                                                                                                                                                                                                                                       
         <div class="cell bundle-name-cell" title="${escapeAttr(b.name)}">                                                                                                                                                                                                                                                                                        
-          ${b.unauthorized
-            ? `<span class="bundle-status-icon bundle-status-icon-unauthorized" title="${escapeAttr(UNAUTHORIZED_TOOLTIP)}" aria-label="${escapeAttr(UNAUTHORIZED_TOOLTIP)}">!</span>`
-            : b.update_available
-              ? `<span class="bundle-status-icon bundle-status-icon-update" title="${escapeAttr(UPDATE_TOOLTIP)}" aria-label="${escapeAttr(UPDATE_TOOLTIP)}">&uarr;</span>`
-              : `<span class="bundle-status-icon-spacer" aria-hidden="true"></span>`}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
           ${
-            b.type === "Subscribed" ?
-            `<a href="#" class="bundle-name-text bundle-cloud-link" title="Open this bundle in your browser">${escapeHtml(b.name)}</a>`
-            : `<span class="bundle-name-text">${escapeHtml(b.name)}</span>`
+            b.unauthorized
+              ? `<span class="bundle-status-icon bundle-status-icon-unauthorized" title="${escapeAttr(UNAUTHORIZED_TOOLTIP)}" aria-label="${escapeAttr(UNAUTHORIZED_TOOLTIP)}">!</span>`
+              : b.update_available
+                ? `<span class="bundle-status-icon bundle-status-icon-update" title="${escapeAttr(UPDATE_TOOLTIP)}" aria-label="${escapeAttr(UPDATE_TOOLTIP)}">&uarr;</span>`
+                : `<span class="bundle-status-icon-spacer" aria-hidden="true"></span>`
+          }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+          ${
+            b.type === "Subscribed"
+              ? `<a href="#" class="bundle-name-text bundle-cloud-link" title="Open this bundle in your browser">${escapeHtml(b.name)}</a>`
+              : `<span class="bundle-name-text">${escapeHtml(b.name)}</span>`
           }                                                                                                                                                                                                                                                                                
         </div>                                                                                                                                                                                                                                                                                                                                                   
         <span title="${escapeAttr(b.type)}">${escapeHtml(b.type)}</span>                                                                                                                                                                                                                                                                                         
@@ -239,14 +251,16 @@ function renderTop() {
         <div class="cell bundle-update-cell">                                                                                                                                                                                                                                                                                                                    
             <button                                                                                                                                                                                                                                                               
             type="button"                                                                                                                                                                                                                                                       
-            class="bundle-update-btn ${(!b.unauthorized && b.update_available) ? "is-enabled" : "is-disabled"}"                                                                                                                                                                 
-            ${(!b.unauthorized && b.update_available) ? "" : "disabled"}                                                                                                                                                                                                        
+            class="bundle-update-btn ${!b.unauthorized && b.update_available ? "is-enabled" : "is-disabled"}"                                                                                                                                                                 
+            ${!b.unauthorized && b.update_available ? "" : "disabled"}                                                                                                                                                                                                        
             data-id="${escapeAttr(b.id)}"                                                                                                                                                                                                                                       
           >Update</button>                                                                                                                                                                                                                                                                                                                                       
         </div>                                                                                                                                                                                                                                                                                                                                                   
       </div>                                                                                                                                                                                                                                                                                                                                                     
-    `).join("");                                                                                                                                                                                                                                                                                                                                                 
-  }
+    `,
+    )
+    .join("");
+}
 
 function sendOpenBundleOnCloud(bundleId) {
   const bundle = bundlesById.get(String(bundleId || ""));
@@ -255,22 +269,22 @@ function sendOpenBundleOnCloud(bundleId) {
   const tSend = {
     sequence_id: Math.round(Date.now() / 1000),
     command: "open_bundle_on_cloud",
-    bundle_id: String(bundle.id || "")
+    bundle_id: String(bundle.id || ""),
   };
   SendWXMessage(JSON.stringify(tSend));
 }
 
-function sendUpdateBundleCommand(bundleId) {                                                                                                                                                                                                                                                                                                                   
-    const bundle = bundlesById.get(String(bundleId || ""));                                                                                                                                                                                                                                                                                                      
-    if (!bundle || bundle.unauthorized || !bundle.update_available) return;                                                                                                                                                                                                                                                                                                             
-                                                                                                                                                                                                                                                                                                                                                                 
-    const tSend = {                                                                                                                                                                                                                                                                                                                                              
-      sequence_id: Math.round(Date.now() / 1000),                                                                                                                                                                                                                                                                                                                
-      command: "update_bundle",                                                                                                                                                                                                                                                                                                                                  
-      bundle_id: String(bundle.id || "")                                                                                                                                                                                                                                                                                                                         
-    };                                                                                                                                                                                                                                                                                                                                                           
-    SendWXMessage(JSON.stringify(tSend));                                                                                                                                                                                                                                                                                                                        
-  }
+function sendUpdateBundleCommand(bundleId) {
+  const bundle = bundlesById.get(String(bundleId || ""));
+  if (!bundle || bundle.unauthorized || !bundle.update_available) return;
+
+  const tSend = {
+    sequence_id: Math.round(Date.now() / 1000),
+    command: "update_bundle",
+    bundle_id: String(bundle.id || ""),
+  };
+  SendWXMessage(JSON.stringify(tSend));
+}
 
 // ========= Render: bottom (for a selected bundle) =========
 function renderBottomForBundle(bundleId) {
@@ -286,29 +300,39 @@ function renderBottomForBundle(bundleId) {
   for (const [, name] of filaments) rows.push({ type: "Filament", name });
   for (const [, name] of processes) rows.push({ type: "Process", name });
 
-  bottomList.innerHTML = rows.map((r, idx) => `
+  bottomList.innerHTML = rows
+    .map(
+      (r, idx) => `
     <div class="row" data-id="${escapeAttr(bundleId)}" data-idx="${idx}">
       <span>${escapeHtml(r.name)}</span>
       <span title="${escapeAttr(r.type)}">${escapeHtml(r.type)}</span>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 // ========= Selection helpers =========
 function clearSelection() {
-  document.querySelectorAll(".row.selected").forEach(r => r.classList.remove("selected"));
+  document
+    .querySelectorAll(".row.selected")
+    .forEach((r) => r.classList.remove("selected"));
 }
 
 function selectTopRow(rowEl) {
   // only clear selection in top list, not bottom
-  topList.querySelectorAll(".row.selected").forEach(r => r.classList.remove("selected"));
+  topList
+    .querySelectorAll(".row.selected")
+    .forEach((r) => r.classList.remove("selected"));
   rowEl.classList.add("selected");
 }
 
 function autoSelectFirstBundle() {
   if (selectedBundleId && bundlesById.has(selectedBundleId)) {
     // reselect existing
-    const el = topList.querySelector(`.row[data-id="${cssEscape(selectedBundleId)}"]`);
+    const el = topList.querySelector(
+      `.row[data-id="${cssEscape(selectedBundleId)}"]`,
+    );
     if (el) selectTopRow(el);
     renderBottomForBundle(selectedBundleId);
     return;
@@ -352,7 +376,11 @@ function hideMenu() {
 }
 // ========= Utilities =========
 function safeJsonParse(s) {
-  try { return JSON.parse(s); } catch { return null; }
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
 }
 
 function escapeHtml(str) {

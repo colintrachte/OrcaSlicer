@@ -2,8 +2,8 @@ name: Generate Doxygen Documentation
 
 on:
   schedule:
-    - cron: '0 0 * * 1'  # Every Monday at midnight UTC
-  workflow_dispatch:      # Manual trigger
+    - cron: "0 0 * * 1" # Every Monday at midnight UTC
+  workflow_dispatch: # Manual trigger
 
 concurrency:
   group: ${{ github.workflow }}
@@ -74,5 +74,5 @@ jobs:
           --progress \
           --transfers 512 \
           --checkers 512 
-          
+
           echo "Documentation upload completed successfully"

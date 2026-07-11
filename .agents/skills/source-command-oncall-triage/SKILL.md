@@ -12,7 +12,7 @@ Use this skill when the user asks to run the migrated source command `oncall-tri
 This runs as two independent passes over GitHub activity for this repo:
 
 - **Pass 1 — Oncall labeling** (Parts A/B below): narrow and conservative. Only things that
-  are genuinely *blocking* get the "oncall" label — that label is a signal to a human that
+  are genuinely _blocking_ get the "oncall" label — that label is a signal to a human that
   something needs urgent attention, so a false positive here has a real cost.
 - **Pass 2 — Roadmap capture** (Part C below): a broad net. Valuable feature requests and
   enhancements matter just as much as bugs for this repo's backlog — don't limit this pass to
@@ -26,12 +26,14 @@ checkout's git `origin`.** Check both before doing anything else.
 access on the target repo — read access (which is all a public repo guarantees) is not
 enough, and `gh issue edit --add-label` fails or silently targets the wrong project
 otherwise.
+
 ```bash
 gh api repos/OrcaSlicer/OrcaSlicer --jq '.permissions'
 ```
+
 - If `push` or `triage` is `true`: the labeling sub-steps (4a in Parts A/B) are live. Confirm
   the "oncall" label exists first (`gh label list --repo OrcaSlicer/OrcaSlicer --search
-  oncall`); create it with `gh label create` if missing, don't assume it's already there.
+oncall`); create it with `gh label create` if missing, don't assume it's already there.
 - If both are `false` (the common case when this repo's `origin` is a personal fork rather
   than the upstream project itself — compare against `git remote -v`): **skip every 4a
   labeling sub-step below** and rely entirely on the roadmap-capture sub-steps (4b). Say so
@@ -66,6 +68,7 @@ the same filter logic works via PowerShell's `ConvertFrom-Json` — pull the day
 1. Get all open bugs updated in the last 12 months with at least 3 engagements (broad
    enough to not miss slow-burn threads, since oncall status is decided by content, not
    volume):
+
    ```bash
    gh issue list --repo OrcaSlicer/OrcaSlicer --state open --label bug --limit 1000 --json number,title,updatedAt,comments,reactionGroups | jq -r '.[] | select((.updatedAt >= (now - 31536000 | strftime("%Y-%m-%dT%H:%M:%SZ"))) and ((.comments | length) + ([.reactionGroups[].users.totalCount] | add // 0) >= 3)) | "\(.number)"'
    ```
@@ -81,17 +84,19 @@ the same filter logic works via PowerShell's `ConvertFrom-Json` — pull the day
    - Be conservative — only flag issues that truly prevent users from getting work done
 
 4a. For issues that are truly blocking and don't already have the "oncall" label:
-   - Use `gh issue edit <number> --repo OrcaSlicer/OrcaSlicer --add-label "oncall"`
-   - Mark the issue complete in your TodoWrite list
+
+- Use `gh issue edit <number> --repo OrcaSlicer/OrcaSlicer --add-label "oncall"`
+- Mark the issue complete in your TodoWrite list
 
 4b. If a backlog file exists (see check above) and this issue isn't already represented in
-   it, append an entry in the file's existing format under the matching severity section
-   (Critical for crash/data-loss, High for other blocking bugs). Don't guess a `Route:`,
-   `Effort:`, or `Chars:` value — leave those off; a routing script regenerates them.
+it, append an entry in the file's existing format under the matching severity section
+(Critical for crash/data-loss, High for other blocking bugs). Don't guess a `Route:`,
+`Effort:`, or `Chars:` value — leave those off; a routing script regenerates them.
 
 ### Part B — Pull requests (oncall label)
 
 1. Get open, non-draft PRs updated in the last 12 months with at least 3 engagements:
+
    ```bash
    gh pr list --repo OrcaSlicer/OrcaSlicer --state open --limit 1000 --json number,title,updatedAt,comments,reactionGroups,isDraft,body | jq -r '.[] | select(.isDraft == false and (.updatedAt >= (now - 31536000 | strftime("%Y-%m-%dT%H:%M:%SZ"))) and ((.comments | length) + ([.reactionGroups[].users.totalCount] | add // 0) >= 3)) | "\(.number)"'
    ```
@@ -108,12 +113,13 @@ the same filter logic works via PowerShell's `ConvertFrom-Json` — pull the day
      its title/body without the draft flag, does not qualify
 
 4a. For PRs that qualify and don't already have the "oncall" label:
-   - Use `gh pr edit <number> --repo OrcaSlicer/OrcaSlicer --add-label "oncall"`
-   - Mark the PR complete in your TodoWrite list
+
+- Use `gh pr edit <number> --repo OrcaSlicer/OrcaSlicer --add-label "oncall"`
+- Mark the PR complete in your TodoWrite list
 
 4b. If a backlog file exists and this PR isn't already represented in it, append an entry
-   under the file's PR review queue section (or create one, following the same header/
-   file-list format as the issue entries) rather than a new file.
+under the file's PR review queue section (or create one, following the same header/
+file-list format as the issue entries) rather than a new file.
 
 ### Part C — Feature requests and enhancements (roadmap capture only, broad net)
 
@@ -122,6 +128,7 @@ output, so there's nowhere to put its findings without one.
 
 1. Get open, non-bug issues with meaningful engagement, no time cutoff (demand for a feature
    doesn't decay the way a live bug report does):
+
    ```bash
    gh issue list --repo OrcaSlicer/OrcaSlicer --state open --limit 1000 --json number,title,updatedAt,comments,reactionGroups,labels | jq -r '.[] | select(([.labels[].name] | index("bug") | not) and ((.comments | length) + ([.reactionGroups[].users.totalCount] | add // 0) >= 10)) | "\(.number)"'
    ```
@@ -147,6 +154,7 @@ output, so there's nowhere to put its findings without one.
    - If nothing qualified in a category, state that clearly
 
 Important:
+
 - Process every issue and PR in your TodoWrite list systematically
 - Don't post any comments to issues or PRs
 - Only add the "oncall" label, never remove it — and only for Parts A/B, never for Part C

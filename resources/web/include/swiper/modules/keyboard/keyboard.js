@@ -1,30 +1,23 @@
 /* eslint-disable consistent-return */
-import { getWindow, getDocument } from 'ssr-window';
-import $ from '../../shared/dom.js';
-export default function Keyboard({
-  swiper,
-  extendParams,
-  on,
-  emit
-}) {
+import { getWindow, getDocument } from "ssr-window";
+import $ from "../../shared/dom.js";
+export default function Keyboard({ swiper, extendParams, on, emit }) {
   const document = getDocument();
   const window = getWindow();
   swiper.keyboard = {
-    enabled: false
+    enabled: false,
   };
   extendParams({
     keyboard: {
       enabled: false,
       onlyInViewport: true,
-      pageUpDown: true
-    }
+      pageUpDown: true,
+    },
   });
 
   function handle(event) {
     if (!swiper.enabled) return;
-    const {
-      rtlTranslate: rtl
-    } = swiper;
+    const { rtlTranslate: rtl } = swiper;
     let e = event;
     if (e.originalEvent) e = e.originalEvent; // jquery fix
 
@@ -37,11 +30,21 @@ export default function Keyboard({
     const isArrowUp = kc === 38;
     const isArrowDown = kc === 40; // Directions locks
 
-    if (!swiper.allowSlideNext && (swiper.isHorizontal() && isArrowRight || swiper.isVertical() && isArrowDown || isPageDown)) {
+    if (
+      !swiper.allowSlideNext &&
+      ((swiper.isHorizontal() && isArrowRight) ||
+        (swiper.isVertical() && isArrowDown) ||
+        isPageDown)
+    ) {
       return false;
     }
 
-    if (!swiper.allowSlidePrev && (swiper.isHorizontal() && isArrowLeft || swiper.isVertical() && isArrowUp || isPageUp)) {
+    if (
+      !swiper.allowSlidePrev &&
+      ((swiper.isHorizontal() && isArrowLeft) ||
+        (swiper.isVertical() && isArrowUp) ||
+        isPageUp)
+    ) {
       return false;
     }
 
@@ -49,14 +52,30 @@ export default function Keyboard({
       return undefined;
     }
 
-    if (document.activeElement && document.activeElement.nodeName && (document.activeElement.nodeName.toLowerCase() === 'input' || document.activeElement.nodeName.toLowerCase() === 'textarea')) {
+    if (
+      document.activeElement &&
+      document.activeElement.nodeName &&
+      (document.activeElement.nodeName.toLowerCase() === "input" ||
+        document.activeElement.nodeName.toLowerCase() === "textarea")
+    ) {
       return undefined;
     }
 
-    if (swiper.params.keyboard.onlyInViewport && (isPageUp || isPageDown || isArrowLeft || isArrowRight || isArrowUp || isArrowDown)) {
+    if (
+      swiper.params.keyboard.onlyInViewport &&
+      (isPageUp ||
+        isPageDown ||
+        isArrowLeft ||
+        isArrowRight ||
+        isArrowUp ||
+        isArrowDown)
+    ) {
       let inView = false; // Check that swiper should be inside of visible area of window
 
-      if (swiper.$el.parents(`.${swiper.params.slideClass}`).length > 0 && swiper.$el.parents(`.${swiper.params.slideActiveClass}`).length === 0) {
+      if (
+        swiper.$el.parents(`.${swiper.params.slideClass}`).length > 0 &&
+        swiper.$el.parents(`.${swiper.params.slideActiveClass}`).length === 0
+      ) {
         return undefined;
       }
 
@@ -67,12 +86,22 @@ export default function Keyboard({
       const windowHeight = window.innerHeight;
       const swiperOffset = swiper.$el.offset();
       if (rtl) swiperOffset.left -= swiper.$el[0].scrollLeft;
-      const swiperCoord = [[swiperOffset.left, swiperOffset.top], [swiperOffset.left + swiperWidth, swiperOffset.top], [swiperOffset.left, swiperOffset.top + swiperHeight], [swiperOffset.left + swiperWidth, swiperOffset.top + swiperHeight]];
+      const swiperCoord = [
+        [swiperOffset.left, swiperOffset.top],
+        [swiperOffset.left + swiperWidth, swiperOffset.top],
+        [swiperOffset.left, swiperOffset.top + swiperHeight],
+        [swiperOffset.left + swiperWidth, swiperOffset.top + swiperHeight],
+      ];
 
       for (let i = 0; i < swiperCoord.length; i += 1) {
         const point = swiperCoord[i];
 
-        if (point[0] >= 0 && point[0] <= windowWidth && point[1] >= 0 && point[1] <= windowHeight) {
+        if (
+          point[0] >= 0 &&
+          point[0] <= windowWidth &&
+          point[1] >= 0 &&
+          point[1] <= windowHeight
+        ) {
           if (point[0] === 0 && point[1] === 0) continue; // eslint-disable-line
 
           inView = true;
@@ -84,48 +113,58 @@ export default function Keyboard({
 
     if (swiper.isHorizontal()) {
       if (isPageUp || isPageDown || isArrowLeft || isArrowRight) {
-        if (e.preventDefault) e.preventDefault();else e.returnValue = false;
+        if (e.preventDefault) e.preventDefault();
+        else e.returnValue = false;
       }
 
-      if ((isPageDown || isArrowRight) && !rtl || (isPageUp || isArrowLeft) && rtl) swiper.slideNext();
-      if ((isPageUp || isArrowLeft) && !rtl || (isPageDown || isArrowRight) && rtl) swiper.slidePrev();
+      if (
+        ((isPageDown || isArrowRight) && !rtl) ||
+        ((isPageUp || isArrowLeft) && rtl)
+      )
+        swiper.slideNext();
+      if (
+        ((isPageUp || isArrowLeft) && !rtl) ||
+        ((isPageDown || isArrowRight) && rtl)
+      )
+        swiper.slidePrev();
     } else {
       if (isPageUp || isPageDown || isArrowUp || isArrowDown) {
-        if (e.preventDefault) e.preventDefault();else e.returnValue = false;
+        if (e.preventDefault) e.preventDefault();
+        else e.returnValue = false;
       }
 
       if (isPageDown || isArrowDown) swiper.slideNext();
       if (isPageUp || isArrowUp) swiper.slidePrev();
     }
 
-    emit('keyPress', kc);
+    emit("keyPress", kc);
     return undefined;
   }
 
   function enable() {
     if (swiper.keyboard.enabled) return;
-    $(document).on('keydown', handle);
+    $(document).on("keydown", handle);
     swiper.keyboard.enabled = true;
   }
 
   function disable() {
     if (!swiper.keyboard.enabled) return;
-    $(document).off('keydown', handle);
+    $(document).off("keydown", handle);
     swiper.keyboard.enabled = false;
   }
 
-  on('init', () => {
+  on("init", () => {
     if (swiper.params.keyboard.enabled) {
       enable();
     }
   });
-  on('destroy', () => {
+  on("destroy", () => {
     if (swiper.keyboard.enabled) {
       disable();
     }
   });
   Object.assign(swiper.keyboard, {
     enable,
-    disable
+    disable,
   });
 }

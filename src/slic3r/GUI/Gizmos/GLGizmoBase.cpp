@@ -381,6 +381,15 @@ void GLGizmoBase::unregister_grabbers_for_picking()
     }
 }
 
+ColorRGBA GLGizmoBase::picking_color_component(unsigned int id) const
+{
+    id = BASE_ID - id;
+    if (m_group_id > -1)
+        id -= m_group_id;
+
+    return picking_decode(id);
+}
+
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
 #if ENABLE_FIXED_GRABBER

@@ -1,11 +1,11 @@
 # MCUT Overview
 
-Gist: _A simple and fast C++ library for mesh booleans and more..._ 
+Gist: _A simple and fast C++ library for mesh booleans and more..._
 
 [![Windows](https://github.com/cutdigital/mcut/actions/workflows/windows.yml/badge.svg)](https://github.com/cutdigital/mcut/actions/workflows/windows.yml)
 [![MacOS](https://github.com/cutdigital/mcut/actions/workflows/macos.yml/badge.svg)](https://github.com/cutdigital/mcut/actions/workflows/macos.yml) [![Linux](https://github.com/cutdigital/mcut/actions/workflows/linux.yaml/badge.svg)](https://github.com/cutdigital/mcut/actions/workflows/linux.yaml)
 
-This is a software project designed for a broad range of real-world problems relating to 3D modelling and design tasks. Application areas include computer animation, aerospace and automotive engineering, mining, civil and mechanical engineering amongst others. 
+This is a software project designed for a broad range of real-world problems relating to 3D modelling and design tasks. Application areas include computer animation, aerospace and automotive engineering, mining, civil and mechanical engineering amongst others.
 
 The project is called "MCUT" (short for 'mesh cutting'), and it provides functionality to perform fast and robust geometry operations, as shown below:
 
@@ -13,7 +13,6 @@ The project is called "MCUT" (short for 'mesh cutting'), and it provides functio
   <img src="https://github.com/cutdigital/mcut.github.io/blob/master/docs/media/repo-teaser/github-teaser.png?raw=true">
   Figure 1: Generate, slice and perform Booleans without errors.
 </p>
-
 
 The codebase provides a comprehensive tool for ensuring that computer-aided planning tasks for e.g. mine-design, rock strata boring (e.g. underground-tunnel excavations), oil-well drilling and general 3D modelling for animation are achievable with robustness. The tool is developed to take advantage of modern high-performance parallel computing hardware for you, and is demonstrably robust by using precise geometric algorithms that are implemented in C++ and accessed through an intuitive API that resembles the all-familiar C programming language.
 
@@ -23,16 +22,16 @@ Importantly, MCUT is designed with the philosophy that users don't know or don't
 
 MCUT is a tool for partitioning meshes that represent solids or open surfaces: It is a code library for cutting 3D mesh objects using their geometry to produce crisp fragments at fine scale, which is useful for operations like slicing and boolean operations (union, subtraction and intersection). Supported features include (see images below):
 
-* **Stencilling**: exact cut-outs of the cutting surface
-* **Intersection curve access**: geometry representing lines of intersection-contour points
-* **Partial cuts**: producing valid results where an open-surface is not necessarily completely cutting through a solid.
-* **Concatenation**: merging a solids or open-surfaces with another.
-* **Sectioning**: elimination of material/volume on one side of a specified surface (e.g. a plane) 
-* **Splitting**: partitioning one mesh using another that might be open or solid. 
-* **Cross-platform**: tested on Windows, Linux (Ubuntu), and macOS
-* **Bloat-free**: no external dependencies.
-* **Performant**: continuously profiled, and optimized.
-* **Numerically robust**: Algorithms rely on robust geometric predicates.
+- **Stencilling**: exact cut-outs of the cutting surface
+- **Intersection curve access**: geometry representing lines of intersection-contour points
+- **Partial cuts**: producing valid results where an open-surface is not necessarily completely cutting through a solid.
+- **Concatenation**: merging a solids or open-surfaces with another.
+- **Sectioning**: elimination of material/volume on one side of a specified surface (e.g. a plane)
+- **Splitting**: partitioning one mesh using another that might be open or solid.
+- **Cross-platform**: tested on Windows, Linux (Ubuntu), and macOS
+- **Bloat-free**: no external dependencies.
+- **Performant**: continuously profiled, and optimized.
+- **Numerically robust**: Algorithms rely on robust geometric predicates.
 
 What is being offered is a general solution to the problem of resolving solid- and/or open-mesh intersections. It is a solution that is sought by many companies, researchers, and private individuals for its ability to address extremely difficult problems relating to computational geometry in 3D. A classic application is constructive solid geometry (CSG) i.e. the “boolean operation”, which is shown below, where the resulting meshes/objects are produced with MCUT:
 
@@ -91,17 +90,17 @@ The following images show more examples of what users can achieve with MCUT:
 
 The source code is available for your perusal and evaluation. You can access right here on Github. This is an opportunity for you to trial and experiment with MCUT for your needs. Here is a quick example of how you clone and build the library:
 
-* `git clone https://github.com/cutdigital/mcut.git` 
-* `mkdir build`
-* `cd build`
-* `cmake ..` (see `CMakeLists.txt` for available build configuration options) 
-* run `make -j4` *IF* you are on Linux/MacOS terminal, *ELSE* open the generated `.sln` with e.g. Visual Studio
+- `git clone https://github.com/cutdigital/mcut.git`
+- `mkdir build`
+- `cd build`
+- `cmake ..` (see `CMakeLists.txt` for available build configuration options)
+- run `make -j4` _IF_ you are on Linux/MacOS terminal, _ELSE_ open the generated `.sln` with e.g. Visual Studio
 
 Next, try out one of the tutorials!
 
 # Licensing
 
-MCUT is available under an Open Source license as well as a commercial license. Users choosing to use MCUT under the free-of-charge Open Source license (e.g. for academic purposes) simply need to comply to its terms, otherwise a commercial license is required. The Open Source license is the "GNU General Public License" (GPL). In cases where the constraints of the Open source license prevent you from using MCUT, a commercial license can be purchased. The library is licensed with an attractively low price which is a one-off sum, requiring no further loyalty fees with guarranteed future updates for free. 
+MCUT is available under an Open Source license as well as a commercial license. Users choosing to use MCUT under the free-of-charge Open Source license (e.g. for academic purposes) simply need to comply to its terms, otherwise a commercial license is required. The Open Source license is the "GNU General Public License" (GPL). In cases where the constraints of the Open source license prevent you from using MCUT, a commercial license can be purchased. The library is licensed with an attractively low price which is a one-off sum, requiring no further loyalty fees with guarranteed future updates for free.
 
 These options protect the project's commercial value and thus make it possible for the author to guarantee long term support, maintenance and further development of the code for the benefit of the project and its users.
 

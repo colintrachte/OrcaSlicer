@@ -3653,7 +3653,7 @@ void GUI_App::select_machine(const std::string& agent_id)
     }
 
     // Get config source (preset or physical printer)
-    const auto& preset = preset_bundle->printers.get_edited_preset();
+    auto& preset = preset_bundle->printers.get_edited_preset();
     const DynamicPrintConfig* host_cfg = &preset.config;
 
     std::string print_host = host_cfg->opt_string("print_host");
@@ -3686,7 +3686,7 @@ void GUI_App::select_machine(const std::string& agent_id)
         // We use dev_id as dev_ip to store the address (host:port)
         machine.dev_ip = dev_id;
         machine.dev_name = dev_id;
-        machine.printer_type = preset.config.opt_string("printer_model");
+        machine.printer_type = preset.get_printer_type(preset_bundle);
         auto access_code = preset.config.opt_string("printhost_apikey");
         // Orca expect non empty access code
         if (access_code.empty()) {
@@ -3694,7 +3694,7 @@ void GUI_App::select_machine(const std::string& agent_id)
         }
 
         existing = m_device_manager->insert_local_device(
-            machine, "lan", "free", "", access_code);
+            machine, "lan", "free", "", access_code, /*is_bbl_printer=*/false);
 
         if (!existing) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to create machine dev_id=" << dev_id;

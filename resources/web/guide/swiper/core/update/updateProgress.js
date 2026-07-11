@@ -1,19 +1,16 @@
 export default function updateProgress(translate) {
   const swiper = this;
 
-  if (typeof translate === 'undefined') {
+  if (typeof translate === "undefined") {
     const multiplier = swiper.rtlTranslate ? -1 : 1; // eslint-disable-next-line
 
-    translate = swiper && swiper.translate && swiper.translate * multiplier || 0;
+    translate =
+      (swiper && swiper.translate && swiper.translate * multiplier) || 0;
   }
 
   const params = swiper.params;
   const translatesDiff = swiper.maxTranslate() - swiper.minTranslate();
-  let {
-    progress,
-    isBeginning,
-    isEnd
-  } = swiper;
+  let { progress, isBeginning, isEnd } = swiper;
   const wasBeginning = isBeginning;
   const wasEnd = isEnd;
 
@@ -30,21 +27,25 @@ export default function updateProgress(translate) {
   Object.assign(swiper, {
     progress,
     isBeginning,
-    isEnd
+    isEnd,
   });
-  if (params.watchSlidesProgress || params.centeredSlides && params.autoHeight) swiper.updateSlidesProgress(translate);
+  if (
+    params.watchSlidesProgress ||
+    (params.centeredSlides && params.autoHeight)
+  )
+    swiper.updateSlidesProgress(translate);
 
   if (isBeginning && !wasBeginning) {
-    swiper.emit('reachBeginning toEdge');
+    swiper.emit("reachBeginning toEdge");
   }
 
   if (isEnd && !wasEnd) {
-    swiper.emit('reachEnd toEdge');
+    swiper.emit("reachEnd toEdge");
   }
 
-  if (wasBeginning && !isBeginning || wasEnd && !isEnd) {
-    swiper.emit('fromEdge');
+  if ((wasBeginning && !isBeginning) || (wasEnd && !isEnd)) {
+    swiper.emit("fromEdge");
   }
 
-  swiper.emit('progress', progress);
+  swiper.emit("progress", progress);
 }

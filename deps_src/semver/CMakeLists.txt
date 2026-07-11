@@ -14,8 +14,12 @@ target_include_directories(semver SYSTEM
         $<INSTALL_INTERFACE:include>
 )
 
-# Set compile features
-target_compile_features(semver PUBLIC c_std_99)
+# Request C99, but don't fail configure on compilers (e.g. MSVC) that publish
+# no C compile features for target_compile_features to check against.
+set_target_properties(semver PROPERTIES
+    C_STANDARD 99
+    C_STANDARD_REQUIRED OFF
+)
 
 # Add any compile definitions if needed
 target_compile_definitions(semver 

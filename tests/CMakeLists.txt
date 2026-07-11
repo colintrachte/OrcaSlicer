@@ -26,6 +26,12 @@ if (APPLE)
     target_link_libraries(test_common INTERFACE "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 endif()
 
+if (WIN32)
+    # OpenSSL 3.x libcrypto's Windows cert-store provider needs crypt32. The app gets it
+    # transitively via libcurl; test executables link libslic3r->OpenSSL directly.
+    target_link_libraries(test_common INTERFACE crypt32)
+endif()
+
 # Copies runtime DLLs next to each test executable. Handles both single-config
 # generators (CMAKE_BUILD_TYPE set) and multi-config generators (Ninja
 # Multi-Config, Visual Studio) where CMAKE_BUILD_TYPE is empty and DLLs must

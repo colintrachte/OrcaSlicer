@@ -1,29 +1,19 @@
-import createShadow from '../../shared/create-shadow.js';
-import effectInit from '../../shared/effect-init.js';
-import effectTarget from '../../shared/effect-target.js';
-import effectVirtualTransitionEnd from '../../shared/effect-virtual-transition-end.js';
-export default function EffectCards({
-  swiper,
-  extendParams,
-  on
-}) {
+import createShadow from "../../shared/create-shadow.js";
+import effectInit from "../../shared/effect-init.js";
+import effectTarget from "../../shared/effect-target.js";
+import effectVirtualTransitionEnd from "../../shared/effect-virtual-transition-end.js";
+export default function EffectCards({ swiper, extendParams, on }) {
   extendParams({
     cardsEffect: {
       slideShadows: true,
-      transformEl: null
-    }
+      transformEl: null,
+    },
   });
 
   const setTranslate = () => {
-    const {
-      slides,
-      activeIndex
-    } = swiper;
+    const { slides, activeIndex } = swiper;
     const params = swiper.params.cardsEffect;
-    const {
-      startTranslate,
-      isTouched
-    } = swiper.touchEventsData;
+    const { startTranslate, isTouched } = swiper.touchEventsData;
     const currentTranslate = swiper.translate;
 
     for (let i = 0; i < slides.length; i += 1) {
@@ -46,11 +36,22 @@ export default function EffectCards({
       let scale = 1;
       let rotate = -2 * progress;
       let tXAdd = 8 - Math.abs(progress) * 0.75;
-      const isSwipeToNext = (i === activeIndex || i === activeIndex - 1) && progress > 0 && progress < 1 && (isTouched || swiper.params.cssMode) && currentTranslate < startTranslate;
-      const isSwipeToPrev = (i === activeIndex || i === activeIndex + 1) && progress < 0 && progress > -1 && (isTouched || swiper.params.cssMode) && currentTranslate > startTranslate;
+      const isSwipeToNext =
+        (i === activeIndex || i === activeIndex - 1) &&
+        progress > 0 &&
+        progress < 1 &&
+        (isTouched || swiper.params.cssMode) &&
+        currentTranslate < startTranslate;
+      const isSwipeToPrev =
+        (i === activeIndex || i === activeIndex + 1) &&
+        progress < 0 &&
+        progress > -1 &&
+        (isTouched || swiper.params.cssMode) &&
+        currentTranslate > startTranslate;
 
       if (isSwipeToNext || isSwipeToPrev) {
-        const subProgress = (1 - Math.abs((Math.abs(progress) - 0.5) / 0.5)) ** 0.5;
+        const subProgress =
+          (1 - Math.abs((Math.abs(progress) - 0.5) / 0.5)) ** 0.5;
         rotate += -28 * progress * subProgress;
         scale += -0.5 * subProgress;
         tXAdd += 96 * subProgress;
@@ -73,7 +74,10 @@ export default function EffectCards({
         tX = prevY;
       }
 
-      const scaleString = progress < 0 ? `${1 + (1 - scale) * progress}` : `${1 - (1 - scale) * progress}`;
+      const scaleString =
+        progress < 0
+          ? `${1 + (1 - scale) * progress}`
+          : `${1 - (1 - scale) * progress}`;
       const transform = `
         translate3d(${tX}, ${tY}, ${tZ}px)
         rotateZ(${rotate}deg)
@@ -82,36 +86,44 @@ export default function EffectCards({
 
       if (params.slideShadows) {
         // Set shadows
-        let $shadowEl = $slideEl.find('.swiper-slide-shadow');
+        let $shadowEl = $slideEl.find(".swiper-slide-shadow");
 
         if ($shadowEl.length === 0) {
           $shadowEl = createShadow(params, $slideEl);
         }
 
-        if ($shadowEl.length) $shadowEl[0].style.opacity = Math.min(Math.max((Math.abs(progress) - 0.5) / 0.5, 0), 1);
+        if ($shadowEl.length)
+          $shadowEl[0].style.opacity = Math.min(
+            Math.max((Math.abs(progress) - 0.5) / 0.5, 0),
+            1,
+          );
       }
 
-      $slideEl[0].style.zIndex = -Math.abs(Math.round(slideProgress)) + slides.length;
+      $slideEl[0].style.zIndex =
+        -Math.abs(Math.round(slideProgress)) + slides.length;
       const $targetEl = effectTarget(params, $slideEl);
       $targetEl.transform(transform);
     }
   };
 
-  const setTransition = duration => {
-    const {
-      transformEl
-    } = swiper.params.cardsEffect;
-    const $transitionElements = transformEl ? swiper.slides.find(transformEl) : swiper.slides;
-    $transitionElements.transition(duration).find('.swiper-slide-shadow').transition(duration);
+  const setTransition = (duration) => {
+    const { transformEl } = swiper.params.cardsEffect;
+    const $transitionElements = transformEl
+      ? swiper.slides.find(transformEl)
+      : swiper.slides;
+    $transitionElements
+      .transition(duration)
+      .find(".swiper-slide-shadow")
+      .transition(duration);
     effectVirtualTransitionEnd({
       swiper,
       duration,
-      transformEl
+      transformEl,
     });
   };
 
   effectInit({
-    effect: 'cards',
+    effect: "cards",
     swiper,
     on,
     setTranslate,
@@ -119,7 +131,7 @@ export default function EffectCards({
     perspective: () => true,
     overwriteParams: () => ({
       watchSlidesProgress: true,
-      virtualTranslate: !swiper.params.cssMode
-    })
+      virtualTranslate: !swiper.params.cssMode,
+    }),
   });
 }

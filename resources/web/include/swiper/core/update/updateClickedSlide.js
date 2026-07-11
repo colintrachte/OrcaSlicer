@@ -1,4 +1,4 @@
-import $ from '../../shared/dom.js';
+import $ from "../../shared/dom.js";
 export default function updateClickedSlide(e) {
   const swiper = this;
   const params = swiper.params;
@@ -20,7 +20,10 @@ export default function updateClickedSlide(e) {
     swiper.clickedSlide = slide;
 
     if (swiper.virtual && swiper.params.virtual.enabled) {
-      swiper.clickedIndex = parseInt($(slide).attr('data-swiper-slide-index'), 10);
+      swiper.clickedIndex = parseInt(
+        $(slide).attr("data-swiper-slide-index"),
+        10,
+      );
     } else {
       swiper.clickedIndex = slideIndex;
     }
@@ -30,7 +33,11 @@ export default function updateClickedSlide(e) {
     return;
   }
 
-  if (params.slideToClickedSlide && swiper.clickedIndex !== undefined && swiper.clickedIndex !== swiper.activeIndex) {
+  if (
+    params.slideToClickedSlide &&
+    swiper.clickedIndex !== undefined &&
+    swiper.clickedIndex !== swiper.activeIndex
+  ) {
     swiper.slideToClickedSlide();
   }
 }

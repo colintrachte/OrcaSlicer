@@ -7,9 +7,11 @@ updates:
       interval: "monthly"
     ignore: # Only suggest major updates for built-in actions
       - dependency-name: "github/*"
-        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
       - dependency-name: "actions/*"
-        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
   # Docker dependencies
   - package-ecosystem: "docker"
     directory: "/"

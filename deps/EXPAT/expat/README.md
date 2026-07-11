@@ -9,15 +9,14 @@ The original README:
 [![Downloads SourceForge](https://img.shields.io/sourceforge/dt/expat?label=Downloads%20SourceForge)](https://sourceforge.net/projects/expat/files/)
 [![Downloads GitHub](https://img.shields.io/github/downloads/libexpat/libexpat/total?label=Downloads%20GitHub)](https://github.com/libexpat/libexpat/releases)
 
-
 # Expat, Release 2.5.0
 
 This is Expat, a C library for parsing XML, started by
 [James Clark](https://en.wikipedia.org/wiki/James_Clark_%28programmer%29) in 1997.
-Expat is a stream-oriented XML parser.  This means that you register
-handlers with the parser before starting the parse.  These handlers
+Expat is a stream-oriented XML parser. This means that you register
+handlers with the parser before starting the parse. These handlers
 are called when the parser discovers the associated structures in the
-document being parsed.  A start tag is an example of the kind of
+document being parsed. A start tag is an example of the kind of
 structures for which you may register handlers.
 
 Expat supports the following compilers:
@@ -38,7 +37,6 @@ contained in the file
 distributed with this package.
 This license is the same as the MIT/X Consortium license.
 
-
 ## Using libexpat in your CMake-Based Project
 
 There are two ways of using libexpat with CMake:
@@ -47,7 +45,7 @@ There are two ways of using libexpat with CMake:
 
 This approach leverages CMake's own [module `FindEXPAT`](https://cmake.org/cmake/help/latest/module/FindEXPAT.html).
 
-Notice the *uppercase* `EXPAT` in the following example:
+Notice the _uppercase_ `EXPAT` in the following example:
 
 ```cmake
 cmake_minimum_required(VERSION 3.0)  # or 3.10, see below
@@ -73,14 +71,14 @@ target_link_libraries(hello PUBLIC ${EXPAT_LIBRARIES})
 This approach requires files from…
 
 - libexpat >=2.2.8 where packaging uses the CMake build system
-or
+  or
 - libexpat >=2.3.0 where packaging uses the GNU Autotools build system
   on Linux
-or
+  or
 - libexpat >=2.4.0 where packaging uses the GNU Autotools build system
   on macOS or MinGW.
 
-Notice the *lowercase* `expat` in the following example:
+Notice the _lowercase_ `expat` in the following example:
 
 ```cmake
 cmake_minimum_required(VERSION 3.0)
@@ -96,13 +94,12 @@ add_executable(hello
 target_link_libraries(hello PUBLIC expat::expat)
 ```
 
-
 ## Building from a Git Clone
 
 If you are building Expat from a check-out from the
 [Git repository](https://github.com/libexpat/libexpat/),
 you need to run a script that generates the configure script using the
-GNU autoconf and libtool tools.  To do this, you need to have
+GNU autoconf and libtool tools. To do this, you need to have
 autoconf 2.58 or newer. Run the script like this:
 
 ```console
@@ -111,7 +108,6 @@ autoconf 2.58 or newer. Run the script like this:
 
 Once this has been done, follow the same instructions as for building
 from a source distribution.
-
 
 ## Building from a Source Distribution
 
@@ -125,11 +121,11 @@ configuration shell script in the top level distribution directory:
 ```
 
 There are many options which you may provide to configure (which you
-can discover by running configure with the `--help` option).  But the
+can discover by running configure with the `--help` option). But the
 one of most interest is the one that sets the installation directory.
 By default, the configure script will set things up to install
 libexpat into `/usr/local/lib`, `expat.h` into `/usr/local/include`, and
-`xmlwf` into `/usr/local/bin`.  If, for example, you'd prefer to install
+`xmlwf` into `/usr/local/bin`. If, for example, you'd prefer to install
 into `/home/me/mystuff/lib`, `/home/me/mystuff/include`, and
 `/home/me/mystuff/bin`, you can tell `configure` about that with:
 
@@ -150,8 +146,8 @@ a Linux distribution &mdash; but rather for builds with special requirements.
 
 After running the configure script, the `make` command will build
 things and `make install` will install things into their proper
-location.  Have a look at the `Makefile` to learn about additional
-`make` options.  Note that you need to have write permission into
+location. Have a look at the `Makefile` to learn about additional
+`make` options. Note that you need to have write permission into
 the directories into which things will be installed.
 
 If you are interested in building Expat to provide document
@@ -163,9 +159,9 @@ support this mode of compilation (yet):
 1. Mass-patch `Makefile.am` files to use `libexpatw.la` for a library name:
    <br/>
    `find -name Makefile.am -exec sed
-       -e 's,libexpat\.la,libexpatw.la,'
-       -e 's,libexpat_la,libexpatw_la,'
-       -i {} +`
+ -e 's,libexpat\.la,libexpatw.la,'
+ -e 's,libexpat_la,libexpatw_la,'
+ -i {} +`
 
 1. Run `automake` to re-write `Makefile.in` files:<br/>
    `automake`
@@ -175,14 +171,14 @@ support this mode of compilation (yet):
    `./configure CPPFLAGS=-DXML_UNICODE --without-xmlwf`<br/>
    For UTF-16 output as `wchar_t` (incl. version/error strings), run:<br/>
    `./configure CFLAGS="-g -O2 -fshort-wchar" CPPFLAGS=-DXML_UNICODE_WCHAR_T
-       --without-xmlwf`
+ --without-xmlwf`
    <br/>Note: The latter requires libc compiled with `-fshort-wchar`, as well.
 
 1. Run `make` (which excludes xmlwf).
 
 1. Run `make install` (again, excludes xmlwf).
 
-Using `DESTDIR` is supported.  It works as follows:
+Using `DESTDIR` is supported. It works as follows:
 
 ```console
 make install DESTDIR=/path/to/image
@@ -199,18 +195,16 @@ of xmlwf and the tests is currently not supported.
 
 When using Expat with a project using autoconf for configuration, you
 can use the probing macro in `conftools/expat.m4` to determine how to
-include Expat.  See the comments at the top of that file for more
+include Expat. See the comments at the top of that file for more
 information.
 
 A reference manual is available in the file `doc/reference.html` in this
 distribution.
 
-
 ### b) Building with CMake
 
-The CMake build system is still *experimental* and may replace the primary
+The CMake build system is still _experimental_ and may replace the primary
 build system based on GNU Autotools at some point when it is ready.
-
 
 #### Available Options
 

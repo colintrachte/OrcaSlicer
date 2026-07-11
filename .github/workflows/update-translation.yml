@@ -1,5 +1,5 @@
 name: Update Translation Catalog
-on: 
+on:
   # schedule:
   #   - cron: 0 0 * * 1
   workflow_dispatch:
@@ -8,14 +8,14 @@ jobs:
   update_translation:
     name: Update translation
     runs-on: ubuntu-latest
-    steps:  
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install gettext
         run: |

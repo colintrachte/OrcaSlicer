@@ -7,7 +7,6 @@
 
 Documentation, tutorial, and instructions at <https://libigl.github.io>.
 
-
-| 🆕 Doxygen Documentation |
-|:---|
+| 🆕 Doxygen Documentation                                                                                                             |
+| :----------------------------------------------------------------------------------------------------------------------------------- |
 | The latest version of libigl (v2.5.0) introduces [doxygen generated detailed documentation](https://libigl.github.io/dox/index.html) |

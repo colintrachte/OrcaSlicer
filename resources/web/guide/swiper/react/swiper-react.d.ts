@@ -1,6 +1,6 @@
-import * as React from 'react';
+import * as React from "react";
 
-import { SwiperOptions, Swiper as SwiperClass } from '../types/';
+import { SwiperOptions, Swiper as SwiperClass } from "../types/";
 
 interface Swiper extends SwiperOptions {
   /**
@@ -33,47 +33,64 @@ interface Swiper extends SwiperOptions {
   /**
    * Event will be fired when slide changed with autoplay
    */
-  onAutoplay?: (swiper: SwiperClass) => void;/**
+  onAutoplay?: (swiper: SwiperClass) => void; /**
    * Event will be fired on window hash change
    */
   onHashChange?: (swiper: SwiperClass) => void;
   /**
    * Event will be fired when swiper updates the hash
    */
-  onHashSet?: (swiper: SwiperClass) => void;/**
+  onHashSet?: (swiper: SwiperClass) => void; /**
    * Event will be fired on mousewheel scroll
    */
-  onScroll?: (swiper: SwiperClass, event: WheelEvent) => void;/**
+  onScroll?: (swiper: SwiperClass, event: WheelEvent) => void; /**
    * Event will be fired in the beginning of lazy loading of image
    */
-  onLazyImageLoad?: (swiper: SwiperClass, slideEl: HTMLElement, imageEl: HTMLElement) => void;
+  onLazyImageLoad?: (
+    swiper: SwiperClass,
+    slideEl: HTMLElement,
+    imageEl: HTMLElement,
+  ) => void;
   /**
    * Event will be fired when lazy loading image will be loaded
    */
-  onLazyImageReady?: (swiper: SwiperClass, slideEl: HTMLElement, imageEl: HTMLElement) => void;/**
+  onLazyImageReady?: (
+    swiper: SwiperClass,
+    slideEl: HTMLElement,
+    imageEl: HTMLElement,
+  ) => void; /**
    * Event will be fired on key press
    */
-  onKeyPress?: (swiper: SwiperClass, keyCode: string) => void;/**
+  onKeyPress?: (swiper: SwiperClass, keyCode: string) => void; /**
    * Event will be fired on navigation hide
    */
   onNavigationHide?: (swiper: SwiperClass) => void;
   /**
    * Event will be fired on navigation show
    */
-  onNavigationShow?: (swiper: SwiperClass) => void;/**
+  onNavigationShow?: (swiper: SwiperClass) => void; /**
    * Event will be fired on draggable scrollbar drag start
    */
-  onScrollbarDragStart?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onScrollbarDragStart?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired on draggable scrollbar drag move
    */
-  onScrollbarDragMove?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onScrollbarDragMove?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired on draggable scrollbar drag end
    */
-  onScrollbarDragEnd?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;/**
+  onScrollbarDragEnd?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void; /**
    * Event will be fired after pagination rendered
    */
   onPaginationRender?: (swiper: SwiperClass, paginationEl: HTMLElement) => void;
@@ -91,11 +108,16 @@ interface Swiper extends SwiperOptions {
   /**
    * Event will be fired on pagination show
    */
-  onPaginationShow?: (swiper: SwiperClass) => void;/**
+  onPaginationShow?: (swiper: SwiperClass) => void; /**
    * Event will be fired on zoom change
    */
-  onZoomChange?: (swiper: SwiperClass, scale: number, imageEl: HTMLElement, slideEl: HTMLElement) => void;
-  
+  onZoomChange?: (
+    swiper: SwiperClass,
+    scale: number,
+    imageEl: HTMLElement,
+    slideEl: HTMLElement,
+  ) => void;
+
   /**
    * Fired right after Swiper initialization.
    * @note Note that with `swiper.on('init')` syntax it will
@@ -182,42 +204,66 @@ interface Swiper extends SwiperOptions {
   /**
    * Event will be fired when user touch Swiper. Receives `touchstart` event as an arguments.
    */
-  onTouchStart?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onTouchStart?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user touch and move finger over Swiper. Receives `touchmove` event as an arguments.
    */
-  onTouchMove?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onTouchMove?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user touch and move finger over Swiper in direction opposite to direction parameter. Receives `touchmove` event as an arguments.
    */
-  onTouchMoveOpposite?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onTouchMoveOpposite?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user touch and move finger over Swiper and move it. Receives `touchmove` event as an arguments.
    */
-  onSliderMove?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onSliderMove?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user release Swiper. Receives `touchend` event as an arguments.
    */
-  onTouchEnd?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onTouchEnd?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user click/tap on Swiper. Receives `touchend` event as an arguments.
    */
-  onClick?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onClick?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user click/tap on Swiper. Receives `touchend` event as an arguments.
    */
-  onTap?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onTap?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired when user double tap on Swiper's container. Receives `touchend` event as an arguments
    */
-  onDoubleTap?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onDoubleTap?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
 
   /**
    * Event will be fired right after all inner images are loaded. updateOnImagesReady should be also enabled
@@ -287,7 +333,10 @@ interface Swiper extends SwiperOptions {
   /**
    * !INTERNAL: Event will fired right before breakpoint change
    */
-  _beforeBreakpoint?: (swiper: SwiperClass, breakpointParams: SwiperOptions) => void;
+  _beforeBreakpoint?: (
+    swiper: SwiperClass,
+    breakpointParams: SwiperOptions,
+  ) => void;
 
   /**
    * !INTERNAL: Event will fired after setting CSS classes on swiper container element
@@ -297,7 +346,11 @@ interface Swiper extends SwiperOptions {
   /**
    * !INTERNAL: Event will fired after setting CSS classes on swiper slide element
    */
-  _slideClass?: (swiper: SwiperClass, slideEl: HTMLElement, classNames: string) => void;
+  _slideClass?: (
+    swiper: SwiperClass,
+    slideEl: HTMLElement,
+    classNames: string,
+  ) => void;
 
   /**
    * !INTERNAL: Event will fired after setting CSS classes on all swiper slides
@@ -348,7 +401,11 @@ interface Swiper extends SwiperOptions {
   /**
    * Event will fired before transition start
    */
-  onBeforeTransitionStart?: (swiper: SwiperClass, speed: number, internal: any) => void; // what is internal?
+  onBeforeTransitionStart?: (
+    swiper: SwiperClass,
+    speed: number,
+    internal: any,
+  ) => void; // what is internal?
   /**
    * Event will fired on direction change
    */
@@ -356,7 +413,10 @@ interface Swiper extends SwiperOptions {
   /**
    * Event will be fired when user double click/tap on Swiper
    */
-  onDoubleClick?: (swiper: SwiperClass, event: MouseEvent | TouchEvent | PointerEvent) => void;
+  onDoubleClick?: (
+    swiper: SwiperClass,
+    event: MouseEvent | TouchEvent | PointerEvent,
+  ) => void;
   /**
    * Event will be fired on swiper destroy
    */
@@ -405,7 +465,6 @@ interface Swiper extends SwiperOptions {
    * Event will be fired when swiper is unlocked (when `watchOverflow` enabled)
    */
   onUnlock?: (swiper: SwiperClass) => void;
-  
 }
 
 interface SlideData {
@@ -446,19 +505,18 @@ interface SwiperSlide {
   children?: React.ReactNode | ((slideData: SlideData) => React.ReactNode);
 }
 
-interface Swiper
-  extends Omit<
-    React.HTMLAttributes<HTMLElement>,
-    | 'onProgress'
-    | 'onClick'
-    | 'onTouchEnd'
-    | 'onTouchMove'
-    | 'onTouchStart'
-    | 'onTransitionEnd'
-    | 'onKeyPress'
-    | 'onDoubleClick'
-    | 'onScroll'
-  > {}
+interface Swiper extends Omit<
+  React.HTMLAttributes<HTMLElement>,
+  | "onProgress"
+  | "onClick"
+  | "onTouchEnd"
+  | "onTouchMove"
+  | "onTouchStart"
+  | "onTransitionEnd"
+  | "onKeyPress"
+  | "onDoubleClick"
+  | "onScroll"
+> {}
 interface SwiperSlide extends React.HTMLAttributes<HTMLElement> {}
 
 declare const Swiper: React.FunctionComponent<Swiper>;

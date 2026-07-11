@@ -1,29 +1,29 @@
-import { A11yOptions } from './modules/a11y';
-import { AutoplayOptions } from './modules/autoplay';
-import { ControllerOptions } from './modules/controller';
-import { CoverflowEffectOptions } from './modules/effect-coverflow';
-import { CubeEffectOptions } from './modules/effect-cube';
-import { FadeEffectOptions } from './modules/effect-fade';
-import { FlipEffectOptions } from './modules/effect-flip';
-import { CreativeEffectOptions } from './modules/effect-creative';
-import { CardsEffectOptions } from './modules/effect-cards';
-import { HashNavigationOptions } from './modules/hash-navigation';
-import { HistoryOptions } from './modules/history';
-import { KeyboardOptions } from './modules/keyboard';
-import { LazyOptions } from './modules/lazy';
-import { MousewheelOptions } from './modules/mousewheel';
-import { NavigationOptions } from './modules/navigation';
-import { PaginationOptions } from './modules/pagination';
-import { ParallaxOptions } from './modules/parallax';
-import { ScrollbarOptions } from './modules/scrollbar';
-import { ThumbsOptions } from './modules/thumbs';
-import { VirtualOptions } from './modules/virtual';
-import { ZoomOptions } from './modules/zoom';
-import { FreeModeOptions } from './modules/free-mode';
-import { GridOptions } from './modules/grid';
+import { A11yOptions } from "./modules/a11y";
+import { AutoplayOptions } from "./modules/autoplay";
+import { ControllerOptions } from "./modules/controller";
+import { CoverflowEffectOptions } from "./modules/effect-coverflow";
+import { CubeEffectOptions } from "./modules/effect-cube";
+import { FadeEffectOptions } from "./modules/effect-fade";
+import { FlipEffectOptions } from "./modules/effect-flip";
+import { CreativeEffectOptions } from "./modules/effect-creative";
+import { CardsEffectOptions } from "./modules/effect-cards";
+import { HashNavigationOptions } from "./modules/hash-navigation";
+import { HistoryOptions } from "./modules/history";
+import { KeyboardOptions } from "./modules/keyboard";
+import { LazyOptions } from "./modules/lazy";
+import { MousewheelOptions } from "./modules/mousewheel";
+import { NavigationOptions } from "./modules/navigation";
+import { PaginationOptions } from "./modules/pagination";
+import { ParallaxOptions } from "./modules/parallax";
+import { ScrollbarOptions } from "./modules/scrollbar";
+import { ThumbsOptions } from "./modules/thumbs";
+import { VirtualOptions } from "./modules/virtual";
+import { ZoomOptions } from "./modules/zoom";
+import { FreeModeOptions } from "./modules/free-mode";
+import { GridOptions } from "./modules/grid";
 
-import { CSSSelector, SwiperModule } from './shared';
-import { SwiperEvents } from './swiper-events';
+import { CSSSelector, SwiperModule } from "./shared";
+import { SwiperEvents } from "./swiper-events";
 
 export interface SwiperOptions {
   /**
@@ -80,7 +80,7 @@ export interface SwiperOptions {
    *
    * @default 'horizontal'
    */
-  direction?: 'horizontal' | 'vertical';
+  direction?: "horizontal" | "vertical";
 
   /**
    * Duration of transition between slides (in ms)
@@ -178,7 +178,8 @@ export interface SwiperOptions {
    *
    * @default 'slide'
    */
-  effect?: 'slide' | 'fade' | 'cube' | 'coverflow' | 'flip' | 'creative' | 'cards';
+  effect?:
+    "slide" | "fade" | "cube" | "coverflow" | "flip" | "creative" | "cards";
 
   /**
    * Fire Transition/SlideChange/Start/End events on swiper initialization.
@@ -270,7 +271,7 @@ export interface SwiperOptions {
    *
    * @default 1
    */
-  slidesPerView?: number | 'auto';
+  slidesPerView?: number | "auto";
 
   /**
    * Set numbers of slides to define and enable group sliding. Useful to use with slidesPerView > 1
@@ -351,7 +352,7 @@ export interface SwiperOptions {
    *
    * @default 'wrapper'
    */
-  touchEventsTarget?: 'container' | 'wrapper';
+  touchEventsTarget?: "container" | "wrapper";
 
   /**
    * Touch ratio

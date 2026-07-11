@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
+#include "libslic3r/SLA/Hollowing.hpp"   // sla::DrainHoles (HollowedMesh)
 
 namespace Slic3r {
 
@@ -72,9 +73,10 @@ enum class CommonGizmosDataID {
     None                 = 0,
     SelectionInfo        = 1 << 0,
     InstancesHider       = 1 << 1,
+    HollowedMesh         = 1 << 2,
     Raycaster            = 1 << 3,
     ObjectClipper        = 1 << 4,
-
+    SupportsClipper      = 1 << 5,
 };
 
 
@@ -92,11 +94,11 @@ public:
     // Getters for the data that need to be accessed from the gizmos directly.
     CommonGizmosDataObjects::SelectionInfo* selection_info() const;
     CommonGizmosDataObjects::InstancesHider* instances_hider() const;
-//    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
+    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
     CommonGizmosDataObjects::Raycaster *  raycaster_ptr();
     CommonGizmosDataObjects::Raycaster* raycaster() const;
     CommonGizmosDataObjects::ObjectClipper* object_clipper() const;
-    // CommonGizmosDataObjects::SupportsClipper* supports_clipper() const;
+    CommonGizmosDataObjects::SupportsClipper* supports_clipper() const;
 
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
@@ -190,6 +192,9 @@ public:
 
     void render_cut() const;
 
+    void show_supports(bool show);
+    bool are_supports_shown() const { return m_show_supports; }
+
 protected:
     void on_update() override;
     void on_release() override;
@@ -197,6 +202,36 @@ protected:
 private:
     std::vector<const TriangleMesh*> m_old_meshes;
     std::vector<std::unique_ptr<MeshClipper>> m_clippers;
+    bool m_show_supports = false;
+};
+
+
+
+class HollowedMesh : public CommonGizmosDataBase
+{
+public:
+    explicit HollowedMesh(CommonGizmosDataPool* cgdp)
+        : CommonGizmosDataBase(cgdp) {}
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
+#endif // NDEBUG
+
+    const sla::DrainHoles &get_drainholes() const { return m_drainholes; }
+
+    const TriangleMesh* get_hollowed_mesh() const;
+    const TriangleMesh* get_hollowed_interior() const;
+
+protected:
+    void on_update() override;
+    void on_release() override;
+
+private:
+    std::unique_ptr<TriangleMesh> m_hollowed_mesh_transformed;
+    std::unique_ptr<TriangleMesh> m_hollowed_interior_transformed;
+    size_t m_old_hollowing_timestamp = 0;
+    int m_print_object_idx = -1;
+    int m_print_objects_count = 0;
+    sla::DrainHoles m_drainholes;
 };
 
 
@@ -260,6 +295,35 @@ private:
     double m_clp_ratio = 0.;
     double m_active_inst_bb_radius = 0.;
     bool m_hide_clipped = true;
+};
+
+
+
+class SupportsClipper : public CommonGizmosDataBase
+{
+public:
+    explicit SupportsClipper(CommonGizmosDataPool* cgdp)
+        : CommonGizmosDataBase(cgdp) {}
+#ifndef NDEBUG
+    CommonGizmosDataID get_dependencies() const override {
+        return CommonGizmosDataID(
+                    int(CommonGizmosDataID::SelectionInfo)
+                  | int(CommonGizmosDataID::ObjectClipper)
+               );
+    }
+#endif // NDEBUG
+
+    void render_cut() const;
+
+protected:
+    void on_update() override;
+    void on_release() override;
+
+private:
+    size_t m_old_timestamp = 0;
+    int m_print_object_idx = -1;
+    int m_print_objects_count = 0;
+    std::unique_ptr<MeshClipper> m_clipper;
 };
 
 } // namespace CommonGizmosDataObjects

@@ -1,6 +1,6 @@
-import { Dom7Array } from 'dom7';
-import { CSSSelector } from '../shared';
-import Swiper from '../swiper-class';
+import { Dom7Array } from "dom7";
+import { CSSSelector } from "../shared";
+import Swiper from "../swiper-class";
 
 export interface PaginationMethods {
   /**
@@ -71,7 +71,7 @@ export interface PaginationOptions {
    *
    * @default 'bullets'
    */
-  type?: 'bullets' | 'fraction' | 'progressbar' | 'custom';
+  type?: "bullets" | "fraction" | "progressbar" | "custom";
 
   /**
    * Defines which HTML tag will be used to represent single pagination bullet. Only for `'bullets'` pagination type.

@@ -39,7 +39,6 @@ finish-args:
   - --env=SPNAV_SOCKET=/run/spnav.sock
 
 modules:
-
   # JPEG codec and GTK video sink (Wayland liveview) for the liveview
   - name: gst-plugins-good
     buildsystem: meson
@@ -343,7 +342,6 @@ modules:
       - /include
 
     post-install:
-
       - | # Desktop integration files
         install -Dm644 -t /app/share/icons/hicolor/scalable/apps/ resources/images/OrcaSlicer.svg
         install -Dm644 ${FLATPAK_ID}.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml

@@ -45,7 +45,10 @@ export interface ManipulationMethods {
    * ]);
    * ```
    */
-  addSlide(index: number, slides: HTMLElement | string | string[] | HTMLElement[]): void;
+  addSlide(
+    index: number,
+    slides: HTMLElement | string | string[] | HTMLElement[],
+  ): void;
 
   /**
    * Remove selected slides. slideIndex could be a number with slide index to remove or array with indexes.

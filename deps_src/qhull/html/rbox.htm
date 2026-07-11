@@ -1,43 +1,51 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML//EN">
 <html>
+  <head>
+    <title>rbox -- generate point distributions</title>
+  </head>
 
-<head>
-<title>rbox -- generate point distributions</title>
-</head>
+  <body>
+    <!-- Navigation links -->
+    <p>
+      <b><a name="TOP">Up:</a></b>
+      <a href="http://www.qhull.org">Home page</a> for Qhull<br />
+      <b>Up:</b> <a href="index.htm#TOC">Qhull manual</a>: Table of Contents<br />
+      <b>To:</b> <a href="qh-quick.htm#programs">Programs</a> &#149;
+      <a href="qh-quick.htm#options">Options</a> &#149;
+      <a href="qh-opto.htm#output">Output</a> &#149;
+      <a href="qh-optf.htm#format">Formats</a> &#149;
+      <a href="qh-optg.htm#geomview">Geomview</a> &#149;
+      <a href="qh-optp.htm#print">Print</a> &#149;
+      <a href="qh-optq.htm#qhull">Qhull</a> &#149;
+      <a href="qh-optc.htm#prec">Precision</a> &#149;
+      <a href="qh-optt.htm#trace">Trace</a> &#149;
+      <a href="../src/libqhull_r/index.htm">Functions</a><br />
+      <b>To:</b> <a href="#synopsis">sy</a>nopsis &#149;
+      <a href="#outputs">ou</a>tputs &#149; <a href="#examples">ex</a>amples
+      &#149; <a href="#notes">no</a>tes &#149; <a href="#options">op</a>tions
+    </p>
 
-<body>
-<!-- Navigation links -->
-<p><b><a name="TOP">Up:</a></b> <a href="http://www.qhull.org">Home page</a> for Qhull<br>
-<b>Up:</b> <a href="index.htm#TOC">Qhull manual</a>: Table of Contents<br>
-<b>To:</b> <a href="qh-quick.htm#programs">Programs</a>
-&#149; <a href="qh-quick.htm#options">Options</a>
-&#149; <a href="qh-opto.htm#output">Output</a>
-&#149; <a href="qh-optf.htm#format">Formats</a>
-&#149; <a href="qh-optg.htm#geomview">Geomview</a>
-&#149; <a href="qh-optp.htm#print">Print</a>
-&#149; <a href="qh-optq.htm#qhull">Qhull</a>
-&#149; <a href="qh-optc.htm#prec">Precision</a>
-&#149; <a href="qh-optt.htm#trace">Trace</a>
-&#149; <a href="../src/libqhull_r/index.htm">Functions</a><br>
-<b>To:</b> <a href="#synopsis">sy</a>nopsis &#149; <a href="#outputs">ou</a>tputs
-&#149; <a href="#examples">ex</a>amples &#149; <a href="#notes">no</a>tes
-&#149; <a href="#options">op</a>tions
-<hr>
-<!-- Main text of document -->
-<h1><a
-href="http://www.geom.uiuc.edu/graphics/pix/Special_Topics/Computational_Geometry/cone.html"><img
-src="qh--cone.gif" alt="[CONE]" align="middle" width="100"
-height="100"></a>rbox -- generate point distributions</h1>
+    <hr />
+    <!-- Main text of document -->
+    <h1>
+      <a
+        href="http://www.geom.uiuc.edu/graphics/pix/Special_Topics/Computational_Geometry/cone.html"
+        ><img
+          src="qh--cone.gif"
+          alt="[CONE]"
+          align="middle"
+          width="100"
+          height="100" /></a
+      >rbox -- generate point distributions
+    </h1>
 
-<blockquote>
-       rbox  generates  random or regular points according to the
-       options given, and  outputs  the  points  to  stdout.  The
-       points  are  generated in a cube, unless 's', 'x', or 'y'
-           are given.
-
-</blockquote>
-<h3><a href="#TOP">&#187;</a><a name="synopsis">rbox synopsis</a></h3>
-<pre>
+    <blockquote>
+      rbox generates random or regular points according to the options given,
+      and outputs the points to stdout. The points are generated in a cube,
+      unless 's', 'x', or 'y' are given.
+    </blockquote>
+    <h3><a href="#TOP">&#187;</a><a name="synopsis">rbox synopsis</a></h3>
+    <pre>
 rbox- generate various point distributions.  Default is random in cube.
 
 args (any order, space separated):
@@ -69,17 +77,16 @@ args (any order, space separated):
   z       print integer coordinates, default 'Bn' is 1e+06
 </pre>
 
-<h3><a href="#TOP">&#187;</a><a name="outputs">rbox outputs</a></h3>
-<blockquote>
+    <h3><a href="#TOP">&#187;</a><a name="outputs">rbox outputs</a></h3>
+    <blockquote>
+      The format of the output is the following: first line contains the
+      dimension and a comment, second line contains the number of points, and
+      the following lines contain the points, one point per line. Points are
+      represented by their coordinate values.
 
-The format of the output is the following: first line contains
-       the dimension and a comment, second line contains the
-           number of points, and the following lines contain the points,
-       one  point per line. Points are represented by their coordinate values.
-
-<p>For example, <tt>rbox c 10 D2</tt> generates
-<blockquote>
-<pre>
+      <p>For example, <tt>rbox c 10 D2</tt> generates</p>
+      <blockquote>
+        <pre>
 2 RBOX c 10 D2
 14
 -0.4999921736307369 -0.3684622117955817
@@ -97,13 +104,11 @@ The format of the output is the following: first line contains
    0.5   -0.5
    0.5    0.5
 </pre>
+      </blockquote>
+    </blockquote>
+    <h3><a href="#TOP">&#187;</a><a name="examples">rbox examples</a></h3>
 
-</blockquote>
-
-</blockquote>
-<h3><a href="#TOP">&#187;</a><a name="examples">rbox examples</a></h3>
-
-<pre>
+    <pre>
        rbox 10
               10 random points in the unit cube centered  at  the
               origin.
@@ -165,14 +170,13 @@ The format of the output is the following: first line contains
               a narrow cone of points with many precision errors.
 </pre>
 
-<h3><a href="#TOP">&#187;</a><a name="notes">rbox notes</a></h3>
-<blockquote>
-Some combinations of arguments generate odd results.
+    <h3><a href="#TOP">&#187;</a><a name="notes">rbox notes</a></h3>
+    <blockquote>
+      Some combinations of arguments generate odd results.
+    </blockquote>
+    <h3><a href="#TOP">&#187;</a><a name="options">rbox options</a></h3>
 
-</blockquote>
-<h3><a href="#TOP">&#187;</a><a name="options">rbox options</a></h3>
-
-<pre>
+    <pre>
        n      number of points
 
        Dn     dimension n-d (default 3-d)
@@ -245,33 +249,43 @@ Some combinations of arguments generate odd results.
               generate a regular cone
 </pre>
 
-<!-- Navigation links -->
-<hr>
+    <!-- Navigation links -->
+    <hr />
 
-<p><b>Up:</b> <a href="http://www.qhull.org">Home page</a> for Qhull<br>
-<b>Up:</b> <a href="index.htm#TOC">Qhull manual</a>: Table of Contents<br>
-<b>To:</b> <a href="qh-quick.htm#programs">Programs</a>
-&#149; <a href="qh-quick.htm#options">Options</a>
-&#149; <a href="qh-opto.htm#output">Output</a>
-&#149; <a href="qh-optf.htm#format">Formats</a>
-&#149; <a href="qh-optg.htm#geomview">Geomview</a>
-&#149; <a href="qh-optp.htm#print">Print</a>
-&#149; <a href="qh-optq.htm#qhull">Qhull</a>
-&#149; <a href="qh-optc.htm#prec">Precision</a>
-&#149; <a href="qh-optt.htm#trace">Trace</a>
-&#149; <a href="../src/libqhull_r/index.htm">Functions</a><br>
-<b>To:</b> <a href="#synopsis">sy</a>nopsis &#149; <a href="#outputs">ou</a>tputs
-&#149; <a href="#examples">ex</a>amples &#149; <a href="#notes">no</a>tes
-&#149; <a href="#options">op</a>tions
-<!-- GC common information -->
-<hr>
+    <p>
+      <b>Up:</b> <a href="http://www.qhull.org">Home page</a> for Qhull<br />
+      <b>Up:</b> <a href="index.htm#TOC">Qhull manual</a>: Table of Contents<br />
+      <b>To:</b> <a href="qh-quick.htm#programs">Programs</a> &#149;
+      <a href="qh-quick.htm#options">Options</a> &#149;
+      <a href="qh-opto.htm#output">Output</a> &#149;
+      <a href="qh-optf.htm#format">Formats</a> &#149;
+      <a href="qh-optg.htm#geomview">Geomview</a> &#149;
+      <a href="qh-optp.htm#print">Print</a> &#149;
+      <a href="qh-optq.htm#qhull">Qhull</a> &#149;
+      <a href="qh-optc.htm#prec">Precision</a> &#149;
+      <a href="qh-optt.htm#trace">Trace</a> &#149;
+      <a href="../src/libqhull_r/index.htm">Functions</a><br />
+      <b>To:</b> <a href="#synopsis">sy</a>nopsis &#149;
+      <a href="#outputs">ou</a>tputs &#149; <a href="#examples">ex</a>amples
+      &#149; <a href="#notes">no</a>tes &#149; <a href="#options">op</a>tions
+      <!-- GC common information -->
+    </p>
 
-<p><a href="http://www.geom.uiuc.edu/"><img src="qh--geom.gif"
-align="middle" width="40" height="40"></a><i>The Geometry Center
-Home Page </i></p>
+    <hr />
 
-<p>Comments to: <a href=mailto:qhull@qhull.org>qhull@qhull.org</a>
-<br>
-Created: Sept. 25, 1995 --- <!-- hhmts start --> Last modified: August 12, 1998 <!-- hhmts end --> </p>
-</body>
+    <p>
+      <a href="http://www.geom.uiuc.edu/"
+        ><img src="qh--geom.gif" align="middle" width="40" height="40" /></a
+      ><i>The Geometry Center Home Page </i>
+    </p>
+
+    <p>
+      Comments to: <a href="mailto:qhull@qhull.org">qhull@qhull.org</a>
+      <br />
+      Created: Sept. 25, 1995 ---
+      <!-- hhmts start -->
+      Last modified: August 12, 1998
+      <!-- hhmts end -->
+    </p>
+  </body>
 </html>

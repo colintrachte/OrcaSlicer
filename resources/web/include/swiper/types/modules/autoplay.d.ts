@@ -1,4 +1,4 @@
-import Swiper from '../swiper-class';
+import Swiper from "../swiper-class";
 
 export interface AutoplayMethods {
   /**

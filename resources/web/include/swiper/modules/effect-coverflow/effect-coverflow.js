@@ -1,11 +1,7 @@
-import createShadow from '../../shared/create-shadow.js';
-import effectInit from '../../shared/effect-init.js';
-import effectTarget from '../../shared/effect-target.js';
-export default function EffectCoverflow({
-  swiper,
-  extendParams,
-  on
-}) {
+import createShadow from "../../shared/create-shadow.js";
+import effectInit from "../../shared/effect-init.js";
+import effectTarget from "../../shared/effect-target.js";
+export default function EffectCoverflow({ swiper, extendParams, on }) {
   extendParams({
     coverflowEffect: {
       rotate: 50,
@@ -14,8 +10,8 @@ export default function EffectCoverflow({
       scale: 1,
       modifier: 1,
       slideShadows: true,
-      transformEl: null
-    }
+      transformEl: null,
+    },
   });
 
   const setTranslate = () => {
@@ -23,12 +19,14 @@ export default function EffectCoverflow({
       width: swiperWidth,
       height: swiperHeight,
       slides,
-      slidesSizesGrid
+      slidesSizesGrid,
     } = swiper;
     const params = swiper.params.coverflowEffect;
     const isHorizontal = swiper.isHorizontal();
     const transform = swiper.translate;
-    const center = isHorizontal ? -transform + swiperWidth / 2 : -transform + swiperHeight / 2;
+    const center = isHorizontal
+      ? -transform + swiperWidth / 2
+      : -transform + swiperHeight / 2;
     const rotate = isHorizontal ? params.rotate : -params.rotate;
     const translate = params.depth; // Each slide offset from center
 
@@ -36,15 +34,16 @@ export default function EffectCoverflow({
       const $slideEl = slides.eq(i);
       const slideSize = slidesSizesGrid[i];
       const slideOffset = $slideEl[0].swiperSlideOffset;
-      const offsetMultiplier = (center - slideOffset - slideSize / 2) / slideSize * params.modifier;
+      const offsetMultiplier =
+        ((center - slideOffset - slideSize / 2) / slideSize) * params.modifier;
       let rotateY = isHorizontal ? rotate * offsetMultiplier : 0;
       let rotateX = isHorizontal ? 0 : rotate * offsetMultiplier; // var rotateZ = 0
 
       let translateZ = -translate * Math.abs(offsetMultiplier);
       let stretch = params.stretch; // Allow percentage to make a relative stretch for responsive sliders
 
-      if (typeof stretch === 'string' && stretch.indexOf('%') !== -1) {
-        stretch = parseFloat(params.stretch) / 100 * slideSize;
+      if (typeof stretch === "string" && stretch.indexOf("%") !== -1) {
+        stretch = (parseFloat(params.stretch) / 100) * slideSize;
       }
 
       let translateY = isHorizontal ? 0 : stretch * offsetMultiplier;
@@ -64,40 +63,61 @@ export default function EffectCoverflow({
 
       if (params.slideShadows) {
         // Set shadows
-        let $shadowBeforeEl = isHorizontal ? $slideEl.find('.swiper-slide-shadow-left') : $slideEl.find('.swiper-slide-shadow-top');
-        let $shadowAfterEl = isHorizontal ? $slideEl.find('.swiper-slide-shadow-right') : $slideEl.find('.swiper-slide-shadow-bottom');
+        let $shadowBeforeEl = isHorizontal
+          ? $slideEl.find(".swiper-slide-shadow-left")
+          : $slideEl.find(".swiper-slide-shadow-top");
+        let $shadowAfterEl = isHorizontal
+          ? $slideEl.find(".swiper-slide-shadow-right")
+          : $slideEl.find(".swiper-slide-shadow-bottom");
 
         if ($shadowBeforeEl.length === 0) {
-          $shadowBeforeEl = createShadow(params, $slideEl, isHorizontal ? 'left' : 'top');
+          $shadowBeforeEl = createShadow(
+            params,
+            $slideEl,
+            isHorizontal ? "left" : "top",
+          );
         }
 
         if ($shadowAfterEl.length === 0) {
-          $shadowAfterEl = createShadow(params, $slideEl, isHorizontal ? 'right' : 'bottom');
+          $shadowAfterEl = createShadow(
+            params,
+            $slideEl,
+            isHorizontal ? "right" : "bottom",
+          );
         }
 
-        if ($shadowBeforeEl.length) $shadowBeforeEl[0].style.opacity = offsetMultiplier > 0 ? offsetMultiplier : 0;
-        if ($shadowAfterEl.length) $shadowAfterEl[0].style.opacity = -offsetMultiplier > 0 ? -offsetMultiplier : 0;
+        if ($shadowBeforeEl.length)
+          $shadowBeforeEl[0].style.opacity =
+            offsetMultiplier > 0 ? offsetMultiplier : 0;
+        if ($shadowAfterEl.length)
+          $shadowAfterEl[0].style.opacity =
+            -offsetMultiplier > 0 ? -offsetMultiplier : 0;
       }
     }
   };
 
-  const setTransition = duration => {
-    const {
-      transformEl
-    } = swiper.params.coverflowEffect;
-    const $transitionElements = transformEl ? swiper.slides.find(transformEl) : swiper.slides;
-    $transitionElements.transition(duration).find('.swiper-slide-shadow-top, .swiper-slide-shadow-right, .swiper-slide-shadow-bottom, .swiper-slide-shadow-left').transition(duration);
+  const setTransition = (duration) => {
+    const { transformEl } = swiper.params.coverflowEffect;
+    const $transitionElements = transformEl
+      ? swiper.slides.find(transformEl)
+      : swiper.slides;
+    $transitionElements
+      .transition(duration)
+      .find(
+        ".swiper-slide-shadow-top, .swiper-slide-shadow-right, .swiper-slide-shadow-bottom, .swiper-slide-shadow-left",
+      )
+      .transition(duration);
   };
 
   effectInit({
-    effect: 'coverflow',
+    effect: "coverflow",
     swiper,
     on,
     setTranslate,
     setTransition,
     perspective: () => true,
     overwriteParams: () => ({
-      watchSlidesProgress: true
-    })
+      watchSlidesProgress: true,
+    }),
   });
 }

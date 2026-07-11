@@ -1,10 +1,6 @@
 export default function onScroll() {
   const swiper = this;
-  const {
-    wrapperEl,
-    rtlTranslate,
-    enabled
-  } = swiper;
+  const { wrapperEl, rtlTranslate, enabled } = swiper;
   if (!enabled) return;
   swiper.previousTranslate = swiper.translate;
 
@@ -13,7 +9,6 @@ export default function onScroll() {
   } else {
     swiper.translate = -wrapperEl.scrollTop;
   } // eslint-disable-next-line
-
 
   if (swiper.translate === -0) swiper.translate = 0;
   swiper.updateActiveIndex();
@@ -31,5 +26,5 @@ export default function onScroll() {
     swiper.updateProgress(rtlTranslate ? -swiper.translate : swiper.translate);
   }
 
-  swiper.emit('setTranslate', swiper.translate, false);
+  swiper.emit("setTranslate", swiper.translate, false);
 }

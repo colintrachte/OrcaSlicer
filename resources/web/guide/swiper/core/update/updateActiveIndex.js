@@ -7,17 +7,24 @@ export default function updateActiveIndex(newActiveIndex) {
     params,
     activeIndex: previousIndex,
     realIndex: previousRealIndex,
-    snapIndex: previousSnapIndex
+    snapIndex: previousSnapIndex,
   } = swiper;
   let activeIndex = newActiveIndex;
   let snapIndex;
 
-  if (typeof activeIndex === 'undefined') {
+  if (typeof activeIndex === "undefined") {
     for (let i = 0; i < slidesGrid.length; i += 1) {
-      if (typeof slidesGrid[i + 1] !== 'undefined') {
-        if (translate >= slidesGrid[i] && translate < slidesGrid[i + 1] - (slidesGrid[i + 1] - slidesGrid[i]) / 2) {
+      if (typeof slidesGrid[i + 1] !== "undefined") {
+        if (
+          translate >= slidesGrid[i] &&
+          translate <
+            slidesGrid[i + 1] - (slidesGrid[i + 1] - slidesGrid[i]) / 2
+        ) {
           activeIndex = i;
-        } else if (translate >= slidesGrid[i] && translate < slidesGrid[i + 1]) {
+        } else if (
+          translate >= slidesGrid[i] &&
+          translate < slidesGrid[i + 1]
+        ) {
           activeIndex = i + 1;
         }
       } else if (translate >= slidesGrid[i]) {
@@ -25,9 +32,9 @@ export default function updateActiveIndex(newActiveIndex) {
       }
     } // Normalize slideIndex
 
-
     if (params.normalizeSlideIndex) {
-      if (activeIndex < 0 || typeof activeIndex === 'undefined') activeIndex = 0;
+      if (activeIndex < 0 || typeof activeIndex === "undefined")
+        activeIndex = 0;
     }
   }
 
@@ -43,28 +50,31 @@ export default function updateActiveIndex(newActiveIndex) {
   if (activeIndex === previousIndex) {
     if (snapIndex !== previousSnapIndex) {
       swiper.snapIndex = snapIndex;
-      swiper.emit('snapIndexChange');
+      swiper.emit("snapIndexChange");
     }
 
     return;
   } // Get real index
 
-
-  const realIndex = parseInt(swiper.slides.eq(activeIndex).attr('data-swiper-slide-index') || activeIndex, 10);
+  const realIndex = parseInt(
+    swiper.slides.eq(activeIndex).attr("data-swiper-slide-index") ||
+      activeIndex,
+    10,
+  );
   Object.assign(swiper, {
     snapIndex,
     realIndex,
     previousIndex,
-    activeIndex
+    activeIndex,
   });
-  swiper.emit('activeIndexChange');
-  swiper.emit('snapIndexChange');
+  swiper.emit("activeIndexChange");
+  swiper.emit("snapIndexChange");
 
   if (previousRealIndex !== realIndex) {
-    swiper.emit('realIndexChange');
+    swiper.emit("realIndexChange");
   }
 
   if (swiper.initialized || swiper.params.runCallbacksOnInit) {
-    swiper.emit('slideChange');
+    swiper.emit("slideChange");
   }
 }

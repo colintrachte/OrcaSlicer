@@ -2,13 +2,9 @@ export default function effectVirtualTransitionEnd({
   swiper,
   duration,
   transformEl,
-  allSlides
+  allSlides,
 }) {
-  const {
-    slides,
-    activeIndex,
-    $wrapperEl
-  } = swiper;
+  const { slides, activeIndex, $wrapperEl } = swiper;
 
   if (swiper.params.virtualTranslate && duration !== 0) {
     let eventTriggered = false;
@@ -17,7 +13,9 @@ export default function effectVirtualTransitionEnd({
     if (allSlides) {
       $transitionEndTarget = transformEl ? slides.find(transformEl) : slides;
     } else {
-      $transitionEndTarget = transformEl ? slides.eq(activeIndex).find(transformEl) : slides.eq(activeIndex);
+      $transitionEndTarget = transformEl
+        ? slides.eq(activeIndex).find(transformEl)
+        : slides.eq(activeIndex);
     }
 
     $transitionEndTarget.transitionEnd(() => {
@@ -25,7 +23,7 @@ export default function effectVirtualTransitionEnd({
       if (!swiper || swiper.destroyed) return;
       eventTriggered = true;
       swiper.animating = false;
-      const triggerEvents = ['webkitTransitionEnd', 'transitionend'];
+      const triggerEvents = ["webkitTransitionEnd", "transitionend"];
 
       for (let i = 0; i < triggerEvents.length; i += 1) {
         $wrapperEl.trigger(triggerEvents[i]);

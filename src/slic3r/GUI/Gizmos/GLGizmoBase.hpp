@@ -259,6 +259,7 @@ protected:
     virtual void on_register_raycasters_for_picking() {}
     virtual void on_unregister_raycasters_for_picking() {}
 
+    ColorRGBA picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
     void render_grabbers(size_t first, size_t last, float size, bool force_hover) const;

@@ -1,25 +1,27 @@
-import { getWindow } from 'ssr-window';
-export default function History({
-  swiper,
-  extendParams,
-  on
-}) {
+import { getWindow } from "ssr-window";
+export default function History({ swiper, extendParams, on }) {
   extendParams({
     history: {
       enabled: false,
-      root: '',
+      root: "",
       replaceState: false,
-      key: 'slides'
-    }
+      key: "slides",
+    },
   });
   let initialized = false;
   let paths = {};
 
-  const slugify = text => {
-    return text.toString().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
+  const slugify = (text) => {
+    return text
+      .toString()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
   };
 
-  const getPathValues = urlOverride => {
+  const getPathValues = (urlOverride) => {
     const window = getWindow();
     let location;
 
@@ -29,13 +31,16 @@ export default function History({
       location = window.location;
     }
 
-    const pathArray = location.pathname.slice(1).split('/').filter(part => part !== '');
+    const pathArray = location.pathname
+      .slice(1)
+      .split("/")
+      .filter((part) => part !== "");
     const total = pathArray.length;
     const key = pathArray[total - 2];
     const value = pathArray[total - 1];
     return {
       key,
-      value
+      value,
     };
   };
 
@@ -51,11 +56,11 @@ export default function History({
     }
 
     const slide = swiper.slides.eq(index);
-    let value = slugify(slide.attr('data-history'));
+    let value = slugify(slide.attr("data-history"));
 
     if (swiper.params.history.root.length > 0) {
       let root = swiper.params.history.root;
-      if (root[root.length - 1] === '/') root = root.slice(0, root.length - 1);
+      if (root[root.length - 1] === "/") root = root.slice(0, root.length - 1);
       value = `${root}/${key}/${value}`;
     } else if (!location.pathname.includes(key)) {
       value = `${key}/${value}`;
@@ -68,13 +73,21 @@ export default function History({
     }
 
     if (swiper.params.history.replaceState) {
-      window.history.replaceState({
-        value
-      }, null, value);
+      window.history.replaceState(
+        {
+          value,
+        },
+        null,
+        value,
+      );
     } else {
-      window.history.pushState({
-        value
-      }, null, value);
+      window.history.pushState(
+        {
+          value,
+        },
+        null,
+        value,
+      );
     }
   };
 
@@ -82,9 +95,12 @@ export default function History({
     if (value) {
       for (let i = 0, length = swiper.slides.length; i < length; i += 1) {
         const slide = swiper.slides.eq(i);
-        const slideHistory = slugify(slide.attr('data-history'));
+        const slideHistory = slugify(slide.attr("data-history"));
 
-        if (slideHistory === value && !slide.hasClass(swiper.params.slideDuplicateClass)) {
+        if (
+          slideHistory === value &&
+          !slide.hasClass(swiper.params.slideDuplicateClass)
+        ) {
           const index = slide.index();
           swiper.slideTo(index, speed, runCallbacks);
         }
@@ -115,7 +131,7 @@ export default function History({
     scrollToSlide(0, paths.value, swiper.params.runCallbacksOnInit);
 
     if (!swiper.params.history.replaceState) {
-      window.addEventListener('popstate', setHistoryPopState);
+      window.addEventListener("popstate", setHistoryPopState);
     }
   };
 
@@ -123,26 +139,26 @@ export default function History({
     const window = getWindow();
 
     if (!swiper.params.history.replaceState) {
-      window.removeEventListener('popstate', setHistoryPopState);
+      window.removeEventListener("popstate", setHistoryPopState);
     }
   };
 
-  on('init', () => {
+  on("init", () => {
     if (swiper.params.history.enabled) {
       init();
     }
   });
-  on('destroy', () => {
+  on("destroy", () => {
     if (swiper.params.history.enabled) {
       destroy();
     }
   });
-  on('transitionEnd _freeModeNoMomentumRelease', () => {
+  on("transitionEnd _freeModeNoMomentumRelease", () => {
     if (initialized) {
       setHistory(swiper.params.history.key, swiper.activeIndex);
     }
   });
-  on('slideChange', () => {
+  on("slideChange", () => {
     if (initialized && swiper.params.cssMode) {
       setHistory(swiper.params.history.key, swiper.activeIndex);
     }

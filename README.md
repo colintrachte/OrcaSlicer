@@ -94,19 +94,18 @@ Explore the latest developments in OrcaSlicer with our nightly builds. Feedback 
 
 ## Windows
 
-Download the **Windows Installer exe**  for your preferred version from the [releases page](https://github.com/OrcaSlicer/OrcaSlicer/releases).
+Download the **Windows Installer exe** for your preferred version from the [releases page](https://github.com/OrcaSlicer/OrcaSlicer/releases).
 
-- *For convenience there is also a portable build available.*
+- _For convenience there is also a portable build available._
     <details>
     <summary>Troubleshooting</summary>
-
-  - *If you have troubles to run the build, you might need to install following runtimes:*
+  - _If you have troubles to run the build, you might need to install following runtimes:_
   - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
     - [Details of this runtime](https://aka.ms/webview2)
     - [Alternative Download Link Hosted by Microsoft](https://go.microsoft.com/fwlink/p/?LinkId=2124703)
   - [vcredist2019_x64](https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
     - [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-    - This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
+    - This file may already be available on your computer if you've installed visual studio. Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
     </details>
 
 Windows Package Manager
@@ -119,27 +118,26 @@ winget install --id=SoftFever.OrcaSlicer -e
 
 1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.
 2. Drag OrcaSlicer.app to Application folder.
-3. *If you want to run a build from a PR, you also need to follow the instructions below:*
+3. _If you want to run a build from a PR, you also need to follow the instructions below:_
 
     <details>
     <summary>Quarantine</summary>
+   - Option 1 (You only need to do this once. After that the app can be opened normally.):
+     - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
+     - Step 2: A warning window will pop up, click _Open_
+   - Option 2:
+     Execute this command in terminal:
 
-    - Option 1 (You only need to do this once. After that the app can be opened normally.):
-      - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
-      - Step 2: A warning window will pop up, click _Open_
+   ```shell
+   xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
+   ```
 
-    - Option 2:
-      Execute this command in terminal:
+   - Option 3:
+     - Step 1: open the app, a warning window will pop up  
+       ![mac_cant_open](./SoftFever_doc/mac_cant_open.png)
+     - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:  
+       ![mac_security_setting](./SoftFever_doc/mac_security_setting.png)
 
-      ```shell
-      xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
-      ```
-
-    - Option 3:
-        - Step 1: open the app, a warning window will pop up  
-            ![mac_cant_open](./SoftFever_doc/mac_cant_open.png)
-        - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:  
-            ![mac_security_setting](./SoftFever_doc/mac_security_setting.png)
     </details>
 
 ## Linux
@@ -163,10 +161,10 @@ It can also be installed through graphical software managers (KDE Discover, GNOM
 
 AppImages are published for both **x86_64** and **aarch64** (ARM64). Pick the file matching your CPU — the ARM64 build has `aarch64` in its name (e.g. `OrcaSlicer_Linux_AppImage_Ubuntu2404_aarch64_*.AppImage`).
 
- 1. Download App image from the [releases page](https://github.com/OrcaSlicer/OrcaSlicer/releases).
- 2. Double click the downloaded file to run it.
+1.  Download App image from the [releases page](https://github.com/OrcaSlicer/OrcaSlicer/releases).
+2.  Double click the downloaded file to run it.
 
- 3. If you run into trouble executing it, try this command in the terminal:
+3.  If you run into trouble executing it, try this command in the terminal:
     `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
 
 # How to Compile
