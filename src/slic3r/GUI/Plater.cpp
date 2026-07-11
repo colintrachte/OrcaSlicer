@@ -547,6 +547,7 @@ struct Sidebar::priv
     Button*           m_filament_export = nullptr;
     int m_menu_filament_id = -1;
     wxScrolledWindow* m_panel_filament_content;
+    wxPanel* m_panel_sla = nullptr; // Orca SLA: resin material/process section (shown in SLA mode)
     wxScrolledWindow* m_scrolledWindow_filament_content;
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
@@ -2260,6 +2261,24 @@ Sidebar::Sidebar(Plater *parent)
     update_filaments_area_height(); // ORCA
 
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMarginV())); // ORCA use vertical margin on parent otherwise it shows scrollbar even on 1 filament
+
+    // Orca SLA: minimal resin Process + Material selectors. Hidden in FDM mode;
+    // update_all_preset_comboboxes() swaps this in for the filament section when ptSLA.
+    p->m_panel_sla = new wxPanel(p->scrolled, wxID_ANY);
+    p->m_panel_sla->SetBackgroundColour(wxColour(255, 255, 255));
+    {
+        auto *sla_sizer = new wxBoxSizer(wxVERTICAL);
+        sla_sizer->Add(new Label(p->m_panel_sla, _L("Resin process")), 0, wxLEFT | wxTOP, FromDIP(8));
+        p->combo_sla_print = new PlaterPresetComboBox(p->m_panel_sla, Preset::TYPE_SLA_PRINT);
+        sla_sizer->Add(p->combo_sla_print, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
+        sla_sizer->Add(new Label(p->m_panel_sla, _L("Resin material")), 0, wxLEFT | wxTOP, FromDIP(8));
+        p->combo_sla_material = new PlaterPresetComboBox(p->m_panel_sla, Preset::TYPE_SLA_MATERIAL);
+        sla_sizer->Add(p->combo_sla_material, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(8));
+        p->m_panel_sla->SetSizer(sla_sizer);
+        p->m_panel_sla->Layout();
+        p->m_panel_sla->Hide();
+    }
+    scrolled_sizer->Add(p->m_panel_sla, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMarginV()));
     }
 
     {
@@ -2614,6 +2633,18 @@ void Sidebar::update_all_preset_comboboxes()
     if (print_tech == ptFFF) {
         for (PlaterPresetComboBox* cb : p->combos_filament)
             cb->update();
+    } else if (print_tech == ptSLA) {
+        if (p->combo_sla_print)    p->combo_sla_print->update();
+        if (p->combo_sla_material) p->combo_sla_material->update();
+    }
+
+    // Orca SLA: swap the filament section for the resin section based on technology.
+    {
+        const bool is_sla = print_tech == ptSLA;
+        if (p->m_panel_filament_title)   p->m_panel_filament_title->Show(!is_sla);
+        if (p->m_panel_filament_content) p->m_panel_filament_content->Show(!is_sla);
+        if (p->m_panel_sla)              p->m_panel_sla->Show(is_sla);
+        p->scrolled->Layout();
     }
 
     if (p->combo_printer) {
