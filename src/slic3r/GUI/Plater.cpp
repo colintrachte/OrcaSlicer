@@ -2265,15 +2265,21 @@ Sidebar::Sidebar(Plater *parent)
     // Orca SLA: minimal resin Process + Material selectors. Hidden in FDM mode;
     // update_all_preset_comboboxes() swaps this in for the filament section when ptSLA.
     p->m_panel_sla = new wxPanel(p->scrolled, wxID_ANY);
-    p->m_panel_sla->SetBackgroundColour(wxColour(255, 255, 255));
+    p->m_panel_sla->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     {
         auto *sla_sizer = new wxBoxSizer(wxVERTICAL);
         sla_sizer->Add(new Label(p->m_panel_sla, _L("Resin process")), 0, wxLEFT | wxTOP, FromDIP(8));
         p->combo_sla_print = new PlaterPresetComboBox(p->m_panel_sla, Preset::TYPE_SLA_PRINT);
-        sla_sizer->Add(p->combo_sla_print, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
+        auto *sla_print_sizer = new wxBoxSizer(wxHORIZONTAL);
+        sla_print_sizer->Add(p->combo_sla_print, 1, wxEXPAND);
+        sla_print_sizer->Add(p->combo_sla_print->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ElementSpacing()));
+        sla_sizer->Add(sla_print_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
         sla_sizer->Add(new Label(p->m_panel_sla, _L("Resin material")), 0, wxLEFT | wxTOP, FromDIP(8));
         p->combo_sla_material = new PlaterPresetComboBox(p->m_panel_sla, Preset::TYPE_SLA_MATERIAL);
-        sla_sizer->Add(p->combo_sla_material, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(8));
+        auto *sla_material_sizer = new wxBoxSizer(wxHORIZONTAL);
+        sla_material_sizer->Add(p->combo_sla_material, 1, wxEXPAND);
+        sla_material_sizer->Add(p->combo_sla_material->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ElementSpacing()));
+        sla_sizer->Add(sla_material_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(8));
         p->m_panel_sla->SetSizer(sla_sizer);
         p->m_panel_sla->Layout();
         p->m_panel_sla->Hide();
@@ -2413,9 +2419,19 @@ void Sidebar::on_change_color_mode(bool is_dark) {
 
 void Sidebar::create_printer_preset()
 {
-    CreatePrinterPresetDialog dlg(wxGetApp().mainframe);
-    int                       res = dlg.ShowModal();
-    if (wxID_OK == res) {
+    SelectPrinterTypeDialog type_dlg(wxGetApp().mainframe);
+    if (type_dlg.ShowModal() != wxID_OK)
+        return;
+
+    bool created = false;
+    if (type_dlg.get_selected_technology() == ptSLA) {
+        created = create_resin_printer_preset(wxGetApp().mainframe);
+    } else {
+        CreatePrinterPresetDialog dlg(wxGetApp().mainframe);
+        created = (wxID_OK == dlg.ShowModal());
+    }
+
+    if (created) {
         wxGetApp().load_current_presets();
         wxGetApp().mainframe->update_side_preset_ui();
         update_ui_from_settings();
@@ -2704,11 +2720,13 @@ void Sidebar::update_presets(Preset::Type preset_type)
         break;
         }
     case Preset::TYPE_SLA_PRINT:
-        ;// p->combo_sla_print->update();
+        if (p->combo_sla_print)
+            p->combo_sla_print->update();
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        ;// p->combo_sla_material->update();
+        if (p->combo_sla_material)
+            p->combo_sla_material->update();
         break;
 
     case Preset::TYPE_PRINTER:
@@ -3089,6 +3107,11 @@ void Sidebar::msw_rescale()
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
+    if (p->combo_sla_print)
+        p->combo_sla_print->msw_rescale();
+    if (p->combo_sla_material)
+        p->combo_sla_material->msw_rescale();
+
     p->m_panel_filament_content->Layout();
     update_filaments_area_height(); // ORCA resize after combos scaled
 
@@ -3170,6 +3193,11 @@ void Sidebar::sys_color_changed()
     p->combo_printer->sys_color_changed();
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
+    p->m_panel_sla->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    if (p->combo_sla_print)
+        p->combo_sla_print->sys_color_changed();
+    if (p->combo_sla_material)
+        p->combo_sla_material->sys_color_changed();
 
     if (p->big_bed_image_popup) // ORCA
         p->big_bed_image_popup->sys_color_changed();

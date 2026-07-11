@@ -1,5 +1,6 @@
 #include "CreatePresetsDialog.hpp"
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <vector>
 #include <set>
 #include <unordered_map>
@@ -1567,6 +1568,79 @@ void CreateFilamentPresetDialog::clear_filament_preset_map()
     m_filament_preset_panel->Freeze();
     m_filament_presets_sizer->Clear(true);
     m_filament_preset_panel->Thaw();
+}
+
+SelectPrinterTypeDialog::SelectPrinterTypeDialog(wxWindow *parent)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Add Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTER)
+{
+    this->SetBackgroundColour(*wxWHITE);
+    this->SetMinSize(wxSize(FromDIP(420), -1));
+
+    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    wxStaticText *prompt = new wxStaticText(this, wxID_ANY, _L("What type of printer would you like to add?"));
+    main_sizer->Add(prompt, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    Button *fdm_btn = new Button(this, _L("FDM (Filament) Printer"));
+    fdm_btn->SetMinSize(wxSize(FromDIP(360), FromDIP(48)));
+    main_sizer->Add(fdm_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    Button *resin_btn = new Button(this, _L("Resin (SLA) Printer"));
+    resin_btn->SetMinSize(wxSize(FromDIP(360), FromDIP(48)));
+    main_sizer->Add(resin_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    fdm_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+        m_selected_technology = ptFFF;
+        EndModal(wxID_OK);
+    });
+    resin_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+        m_selected_technology = ptSLA;
+        EndModal(wxID_OK);
+    });
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+    CenterOnParent();
+}
+
+void SelectPrinterTypeDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    Layout();
+}
+
+bool create_resin_printer_preset(wxWindow *parent)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const std::string base_preset_name = "Anycubic Photon D2";
+    const Preset *base_preset = preset_bundle->printers.find_preset(base_preset_name, false, true);
+    if (!base_preset) {
+        MessageDialog(parent, _L("The built-in resin printer profile (Anycubic Photon D2) was not found."),
+                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Error"), wxOK | wxICON_ERROR).ShowModal();
+        return false;
+    }
+
+    wxTextEntryDialog name_dlg(parent, _L("Printer name:"), _L("Add Resin Printer"), _L("My Resin Printer"));
+    if (name_dlg.ShowModal() != wxID_OK)
+        return false;
+    std::string new_name = into_u8(name_dlg.GetValue());
+    boost::trim(new_name);
+    if (new_name.empty())
+        return false;
+    if (preset_bundle->printers.find_preset(new_name, false, true) != nullptr) {
+        MessageDialog(parent, _L("A printer with that name already exists; please choose a different name."),
+                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Error"), wxOK | wxICON_ERROR).ShowModal();
+        return false;
+    }
+
+    preset_bundle->printers.select_preset_by_name(base_preset->name, true);
+    preset_bundle->printers.save_current_preset(new_name, true, false);
+    preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
+    return true;
 }
 
 CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)

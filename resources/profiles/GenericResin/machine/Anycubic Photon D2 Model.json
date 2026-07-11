@@ -1,8 +1,8 @@
 {
   "type": "machine_model",
-  "name": "Generic Resin Printer",
-  "model_id": "SL_generic_resin_01",
-  "nozzle_diameter": "",
+  "name": "Anycubic Photon D2",
+  "model_id": "SL_anycubic_photon_d2",
+  "nozzle_diameter": "default",
   "machine_tech": "SLA",
   "family": "Resin",
   "bed_model": "",

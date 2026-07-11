@@ -91,6 +91,32 @@ private:
 
 };
 
+// Orca: landing page shown before CreatePrinterPresetDialog, since that dialog (and its
+// page2 filament/process import) is hard-coded to FFF. Resin printers skip it entirely -
+// create_resin_printer_preset() below clones the "Anycubic Photon D2" system printer directly.
+class SelectPrinterTypeDialog : public DPIDialog
+{
+public:
+    SelectPrinterTypeDialog(wxWindow *parent);
+    ~SelectPrinterTypeDialog() {}
+
+    // Valid only after ShowModal() returns wxID_OK.
+    PrinterTechnology get_selected_technology() const { return m_selected_technology; }
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+
+private:
+    PrinterTechnology m_selected_technology = ptFFF;
+};
+
+// Orca: minimal resin printer creation, reached via SelectPrinterTypeDialog's Resin choice.
+// Clones the "Anycubic Photon D2" system printer preset under a user-given name; bed size, display
+// resolution, and other SLA printer fields can be tuned afterwards in the normal Printer tab -
+// this intentionally skips CreatePrinterPresetDialog's page1 custom-fields form (ROADMAP.md's
+// "Option B" full compact form is a separate follow-up).
+bool create_resin_printer_preset(wxWindow *parent);
+
 class CreatePrinterPresetDialog : public DPIDialog
 {
 public:

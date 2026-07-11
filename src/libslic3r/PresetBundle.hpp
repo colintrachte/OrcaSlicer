@@ -478,6 +478,10 @@ public:
 	static const char *ORCA_DEFAULT_FILAMENT;
     static const char *ORCA_FILAMENT_LIBRARY;
     static const char *ORCA_DEFAULT_FILAMENT_PLACEHOLDER;
+    // Orca: the built-in generic resin/SLA vendor bundle - always installed like
+    // ORCA_DEFAULT_BUNDLE, since there's no ConfigWizard-driven "enable this vendor" path
+    // to opt into it otherwise (the create-resin-printer flow needs it present unconditionally).
+    static const char *ORCA_DEFAULT_SLA_BUNDLE;
 
 
     static std::array<Preset::Type, 3>  types_list(PrinterTechnology pt) {

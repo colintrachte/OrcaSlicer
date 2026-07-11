@@ -64,6 +64,7 @@ const char *PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT = "0.4";
 const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "Generic PLA @System";
 const char *PresetBundle::ORCA_FILAMENT_LIBRARY = "OrcaFilamentLibrary";
 const char *PresetBundle::ORCA_DEFAULT_FILAMENT_PLACEHOLDER = "Default Filament";
+const char *PresetBundle::ORCA_DEFAULT_SLA_BUNDLE = "GenericResin";
 
 DynamicPrintConfig PresetBundle::construct_full_config(
     Preset& in_printer_preset,
@@ -4623,6 +4624,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     std::vector<std::pair<std::string, std::string>> process_subfiles;
     std::vector<std::pair<std::string, std::string>> filament_subfiles;
     std::vector<std::pair<std::string, std::string>> machine_subfiles;
+    // Orca: SLA process/material lists, parallel to process_subfiles/filament_subfiles above.
+    std::vector<std::pair<std::string, std::string>> sla_process_subfiles;
+    std::vector<std::pair<std::string, std::string>> sla_material_subfiles;
     auto get_name_and_subpath = [this](json::iterator& it, std::vector<std::pair<std::string, std::string>>& subfile_map) {
         if (it.value().is_array()) {
             for (auto iter1 = it.value().begin(); iter1 != it.value().end(); iter1++) {
@@ -4699,6 +4703,14 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 //get machine list
                 get_name_and_subpath(it, machine_subfiles);
             }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_SLA_PRINT_LIST)) {
+                //get sla print list
+                get_name_and_subpath(it, sla_process_subfiles);
+            }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_SLA_MATERIAL_LIST)) {
+                //get sla material list
+                get_name_and_subpath(it, sla_material_subfiles);
+            }
         }
     }
     catch(nlohmann::detail::parse_error &err) {
@@ -4712,6 +4724,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         machine_model_subfiles.clear();
         machine_subfiles.clear();
         process_subfiles.clear();
+        sla_process_subfiles.clear();
     }
 
     //2) paste the machine model
@@ -5015,7 +5028,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             // modes, IDEX copy/mirror, or different control boards), so only the diameter is
             // validated, not variant uniqueness. Validation-only so the app keeps loading existing
             // profiles unchanged.
-            if (validation_mode && instantiation == "true") {
+            // Orca: nozzle_diameter is an FFF-only concept (SLA printers have no nozzle, so
+            // SLAPrinterConfig doesn't even define the option) - skip for SLA printer_variant
+            // strings like "default", which aren't meant to encode a diameter.
+            if (validation_mode && instantiation == "true" && Slic3r::Preset::printer_technology(config) == ptFFF) {
                 const auto *nd = config.option<ConfigOptionFloats>("nozzle_diameter");
                 std::set<double> nozzles, variant_nozzles;
                 if (nd != nullptr)
@@ -5167,6 +5183,38 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse printer setting from %1%") % subfile_path;
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
+        }
+    }
+
+    //3.4) paste the sla process (Orca: parallel to 3.1 above, routed to sla_prints instead of prints)
+    presets = &this->sla_prints;
+    configs.clear();
+    filament_id_maps.clear();
+    for (auto& subfile : sla_process_subfiles)
+    {
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets, presets_loaded);
+        if (!reason.empty()) {
+            ++m_errors;
+            //parse error
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse sla print setting from %1%") % subfile_path;
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
+        }
+    }
+
+    //3.5) paste the sla materials (Orca: parallel to 3.2 above, routed to sla_materials instead of filaments)
+    presets = &this->sla_materials;
+    configs.clear();
+    filament_id_maps.clear();
+    for (auto& subfile : sla_material_subfiles)
+    {
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets, presets_loaded);
+        if (!reason.empty()) {
+            ++m_errors;
+            //parse error
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse sla material setting from %1%") % subfile_path;
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
     }

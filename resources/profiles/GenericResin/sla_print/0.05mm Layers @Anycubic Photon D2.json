@@ -1,0 +1,8 @@
+{
+  "type": "sla_print",
+  "name": "0.05mm Layers @Anycubic Photon D2",
+  "from": "system",
+  "instantiation": "true",
+  "layer_height": "0.05",
+  "compatible_printers": ["Anycubic Photon D2"]
+}

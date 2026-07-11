@@ -5,16 +5,28 @@
   "description": "Generic MSLA / resin (SLA) printers",
   "machine_model_list": [
     {
-      "name": "Generic Resin Printer",
-      "sub_path": "machine/Generic Resin Printer.json"
+      "name": "Anycubic Photon D2",
+      "sub_path": "machine/Anycubic Photon D2 Model.json"
     }
   ],
   "process_list": [],
   "filament_list": [],
   "machine_list": [
     {
-      "name": "Generic MSLA",
-      "sub_path": "machine/Generic MSLA.json"
+      "name": "Anycubic Photon D2",
+      "sub_path": "machine/Anycubic Photon D2.json"
+    }
+  ],
+  "sla_print_list": [
+    {
+      "name": "0.05mm Layers @Anycubic Photon D2",
+      "sub_path": "sla_print/0.05mm Layers @Anycubic Photon D2.json"
+    }
+  ],
+  "sla_material_list": [
+    {
+      "name": "Generic Resin @Anycubic Photon D2",
+      "sub_path": "sla_material/Generic Resin @Anycubic Photon D2.json"
     }
   ]
 }

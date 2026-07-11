@@ -1087,6 +1087,9 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
             if (bundles.find(vendor_name) != bundles.end())continue;
 
             const auto is_vendor_enabled = (vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) // always update configs from resource to vendor for ORCA_DEFAULT_BUNDLE
+                                           // Orca: same treatment for the built-in resin vendor - there's no ConfigWizard
+                                           // path to "enable" it otherwise, and the resin printer create flow needs it present.
+                                           || (vendor_name == PresetBundle::ORCA_DEFAULT_SLA_BUNDLE)
                                            || (enabled_vendors.find(vendor_name) != enabled_vendors.end());
             if (enabled_config_update) {
                 if ( fs::exists(path_in_vendor)) {

@@ -1,0 +1,16 @@
+{
+  "type": "sla_materials",
+  "name": "Generic Resin @Anycubic Photon D2",
+  "from": "system",
+  "instantiation": "true",
+  "material_colour": "#29B2B2",
+  "material_type": "Tough",
+  "initial_layer_height": "0.05",
+  "exposure_time": "8",
+  "initial_exposure_time": "35",
+  "bottle_volume": "1000",
+  "bottle_weight": "1",
+  "bottle_cost": "0",
+  "material_density": "1.1",
+  "compatible_printers": ["Anycubic Photon D2"]
+}

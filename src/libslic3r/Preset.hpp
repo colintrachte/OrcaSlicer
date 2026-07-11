@@ -52,6 +52,9 @@
 #define BBL_JSON_KEY_SUB_PATH       "sub_path"
 #define BBL_JSON_KEY_FILAMENT_LIST  "filament_list"
 #define BBL_JSON_KEY_MACHINE_LIST   "machine_list"
+// Orca: SLA process/material lists, parallel to process_list/filament_list above.
+#define BBL_JSON_KEY_SLA_PRINT_LIST     "sla_print_list"
+#define BBL_JSON_KEY_SLA_MATERIAL_LIST  "sla_material_list"
 #define BBL_JSON_KEY_TYPE           "type"
 #define BBL_JSON_KEY_FROM           "from"
 #define BBL_JSON_KEY_SETTING_ID     "setting_id"
