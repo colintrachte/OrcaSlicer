@@ -66,3 +66,6 @@ compile_commands.json
 *.ipdb
 *.pch
 *.res
+# Local Windows build-driver output.
+/logs/
+/build.ps1 - Shortcut.lnk

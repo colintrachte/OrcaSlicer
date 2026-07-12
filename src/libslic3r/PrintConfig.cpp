@@ -4475,7 +4475,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.05));
 
     def = this->add("stagger_perimeters", coBool);
-    def->label    = L("Stagger perimeters");
+    def->label    = L("Brick layers (staggered perimeters)");
     def->category = L("Strength");
     def->tooltip  = L("Experimental: alternate the Z-height of inner-wall perimeters every other "
                       "layer, like bricks in a wall, so vertical seams in adjacent layers don't "
@@ -4485,7 +4485,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("stagger_perimeters_extrusion_multiplier", coFloat);
-    def->label    = L("Stagger perimeters extrusion multiplier");
+    def->label    = L("Brick layers extrusion multiplier");
     def->category = L("Strength");
     def->tooltip  = L("Extra flow applied to staggered inner-wall segments to compensate for the "
                       "raised Z-height. Staggering without extra flow tends to print weaker than "

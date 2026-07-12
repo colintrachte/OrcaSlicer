@@ -61,8 +61,34 @@ be for this project.
 
 ## Development setup
 
-`[FILL IN: toolchain, how to clone/build/run, common editor/IDE shortcuts if this project
-has a standardized setup]`
+### Windows
+
+Use the canonical PowerShell driver from the repository root:
+
+```powershell
+.\scripts\build.ps1
+.\scripts\build.ps1 -Configuration RelWithDebInfo -Architecture x64
+.\scripts\build.ps1 -SlicerOnly
+.\scripts\build.ps1 -SkipDependencies
+.\scripts\build.ps1 -Run
+```
+
+`build_release_vs.bat` remains the double-click and CI-compatible launcher. It accepts
+the established `debug`, `debuginfo`, `x64`, `arm64`, `deps`, `slicer`, `pack`, and `-x`
+arguments. `build_windows.ps1` is retained only as a compatibility wrapper for older
+local commands.
+
+The driver requires Visual Studio with the Desktop C++ workload, CMake, Git, and
+Strawberry Perl when compiling dependencies. It displays output live and writes full,
+timestamped logs, separate warning/error files, and a JSON manifest under `logs/`.
+
+Successful dependency builds create `.orca-deps-complete.json` in their build directory.
+`-SkipDependencies` requires a matching stamp, preventing an incomplete dependency tree
+from being mistaken for a usable build. Use `-PreflightOnly` to validate the environment
+without compiling.
+
+The default compiler-process cap is derived conservatively from logical CPU count and
+installed memory. Override it with `-Parallel N` or the `MP_CAP` environment variable.
 
 ## Testing expectations
 
