@@ -31,10 +31,10 @@
       "installed_at": "2026-07-08T02:05:51+00:00"
     },
     "helper_scripts/pack_task.py": {
-      "sha256": "1fdca3f4e2d3b72da2e8bfd41ed1af84c42ea1ae64838c37f16ded3956189cc0",
-      "template_sha256": "1fdca3f4e2d3b72da2e8bfd41ed1af84c42ea1ae64838c37f16ded3956189cc0",
+      "sha256": "926d222728a2a125a6a897d68d6b69e5b44f8bc73f9ded8b2bb5e19ea8065222",
+      "template_sha256": "926d222728a2a125a6a897d68d6b69e5b44f8bc73f9ded8b2bb5e19ea8065222",
       "template": "helper_scripts/pack_task.py",
-      "installed_at": "2026-07-05T21:41:13+00:00"
+      "installed_at": "2026-07-12T03:46:46+00:00"
     },
     "helper_scripts/README.md": {
       "sha256": "6dd5387abe27824f8030befc97a961543fa37bee2e892c3c8dd20b2cbd4cc799",
@@ -65,6 +65,12 @@
       "template_sha256": "ee59ba3f0db17dc1774f7b6d77e56ff43eb0fe387474c3d368fb7eefd9142168",
       "template": "templates/REVIEW_TIERS.template.md",
       "installed_at": "2026-07-08T02:05:51+00:00"
+    },
+    "helper_scripts/gui_theme.py": {
+      "sha256": "5bc6d09c6721359d1588d6b2e8297967f4679c58c025227a5fc27738b31d7da3",
+      "template_sha256": "5bc6d09c6721359d1588d6b2e8297967f4679c58c025227a5fc27738b31d7da3",
+      "template": "helper_scripts/gui_theme.py",
+      "installed_at": "2026-07-12T03:46:46+00:00"
     }
   }
 }

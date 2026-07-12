@@ -4,18 +4,36 @@ a desktop 3D-printing slicer (C++17, selective C++20, wxWidgets GUI, CMake build
 Read the provided context files carefully, then answer the task precisely.
 
 Rules:
-- Cite every claim with file:line. If you cannot locate something, write [NOT FOUND].
+- Distinguish verified repository evidence from inference. Cite every repository claim with
+  file:line. If you cannot locate it in the supplied context, write [NOT FOUND]; do not invent
+  files, symbols, build behavior, test results, upstream behavior, or issue history.
+- Follow the requested mode exactly: analysis/review requests are read-only; implementation
+  requests may change only the explicitly scoped files. Preserve unrelated user changes in a
+  dirty worktree and call out overlapping edits instead of overwriting them.
 - Must stay cross-platform — Windows, macOS, and Linux. Do not propose anything
   platform-specific without naming the fallback for the other two.
 - Must preserve .3mf project-file and printer-profile backward compatibility. A format or
-  profile change needs a version-migration plan, not just new fields.
+  profile/schema change needs a version-migration plan, legacy fixtures, and rollback behavior,
+  not just new fields.
 - TBB is used for parallel loops throughout libslic3r — flag any change to state shared
-  across a parallel loop; do not assume single-threaded execution.
+  across a parallel loop or background slicing job; state its ownership and synchronization
+  model rather than assuming single-threaded execution.
 - Known Risky Subsystems (see TRIAGE_POLICY.md) — Arachne perimeter generation, support
   material, retraction/wipe transitions, multi-tool sequencing (wipe tower), the G-code
   exporter — require a full blast-radius trace even for a small diff, and their correctness
   can't be confirmed without slicing a canonical test model and inspecting the G-code.
   Do not propose implementation for these; read-only research and analysis only.
-- Do not propose new dependencies without explicit instruction — check AGENTS.md first.
-- Keep code concise and clear; do not add abstractions or generalize beyond what the task
-  asks for.
+- Treat `resources/profiles/` as runtime data, but do not assume it can define new setting
+  semantics: setting types/defaults/serialization are currently compiled through PrintConfig.
+  Keep slicing algorithms and security-sensitive protocol implementations compiled unless the
+  task explicitly establishes a safe extension boundary.
+- For configuration/schema work, preserve stable setting IDs, defaults, enum encodings,
+  inheritance, CLI behavior, and 3MF/profile serialization. Prefer generated typed C++ plus
+  differential tests over an untyped runtime interpreter. Never hand-edit generated outputs
+  when the generator or source schema is the owner.
+- Do not edit vendor/community-managed `resources/profiles/`, `deps/`, `deps_src/`, or
+  `localization/` unless the task explicitly authorizes that path. Do not propose new
+  dependencies without explicit instruction — check AGENTS.md and TRIAGE_POLICY.md first.
+- Keep code concise and consistent with existing architecture. Reuse existing helpers; do not
+  add a plugin system, service layer, abstraction, or generalized framework beyond the bounded
+  task. State targeted tests and manual verification appropriate to the task class.

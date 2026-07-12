@@ -19,16 +19,19 @@ import json
 import os
 import queue
 import re
+import subprocess
 import sys
 import threading
 import tkinter as tk
 import traceback
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox, scrolledtext, ttk
+from tkinter import filedialog, messagebox, scrolledtext, simpledialog, ttk
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import context_pack  # noqa: E402
+import gui_theme  # noqa: E402
 import query_model  # noqa: E402
 import route_tasks  # noqa: E402
 
@@ -293,6 +296,284 @@ def parse_tasks(lines: list[str], root: Path) -> list[Task]:
     return tasks
 
 
+# ── task editor: pure parse/build/splice helpers (no Tkinter) ──
+#
+# These back TaskEditorDialog's Save path. Kept free of Tkinter so they're unit-testable
+# headlessly (see tests/test_task_editor.py) -- this repo's own REVIEW_TIERS.md Class 3
+# rule for any docs/roadmap.md write path requires a round-trip test, and a function tied
+# to live widgets can't be driven without a display.
+
+FILE_FIELD_LABELS = ("Implement", "Context", "Write", "Read")
+_LABEL_CANON = {label.lower(): label for label in FILE_FIELD_LABELS}
+# A file-list line using a parenthetical suffix, e.g. "**Implement (Class 3 — ...):**"
+# (see ROADMAP.template.md's format convention) -- a real, exercised case this editor's
+# flat per-label model can't preserve; parse_task_fields() flags it so the dialog can warn
+# instead of silently dropping the annotation on save.
+FIELD_SUFFIX_RE = re.compile(r"^\s+\*\*(?:Implement|Write|Context|Read)\s*\(", re.IGNORECASE)
+MANUAL_ROUTE_SUFFIX_RE = re.compile(r"^(.*?)\s*\(manual\)\s*$")
+SECTION_BOUNDARY_RE = re.compile(r"^#{2,4}\s|^---\s*$")
+
+
+def parse_task_fields(block_lines: list[str]) -> dict:
+    """Parse a task block (header line first, e.g. roadmap_lines[task.start:task.end])
+    into an editable field-dict -- the inverse of build_task_lines(). Unlike
+    parse_tasks()/Task.files, file-list values are kept as raw backtick strings bucketed
+    per label rather than resolved Paths, since **Write:** targets and `<name>/...`
+    external refs often don't exist on disk yet and still need to round-trip through the
+    editor. Returns {score, task_class, title, body, is_fenced, file_fields, manual_route,
+    has_field_suffix} -- callers fill in "section" themselves (Task.section, not
+    derivable from the block alone)."""
+    header_m = HEADER_RE.match(block_lines[0])
+    attr_m = HEADER_ATTR_RE.match(header_m.group(2)) if header_m else None
+    class_m = route_tasks.CLASS_RE.search(block_lines[0])
+
+    file_fields = {label: [] for label in FILE_FIELD_LABELS}
+    manual_route = None
+    has_field_suffix = False
+    in_fence = False
+    fence_lines = []
+    body_lines = []
+
+    for bl in block_lines[1:]:
+        rm = ROUTE_VALUE_RE.match(bl)
+        if rm:
+            mm = MANUAL_ROUTE_SUFFIX_RE.match(rm.group(1))
+            if mm and rm.group(1).endswith("(manual)"):
+                manual_route = mm.group(1).strip()
+            continue
+        if EFFORT_VALUE_RE.match(bl) or CHARS_VALUE_RE.match(bl):
+            continue
+        fm = FILE_LIST_RE.match(bl)
+        if fm:
+            if FIELD_SUFFIX_RE.match(bl):
+                has_field_suffix = True
+            label = _LABEL_CANON[fm.group(1).lower()]
+            file_fields[label].extend(route_tasks.BACKTICK_RE.findall(fm.group(2)))
+            continue
+        if FENCE_START_RE.match(bl):
+            in_fence = True
+            continue
+        if in_fence and FENCE_END_RE.match(bl):
+            in_fence = False
+            continue
+        if in_fence:
+            fence_lines.append(bl)
+        else:
+            body_lines.append(bl)
+
+    fenced_body = "".join(fence_lines).strip()
+    is_fenced = bool(fenced_body)
+    if is_fenced:
+        body = fenced_body
+    else:
+        # header_tail mirrors parse_tasks()'s own fallback (see its comment above) --
+        # build_task_lines() never emits one, so on a round-trip this is always "".
+        header_tail = block_lines[0][header_m.end() :].strip(" \t\n-—") if header_m else ""
+        desc = "".join(body_lines).strip()
+        body = f"{header_tail} {desc}".strip() if header_tail else desc
+
+    return {
+        "score": attr_m.group("score") if attr_m else "",
+        "task_class": class_m.group(1) if class_m else "",
+        "title": (attr_m.group("title") if attr_m else header_m.group(2) if header_m else ""),
+        "body": body,
+        "is_fenced": is_fenced,
+        "file_fields": file_fields,
+        "manual_route": manual_route,
+        "has_field_suffix": has_field_suffix,
+    }
+
+
+def build_task_lines(fields: dict) -> list[str]:
+    """Render a field-dict (see parse_task_fields()) into a well-formed task block ending
+    in exactly one blank line. Never emits Effort/Chars, and only emits a Route line when
+    a manual override is set -- those stay generated, left to the App's
+    refresh_routes()/_load_tasks() pipeline on the next reload.
+
+    Known simplification: hand-authored items in this repo's own docs/roadmap.md often
+    keep the description as an inline continuation of the header line; this always emits
+    it as a separate paragraph instead. parse_tasks() concatenates header_tail + body
+    either way, so this is cosmetic re-wrapping on save, not a semantic change."""
+    medal = route_tasks._medal(fields["score"])
+    lines = [
+        f"- [ ] **Score {fields['score']} {medal} · Class {fields['task_class']} "
+        f"— {fields['title']}**\n",
+        "\n",
+    ]
+
+    for label in FILE_FIELD_LABELS:
+        paths = fields["file_fields"].get(label) or []
+        if paths:
+            joined = " · ".join(f"`{p}`" for p in paths)
+            lines.append(f"  **{label}:** {joined}\n")
+    if fields.get("manual_route"):
+        lines.append(f"  **Route:** {fields['manual_route']} (manual)\n")
+
+    body = (fields.get("body") or "").strip()
+    if body:
+        lines.append("\n")
+        if fields.get("is_fenced"):
+            lines.append("  ```text\n")
+            for bline in body.splitlines():
+                lines.append(f"  {bline}\n" if bline else "\n")
+            lines.append("  ```\n")
+        else:
+            for bline in body.splitlines():
+                lines.append(f"  {bline}\n" if bline else "\n")
+    lines.append("\n")
+    return lines
+
+
+def validate_task_fields(fields: dict) -> str | None:
+    """Save-button validation, per ROADMAP.template.md's format convention. Returns the
+    first violation's user-facing message, or None if the fields are savable."""
+    if not fields.get("title", "").strip():
+        return "Title cannot be empty."
+    if fields.get("score") not in {"1", "2", "3", "4", "5"}:
+        return "Score must be 1-5."
+    if fields.get("task_class") not in {"1", "2", "3"}:
+        return "Class must be 1-3."
+    if not fields.get("section", "").strip():
+        return "Choose a section to file this task under."
+    if not any(fields.get("file_fields", {}).get(label) for label in FILE_FIELD_LABELS):
+        return "At least one file path is required (Implement/Context/Write/Read)."
+    return None
+
+
+def compute_task_effort(file_fields: dict, root: Path) -> int:
+    """Live Effort preview for the editor dialog -- the same formula route_tasks.py
+    stamps on refresh (max(1, round(total_files * total_chars / 1000))), computed from
+    whatever paths currently sit in the dialog's four file-list fields. total_files counts
+    every listed entry regardless of whether it resolves (matching route_tasks._count_entries);
+    total_chars only counts entries that currently resolve to a real file on disk -- a
+    **Write:** target named ahead of creation contributes 0 chars here, same as it will
+    once route_tasks.py re-stamps the saved task for real."""
+    total_files = sum(len(v) for v in file_fields.values())
+    if total_files == 0:
+        return 1
+    seen = set()
+    resolved = []
+    for paths in file_fields.values():
+        if not paths:
+            continue
+        joined = " · ".join(f"`{p}`" for p in paths)
+        files, _missing = route_tasks.resolve_file_list(joined, root)
+        for f in files:
+            key = f.as_posix()
+            if key not in seen:
+                seen.add(key)
+                resolved.append(f)
+    total_chars = sum(c for _, c in route_tasks._char_sizes(resolved, root))
+    return max(1, round(total_files * total_chars / 1000))
+
+
+def _section_headings(lines: list[str]) -> list[str]:
+    """Distinct ##/### heading texts in document order, for the editor's Section combobox."""
+    seen = []
+    for line in lines:
+        m = SECTION_RE.match(line)
+        if m and m.group(1) not in seen:
+            seen.append(m.group(1))
+    return seen
+
+
+def find_section_end(lines: list[str], section_heading: str) -> int:
+    """Index just before the next ##/###/--- boundary after `section_heading`'s own
+    heading line. Raises ValueError if the heading isn't found. Matches the first
+    occurrence if the same heading text appears more than once in the file."""
+    i = 0
+    while i < len(lines):
+        m = SECTION_RE.match(lines[i])
+        if m and m.group(1) == section_heading:
+            j = i + 1
+            while j < len(lines) and not SECTION_BOUNDARY_RE.match(lines[j]):
+                j += 1
+            return j
+        i += 1
+    raise ValueError(f"section heading not found: {section_heading!r}")
+
+
+def insert_task_block(lines: list[str], section_heading: str, block_lines: list[str]) -> list[str]:
+    """Insert a new task block (see build_task_lines()) at the end of `section_heading`,
+    trimming any trailing blank lines immediately before the section boundary first and
+    inserting exactly one blank-line separator -- so spacing stays consistent with the
+    rest of the file regardless of how much trailing whitespace was already there."""
+    end = find_section_end(lines, section_heading)
+    while end > 0 and lines[end - 1].strip() == "":
+        end -= 1
+    return lines[:end] + ["\n"] + block_lines + lines[end:]
+
+
+def replace_task_block(lines: list[str], start: int, end: int, block_lines: list[str]) -> list[str]:
+    """Splice a rebuilt block over an existing task's [start, end) span (from
+    Task.start/Task.end, which already includes the trailing blank line before the next
+    header/boundary per route_tasks.scan_block_end) -- block_lines' own trailing blank
+    line keeps spacing consistent with what it replaces."""
+    return lines[:start] + block_lines + lines[end:]
+
+
+def move_task_block(
+    lines: list[str], start: int, end: int, new_section: str, block_lines: list[str]
+) -> list[str]:
+    """Edit-save when the section changed: remove [start, end) first, then insert into
+    new_section fresh -- avoids stale-index interaction with find_section_end's own scan
+    of what would otherwise be an already-mutated list."""
+    remaining = lines[:start] + lines[end:]
+    return insert_task_block(remaining, new_section, block_lines)
+
+
+# ── AI response inbox: pure helpers (no Tkinter) ──
+#
+# ai-harness.md §3.2 step 5 says to copy a model's response into "a scratch file" but
+# never pins down where -- this gives that step a fixed, per-task home so responses from
+# separate manual paste-back chat sessions accumulate in one place until there's budget to
+# run the §5 fusion pass. One growing file per task, not one file per response: simplest
+# mental model for a human skimming what's been collected so far. Gitignored (see
+# .gitignore) -- working material for the fusion step, not permanent project history,
+# same role scratch.txt already plays.
+
+AI_INBOX_DIRNAME = "ai_inbox"
+TASK_SLUG_RE = re.compile(r"[^a-z0-9]+")
+
+
+def task_slug(title: str) -> str:
+    """Filesystem-safe, stable identifier for a task's inbox file -- derived from its
+    title so the same task lands in the same file across sessions with no separate id
+    scheme to keep in sync."""
+    slug = TASK_SLUG_RE.sub("-", title.lower()).strip("-")
+    return slug[:60].strip("-") or "task"
+
+
+def inbox_path(root: Path, title: str) -> Path:
+    return root / AI_INBOX_DIRNAME / f"{task_slug(title)}.md"
+
+
+def count_inbox_responses(path: Path) -> int:
+    """Number of responses already saved for a task, for the GUI's status line -- counts
+    the '<!-- saved ... -->' markers append_inbox_response() writes; 0 if the file doesn't
+    exist yet."""
+    if not path.is_file():
+        return 0
+    return path.read_text(encoding="utf-8").count("<!-- saved ")
+
+
+def append_inbox_response(path: Path, title: str, response_text: str) -> None:
+    """Append one pasted AI response to a task's inbox file, atomically (temp-file-then-
+    rename, matching route_tasks._atomic_write's own pattern) -- creates ai_inbox/ and the
+    file on first use. Never overwrites a previous response, only adds. Raises ValueError
+    on empty input so the GUI can show a clear message instead of writing a blank entry."""
+    response_text = response_text.strip()
+    if not response_text:
+        raise ValueError("response text is empty")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    existing = path.read_text(encoding="utf-8") if path.is_file() else f"<!-- task: {title} -->\n"
+    if not existing.endswith("\n"):
+        existing += "\n"
+    block = f"\n<!-- saved {timestamp} -->\n\n{response_text}\n"
+    route_tasks._atomic_write(path, existing + block)
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -310,6 +591,7 @@ class App(tk.Tk):
         )
         self.title("Quest Board")
         self.geometry("960x720")
+        gui_theme.configure_style(self)
         self.root_dir = context_pack.repo_root()
         self.result_queue = queue.Queue()
         self.tasks = []
@@ -318,6 +600,9 @@ class App(tk.Tk):
         self.effort_ceiling = _read_effort_ceiling()
         self.checked = set()  # iids (str index into filtered_tasks) checked in the picker table
         self.current_tasks = []  # the task(s) behind the pack currently shown on the pack screen
+        self._current_inbox_path = (
+            None  # set by _refresh_inbox_section when exactly 1 task is packed
+        )
         self.chunks = []  # paste-sized chunks of the current pack, banner-wrapped
         self.chunk_idx = 0
         # When checked (default), the pack screen shows one concatenated block, even
@@ -375,9 +660,30 @@ class App(tk.Tk):
     def _build_picker_frame(self):
         f = self.picker_frame
 
-        nav = ttk.Frame(f)
-        nav.pack(fill="x", pady=(0, 6))
-        ttk.Button(nav, text="Pack →", command=self._on_pack).pack(side="right")
+        # One toolbar, above the table (matches setup_wizard_gui.py's convention): view
+        # utilities and task CRUD on the left, the checked-selection workflow actions
+        # (Mark Complete, Pack) grouped on the right with Pack outermost as the primary
+        # "move forward" action.
+        toolbar = ttk.Frame(f)
+        toolbar.pack(fill="x", pady=(0, 6))
+        ttk.Button(toolbar, text="↻ Refresh", command=self._load_tasks).pack(side="left")
+        ttk.Button(toolbar, text="Check All", command=lambda: self._set_all_checked(True)).pack(
+            side="left", padx=6
+        )
+        ttk.Button(toolbar, text="Clear", command=lambda: self._set_all_checked(False)).pack(
+            side="left"
+        )
+        ttk.Separator(toolbar, orient="vertical").pack(side="left", fill="y", padx=12)
+        ttk.Button(toolbar, text="+ New Task", command=self._on_new_task).pack(side="left")
+        ttk.Button(toolbar, text="✎ Edit", command=self._on_edit_task).pack(side="left", padx=6)
+
+        ttk.Button(toolbar, text="Pack →", style="Accent.TButton", command=self._on_pack).pack(
+            side="right"
+        )
+        ttk.Separator(toolbar, orient="vertical").pack(side="right", fill="y", padx=12)
+        ttk.Button(toolbar, text="Mark Complete →", command=self._on_mark_complete).pack(
+            side="right"
+        )
 
         ttk.Label(
             f,
@@ -433,21 +739,7 @@ class App(tk.Tk):
         self.tree.pack(side="left", fill="both", expand=True)
         vsb.pack(side="left", fill="y")
         self.tree.bind("<Button-1>", self._on_tree_click)
-
-        btn_row = ttk.Frame(f)
-        btn_row.pack(fill="x", pady=(0, 6))
-        ttk.Button(btn_row, text="Refresh", command=self._load_tasks).pack(side="left")
-        ttk.Button(btn_row, text="Check All", command=lambda: self._set_all_checked(True)).pack(
-            side="left", padx=6
-        )
-        ttk.Button(btn_row, text="Clear", command=lambda: self._set_all_checked(False)).pack(
-            side="left"
-        )
-        ttk.Button(
-            btn_row,
-            text="Mark Complete →",
-            command=self._on_mark_complete,
-        ).pack(side="left", padx=(20, 0))
+        gui_theme.tag_stripes(self.tree)
 
     def _load_tasks(self):
         self.tasks = []
@@ -510,6 +802,7 @@ class App(tk.Tk):
                 "",
                 "end",
                 iid=str(idx),
+                tags=(gui_theme.stripe_tag(idx),),
                 values=(
                     CHECK_EMPTY,
                     score_col,
@@ -584,6 +877,28 @@ class App(tk.Tk):
             idxs = [int(focus)] if focus else []
         return [self.filtered_tasks[i] for i in idxs]
 
+    def _one_selected_task(self):
+        """Edit's selection rule is stricter than _selected_tasks()'s (which accepts any
+        count): exactly one task, checked or focused. Shows an info dialog and returns
+        None otherwise."""
+        tasks = self._selected_tasks()
+        if len(tasks) != 1:
+            messagebox.showinfo(
+                "Select exactly one task",
+                f"Check exactly one task (or click a single row) before editing — "
+                f"{len(tasks)} currently selected.",
+            )
+            return None
+        return tasks[0]
+
+    def _on_new_task(self):
+        TaskEditorDialog(self, task=None)
+
+    def _on_edit_task(self):
+        task = self._one_selected_task()
+        if task is not None:
+            TaskEditorDialog(self, task=task)
+
     def _on_mark_complete(self):
         """Human override for route_tasks.py's --complete: mark the checked/focused
         task(s) done and move them into shipped.md, gated behind an explicit warning
@@ -636,7 +951,9 @@ class App(tk.Tk):
         topnav = ttk.Frame(f)
         topnav.pack(side="top", fill="x", pady=(0, 6))
         ttk.Button(topnav, text="← Back", command=self._on_back_to_picker).pack(side="left")
-        ttk.Button(topnav, text="Configure & Send →", command=self._on_goto_send).pack(side="right")
+        ttk.Button(
+            topnav, text="Configure & Send →", style="Accent.TButton", command=self._on_goto_send
+        ).pack(side="right")
 
         # Bottom-anchored action row — packed (side="bottom") before the expandable
         # middle content below, so it always claims its space at the bottom of the
@@ -647,10 +964,12 @@ class App(tk.Tk):
         ttk.Button(btns, text="Copy to Clipboard", command=self._on_copy).pack(side="left")
         ttk.Button(btns, text="Save to Text", command=self._on_save).pack(side="left", padx=6)
 
-        self.status_label = ttk.Label(f, text="", foreground="#555", wraplength=900)
+        # Full-contrast text, not the muted gray fit_label below it — this line carries
+        # actionable warnings (missing files, Class 3 notice) that need to stay legible.
+        self.status_label = ttk.Label(f, text="", foreground=gui_theme.COLOR_TEXT, wraplength=900)
         self.status_label.pack(anchor="w")
 
-        self.fit_label = ttk.Label(f, text="", foreground="#555", wraplength=900)
+        self.fit_label = ttk.Label(f, text="", foreground=gui_theme.COLOR_MUTED, wraplength=900)
         self.fit_label.pack(anchor="w", pady=(0, 6))
 
         ttk.Checkbutton(
@@ -664,9 +983,6 @@ class App(tk.Tk):
         # pack_text (checked / default) and chunk_frame (unchecked) occupy the same
         # spot in the layout — only one is packed at a time, toggled in _refresh_pack_view().
         self.pack_text = scrolledtext.ScrolledText(f, wrap="word", height=18)
-
-        style = ttk.Style(self)
-        style.configure("Big.TButton", font=("", 16, "bold"), padding=14)
 
         # Paginated view (docs/ai-harness.md §3.1) — one page at a time via large
         # Prev/Next, so a pack that would otherwise be a monster paste never lands in
@@ -706,6 +1022,120 @@ class App(tk.Tk):
         self.prompt_text = scrolledtext.ScrolledText(f, wrap="word", height=6)
         self.prompt_text.pack(fill="x", pady=(2, 8))
 
+        self._build_inbox_section(f)
+
+    def _build_inbox_section(self, f):
+        """Paste-back area for manually-collected AI chat responses (see the
+        AI_INBOX_DIRNAME module comment). inbox_frame and inbox_unavailable_label occupy
+        the same slot below the prompt box -- _refresh_inbox_section() (called from
+        _on_pack) shows exactly one, since paste-back only makes sense for a single task.
+        inbox_frame's body is itself collapsible (via the ▾/▸ toggle button) so this
+        section doesn't have to claim screen space on every visit."""
+        self.inbox_frame = ttk.Frame(f)
+        self.inbox_expanded = True
+
+        ttk.Separator(self.inbox_frame, orient="horizontal").pack(fill="x", pady=(0, 6))
+        header = ttk.Frame(self.inbox_frame)
+        header.pack(fill="x")
+        self.inbox_toggle_btn = ttk.Button(
+            header,
+            text="▾  AI response inbox",
+            command=self._toggle_inbox_expanded,
+        )
+        self.inbox_toggle_btn.pack(side="left")
+
+        self.inbox_body = ttk.Frame(self.inbox_frame, padding=(4, 6, 0, 0))
+        self.inbox_body.pack(fill="x")
+
+        self.inbox_status_label = ttk.Label(
+            self.inbox_body, text="", foreground=gui_theme.COLOR_MUTED
+        )
+        self.inbox_status_label.pack(anchor="w")
+
+        ttk.Label(
+            self.inbox_body,
+            text="Paste a model's full response here, then Save — collect as many as you "
+            "like across separate chat sessions, then run the fusion pass "
+            "(docs/ai-harness.md §5) later, when there's budget.",
+            wraplength=880,
+        ).pack(anchor="w", pady=(2, 4))
+
+        self.inbox_paste_text = scrolledtext.ScrolledText(self.inbox_body, wrap="word", height=6)
+        self.inbox_paste_text.pack(fill="x", pady=(0, 4))
+
+        inbox_btns = ttk.Frame(self.inbox_body)
+        inbox_btns.pack(fill="x")
+        ttk.Button(inbox_btns, text="Save to Inbox", command=self._on_save_to_inbox).pack(
+            side="left"
+        )
+        ttk.Button(inbox_btns, text="Open Inbox Folder", command=self._on_open_inbox_folder).pack(
+            side="left", padx=6
+        )
+
+        self.inbox_unavailable_label = ttk.Label(
+            f,
+            text="Inbox paste-back is available when exactly one task is packed.",
+            foreground=gui_theme.COLOR_MUTED,
+        )
+
+    def _toggle_inbox_expanded(self):
+        self.inbox_expanded = not self.inbox_expanded
+        if self.inbox_expanded:
+            self.inbox_body.pack(fill="x")
+            self.inbox_toggle_btn.config(text="▾  AI response inbox")
+        else:
+            self.inbox_body.pack_forget()
+            self.inbox_toggle_btn.config(text="▸  AI response inbox")
+
+    def _refresh_inbox_section(self):
+        self.inbox_frame.pack_forget()
+        self.inbox_unavailable_label.pack_forget()
+        if len(self.current_tasks) == 1:
+            self.inbox_paste_text.delete("1.0", "end")
+            self._current_inbox_path = inbox_path(self.root_dir, self.current_tasks[0].header)
+            self._refresh_inbox_status()
+            self.inbox_frame.pack(fill="x", pady=(0, 4))
+        else:
+            self._current_inbox_path = None
+            self.inbox_unavailable_label.pack(anchor="w", pady=(0, 4))
+
+    def _refresh_inbox_status(self):
+        if self._current_inbox_path is None:
+            return
+        rel = self._current_inbox_path.relative_to(self.root_dir).as_posix()
+        n = count_inbox_responses(self._current_inbox_path)
+        if n:
+            text = f"{n} response{'s' if n != 1 else ''} already saved for this task ({rel})"
+        else:
+            text = f"No responses saved yet for this task — will be created at {rel}"
+        self.inbox_status_label.config(text=text)
+
+    def _on_save_to_inbox(self):
+        if self._current_inbox_path is None:
+            return
+        text = self.inbox_paste_text.get("1.0", "end")
+        title = self.current_tasks[0].header
+        try:
+            append_inbox_response(self._current_inbox_path, title, text)
+        except ValueError:
+            messagebox.showinfo("Nothing to save", "Paste a response before saving.")
+            return
+        self.inbox_paste_text.delete("1.0", "end")
+        self._refresh_inbox_status()
+        self._append_status("[saved response to inbox]")
+
+    def _on_open_inbox_folder(self):
+        if self._current_inbox_path is None:
+            return
+        folder = self._current_inbox_path.parent
+        folder.mkdir(parents=True, exist_ok=True)
+        if sys.platform == "win32":
+            os.startfile(folder)  # noqa: S606 -- opening a local folder in Explorer
+        elif sys.platform == "darwin":
+            subprocess.run(["open", str(folder)])
+        else:
+            subprocess.run(["xdg-open", str(folder)])
+
     def _on_pack(self):
         tasks = self._selected_tasks()
         if not tasks:
@@ -727,6 +1157,7 @@ class App(tk.Tk):
             files, self.root_dir, fence=True
         )
         self.current_tasks = tasks
+        self._refresh_inbox_section()
 
         self.pack_text.delete("1.0", "end")
         self.pack_text.insert("1.0", body)
@@ -823,7 +1254,9 @@ class App(tk.Tk):
             parts.append(
                 "[CLASS 3 — safety-critical: model output is research only, never applied without author review]"
             )
-        return "  ".join(parts)
+        # One clause per line (was a "  "-joined run-on) — a title line followed by a
+        # stack of bracketed warnings reads as a short list, not a wall of text.
+        return "\n".join(parts)
 
     def _fit_text(self, per_file, n_chars):
         """One label per model in MODEL_BUDGETS, so a model that's outright unusable for this
@@ -836,19 +1269,25 @@ class App(tk.Tk):
             parts.append(f"{model}: {tag}" + (f" ({detail})" if detail else ""))
         return "Model fit — " + " · ".join(parts)
 
+    def _append_status(self, extra):
+        self.status_label.config(text=self.status_label.cget("text") + "\n" + extra)
+
     def _on_back_to_picker(self):
         self.pack_frame.pack_forget()
         self.picker_frame.pack(fill="both", expand=True)
 
     def _refresh_pack_view(self):
         """Toggle between the full-text box (checked) and the paginated chunk stepper
-        (unchecked) — only one occupies the pack screen's main content area at a time."""
+        (unchecked) — only one occupies the pack screen's main content area at a time.
+        Anchored after=prompt_text (not before=prompt_label) so the editable prompt/task
+        description always reads above the read-only context blob, regardless of
+        whether the inbox section below has already been packed by this point."""
         if self.ignore_char_limit.get():
             self.chunk_frame.pack_forget()
-            self.pack_text.pack(fill="both", expand=True, pady=(6, 6), before=self.prompt_label)
+            self.pack_text.pack(fill="both", expand=True, pady=(6, 6), after=self.prompt_text)
         else:
             self.pack_text.pack_forget()
-            self.chunk_frame.pack(fill="both", expand=True, pady=(6, 6), before=self.prompt_label)
+            self.chunk_frame.pack(fill="both", expand=True, pady=(6, 6), after=self.prompt_text)
             self._show_chunk(0)
 
     def _show_chunk(self, idx):
@@ -913,9 +1352,6 @@ class App(tk.Tk):
             return
         Path(path).write_text(self._combined_text(), encoding="utf-8")
         self._append_status(f"[saved to {path}]")
-
-    def _append_status(self, extra):
-        self.status_label.config(text=self.status_label.cget("text") + "  " + extra)
 
     def _poll_result(self):
         try:
@@ -988,12 +1424,14 @@ class App(tk.Tk):
 
         bottom = ttk.Frame(f)
         bottom.pack(side="bottom", fill="x", pady=(6, 0))
+        # Right-aligned to match this wizard's other primary "move forward" actions
+        # (Pack ->, Configure & Send -> are both right-aligned in their topnav).
         self.btn_send = ttk.Button(
             bottom, text="Send", style="Big.TButton", command=self._on_send_from_settings
         )
-        self.btn_send.pack(side="left")
-        self.send_status_label = ttk.Label(bottom, text="", foreground="#555")
-        self.send_status_label.pack(side="left", padx=12)
+        self.btn_send.pack(side="right")
+        self.send_status_label = ttk.Label(bottom, text="", foreground=gui_theme.COLOR_MUTED)
+        self.send_status_label.pack(side="right", padx=12)
 
         ttk.Label(
             f,
@@ -1078,7 +1516,9 @@ class App(tk.Tk):
             ).pack(side="left", padx=(6, 0))
         else:
             label = self.qwen_detected_model or "(auto-detected at send time)"
-            ttk.Label(self.model_row, text=label, foreground="#555").pack(side="left", padx=6)
+            ttk.Label(self.model_row, text=label, foreground=gui_theme.COLOR_MUTED).pack(
+                side="left", padx=6
+            )
             ttk.Button(self.model_row, text="Detect Now", command=self._detect_qwen_model).pack(
                 side="left"
             )
@@ -1237,6 +1677,279 @@ class App(tk.Tk):
 
         threading.Thread(target=worker, daemon=True).start()
         self.after(200, self._poll_result)
+
+
+class TaskEditorDialog(tk.Toplevel):
+    """Modal create/edit dialog behind the picker screen's "+ New Task"/"Edit" buttons.
+    A class (deviating from the file's usual inline-function dialog pattern, e.g.
+    _show_response) given the field/widget count. Builds a field-dict via the pure
+    parse_task_fields()/build_task_lines()/validate_task_fields() helpers above and writes
+    through route_tasks.write_roadmap() -- the same guarded atomic-write path
+    refresh_routes()/_on_mark_complete() already use, per REVIEW_TIERS.md's Class 3 rule
+    for any docs/roadmap.md write path. Modal (transient + grab_set) so app.roadmap_lines
+    can't be mutated by another picker action while open -- what makes using it directly
+    as write_roadmap()'s original_lines safe."""
+
+    SCORE_VALUES = ("1", "2", "3", "4", "5")
+    CLASS_VALUES = ("1", "2", "3")
+
+    def __init__(self, app: "App", task: Task | None):
+        super().__init__(app)
+        self.app = app
+        self.task = task
+        self._manual_route = None  # round-tripped from an existing task, not settable here
+        self.title("Edit Task" if task is not None else "New Task")
+        self.geometry("780x700")
+
+        sections = _section_headings(app.roadmap_lines)
+        if not sections:
+            messagebox.showerror(
+                "No sections found",
+                "roadmap.md has no ##/### section headings to file a task under -- "
+                "add one by hand first.",
+                parent=app,
+            )
+            self.destroy()
+            return
+
+        self.file_lists = {label: [] for label in FILE_FIELD_LABELS}
+        self.listboxes = {}
+        self.suffix_warning = None
+
+        self.score_var = tk.StringVar(value="3")
+        self.class_var = tk.StringVar(value="2")
+        self.title_var = tk.StringVar()
+        self.section_var = tk.StringVar(value=sections[0])
+        self.is_fenced_var = tk.BooleanVar(value=False)
+        self.effort_var = tk.StringVar()
+
+        self._build_widgets(sections)
+        if task is not None:
+            self._prefill(task)
+        self._refresh_effort_preview()
+
+        self.transient(app)
+        self.grab_set()
+
+    # ── layout ──
+
+    def _build_widgets(self, sections):
+        f = ttk.Frame(self, padding=12)
+        f.pack(fill="both", expand=True)
+
+        top = ttk.Frame(f)
+        top.pack(fill="x", pady=(0, 8))
+        ttk.Label(top, text="Score:").grid(row=0, column=0, sticky="w")
+        ttk.Combobox(
+            top, textvariable=self.score_var, values=self.SCORE_VALUES, state="readonly", width=4
+        ).grid(row=0, column=1, padx=(4, 16))
+        ttk.Label(top, text="Class:").grid(row=0, column=2, sticky="w")
+        ttk.Combobox(
+            top, textvariable=self.class_var, values=self.CLASS_VALUES, state="readonly", width=4
+        ).grid(row=0, column=3, padx=(4, 16))
+        ttk.Label(top, text="Section:").grid(row=0, column=4, sticky="w")
+        ttk.Combobox(
+            top, textvariable=self.section_var, values=sections, state="readonly", width=32
+        ).grid(row=0, column=5, padx=(4, 0))
+
+        title_row = ttk.Frame(f)
+        title_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(title_row, text="Title:").pack(side="left")
+        ttk.Entry(title_row, textvariable=self.title_var).pack(
+            side="left", fill="x", expand=True, padx=(6, 0)
+        )
+
+        if self.task is not None:
+            self.suffix_warning = ttk.Label(f, text="", foreground="#a00", wraplength=740)
+            self.suffix_warning.pack(anchor="w", pady=(0, 4))
+
+        ttk.Label(f, text="Description:").pack(anchor="w")
+        self.body_text = scrolledtext.ScrolledText(f, wrap="word", height=6)
+        self.body_text.pack(fill="x", pady=(2, 4))
+        ttk.Checkbutton(
+            f,
+            text="Treat description as a fenced ```text prompt block (sent to the model verbatim)",
+            variable=self.is_fenced_var,
+        ).pack(anchor="w", pady=(0, 8))
+
+        grid = ttk.Frame(f)
+        grid.pack(fill="both", expand=True, pady=(0, 8))
+        grid.columnconfigure(0, weight=1)
+        grid.columnconfigure(1, weight=1)
+        grid.rowconfigure(0, weight=1)
+        grid.rowconfigure(1, weight=1)
+        positions = {"Implement": (0, 0), "Context": (0, 1), "Write": (1, 0), "Read": (1, 1)}
+        for label, (row, col) in positions.items():
+            self._build_file_group(grid, label, row, col)
+
+        bottom = ttk.Frame(f)
+        bottom.pack(fill="x", pady=(4, 0))
+        ttk.Label(bottom, textvariable=self.effort_var, foreground=gui_theme.COLOR_MUTED).pack(
+            side="left"
+        )
+        ttk.Button(bottom, text="Cancel", command=self.destroy).pack(side="right")
+        ttk.Button(bottom, text="Save", command=self._on_save_clicked).pack(
+            side="right", padx=(0, 6)
+        )
+
+    def _build_file_group(self, parent, label, row, col):
+        box = ttk.LabelFrame(parent, text=label, padding=6)
+        box.grid(row=row, column=col, sticky="nsew", padx=4, pady=4)
+
+        lb_frame = ttk.Frame(box)
+        lb_frame.pack(fill="both", expand=True)
+        lb = tk.Listbox(lb_frame, selectmode="extended", height=4)
+        vsb = ttk.Scrollbar(lb_frame, orient="vertical", command=lb.yview)
+        lb.configure(yscrollcommand=vsb.set)
+        lb.pack(side="left", fill="both", expand=True)
+        vsb.pack(side="left", fill="y")
+        self.listboxes[label] = lb
+
+        btns = ttk.Frame(box)
+        btns.pack(fill="x", pady=(4, 0))
+        ttk.Button(btns, text="Add Files...", command=lambda: self._add_files(label)).pack(
+            side="left"
+        )
+        ttk.Button(btns, text="Add Path...", command=lambda: self._add_path(label)).pack(
+            side="left", padx=4
+        )
+        ttk.Button(btns, text="Remove Selected", command=lambda: self._remove_selected(label)).pack(
+            side="left"
+        )
+
+    # ── prefill (edit only) ──
+
+    def _prefill(self, task: Task):
+        block = self.app.roadmap_lines[task.start : task.end]
+        fields = parse_task_fields(block)
+        self.score_var.set(fields["score"] or "3")
+        self.class_var.set(fields["task_class"] or "2")
+        self.title_var.set(fields["title"])
+        self.section_var.set(task.section or self.section_var.get())
+        self.body_text.delete("1.0", "end")
+        self.body_text.insert("1.0", fields["body"])
+        self.is_fenced_var.set(fields["is_fenced"])
+        self.file_lists = {k: list(v) for k, v in fields["file_fields"].items()}
+        self._manual_route = fields["manual_route"]
+        for label in FILE_FIELD_LABELS:
+            self._refresh_listbox(label)
+        if fields["has_field_suffix"] and self.suffix_warning is not None:
+            self.suffix_warning.config(
+                text="This task uses a per-line class-suffix annotation (e.g. "
+                '"Implement (Class 3 — ...):") that this editor does not support -- '
+                "saving will drop it."
+            )
+
+    # ── file-list helpers ──
+
+    def _refresh_listbox(self, label):
+        lb = self.listboxes[label]
+        lb.delete(0, "end")
+        for p in self.file_lists[label]:
+            lb.insert("end", p)
+
+    def _relativize(self, raw_path: str) -> str:
+        try:
+            return Path(raw_path).resolve().relative_to(self.app.root_dir.resolve()).as_posix()
+        except ValueError:
+            return Path(raw_path).as_posix()
+
+    def _add_files(self, label):
+        paths = filedialog.askopenfilenames(
+            initialdir=str(self.app.root_dir), title=f"Add {label} files", parent=self
+        )
+        if not paths:
+            return
+        for p in paths:
+            rel = self._relativize(p)
+            if rel not in self.file_lists[label]:
+                self.file_lists[label].append(rel)
+        self._refresh_listbox(label)
+        self._refresh_effort_preview()
+
+    def _add_path(self, label):
+        raw = simpledialog.askstring(
+            f"Add {label} path",
+            "Path relative to the repo root (or <name>/... for an external reference) -- "
+            "for a not-yet-created file a file picker can't select:",
+            parent=self,
+        )
+        if not raw:
+            return
+        raw = raw.strip()
+        if raw and raw not in self.file_lists[label]:
+            self.file_lists[label].append(raw)
+        self._refresh_listbox(label)
+        self._refresh_effort_preview()
+
+    def _remove_selected(self, label):
+        lb = self.listboxes[label]
+        for idx in reversed(lb.curselection()):
+            del self.file_lists[label][idx]
+        self._refresh_listbox(label)
+        self._refresh_effort_preview()
+
+    def _refresh_effort_preview(self):
+        effort = compute_task_effort(self.file_lists, self.app.root_dir)
+        self.effort_var.set(f"Effort (auto-computed on save): ~{effort}")
+
+    # ── save ──
+
+    def _collect_fields(self) -> dict:
+        return {
+            "score": self.score_var.get(),
+            "task_class": self.class_var.get(),
+            "title": self.title_var.get().strip(),
+            "section": self.section_var.get(),
+            "body": self.body_text.get("1.0", "end").strip(),
+            "is_fenced": self.is_fenced_var.get(),
+            "file_fields": self.file_lists,
+            "manual_route": self._manual_route,
+        }
+
+    def _on_save_clicked(self):
+        fields = self._collect_fields()
+        err = validate_task_fields(fields)
+        if err:
+            messagebox.showerror("Cannot save", err, parent=self)
+            return
+
+        block = build_task_lines(fields)
+        try:
+            if self.task is None:
+                result = insert_task_block(self.app.roadmap_lines, fields["section"], block)
+                # pure addition -- no overwrite, no confirm needed
+            else:
+                if not messagebox.askyesno(
+                    "Overwrite task?",
+                    "This replaces the existing task's content in roadmap.md. This cannot "
+                    "be undone from within Quest Board. Continue?",
+                    parent=self,
+                ):
+                    return
+                if fields["section"] == self.task.section:
+                    result = replace_task_block(
+                        self.app.roadmap_lines, self.task.start, self.task.end, block
+                    )
+                else:
+                    result = move_task_block(
+                        self.app.roadmap_lines,
+                        self.task.start,
+                        self.task.end,
+                        fields["section"],
+                        block,
+                    )
+        except ValueError as e:
+            messagebox.showerror("Cannot save", str(e), parent=self)
+            return
+
+        try:
+            route_tasks.write_roadmap(self.app.ROADMAP_PATH, self.app.roadmap_lines, result)
+        except RuntimeError as e:
+            messagebox.showerror("Save failed", str(e), parent=self)
+            return
+        self.app._load_tasks()  # re-derives Route/Effort/Chars via the existing refresh pipeline
+        self.destroy()
 
 
 def main():
