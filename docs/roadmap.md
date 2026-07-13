@@ -158,10 +158,10 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
       of the five subsystems named by title in `TRIAGE_POLICY.md` — it fits the tie-breaker
       ("does it change a slicer calculation that ends up in emitted G-code values?").
 
-  **Implement:** `src/libslic3r/Fill/` · `src/libslic3r/LayerRegion.cpp`
+  **Implement:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
   **Route:** claude
-  **Effort:** 105
-  **Chars:** ~52,671 total (largest: src/libslic3r/LayerRegion.cpp ~52,671) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 384
+  **Chars:** ~192,221 total (largest: src/libslic3r/Fill/FillBase.cpp ~139,550) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Previously working filaments now show as "incompatible" after profile changes (#12314)**
       — Compatibility filtering regression; valid filament/printer combos incorrectly
@@ -323,9 +323,10 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
       perimeter generation lays down two overlapping layers at the same height (workaround:
       switch to Arachne). Real print-quality/material-waste bug in wall generation.
 
-  **Context:** `src/libslic3r/Fill/` (Classic perimeter path — exact function not yet
+  **Context:** `src/libslic3r/PerimeterGenerator.cpp` (Classic perimeter path — exact function not yet
   **Route:** claude
-  **Effort:** 1
+  **Effort:** 151
+  **Chars:** ~151,019 total (largest: src/libslic3r/PerimeterGenerator.cpp ~151,019) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   pinned down, confirm at diff-read time)
 
 - [ ] **Score 3 🥈 · Class 2 — Window focus randomly steals between instances, can abort an active print (#9874)**
@@ -365,9 +366,10 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
       print-host-support hardware scope. Open PR **#13212** already addresses this — read that
       diff first per the Cherry-pick tier.
 
-  **Context:** `src/slic3r/Utils/` (no dedicated Elegoo file exists yet — this PR would add one)
+  **Context:** `src/slic3r/Utils/ElegooLink.cpp` · `src/slic3r/Utils/ElegooLink.hpp`
   **Route:** gemini
-  **Effort:** 1
+  **Effort:** 131
+  **Chars:** ~65,321 total (largest: src/slic3r/Utils/ElegooLink.cpp ~61,151) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Color-change sections force fan to 100%, ignoring filament profile min/max (#3677)**
       — Confirmed by a second reporter: filament-profile fan-speed bounds are ignored
@@ -592,19 +594,20 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
       — New infill pattern optimized for post-fill with ballast/structural fillers (sand,
       plaster, epoxy) rather than pure mechanical strength. Touches Fill/.
 
-  **Context:** `src/libslic3r/Fill/`
+  **Context:** `src/libslic3r/Fill/FillAdaptive.cpp` · `src/libslic3r/Fill/Fill.cpp`
   **Route:** claude
-  **Effort:** 1
+  **Effort:** 331
+  **Chars:** ~165,264 total (largest: src/libslic3r/Fill/Fill.cpp ~89,484) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Setting to favor shortest bridge path / manual bridge direction (#11942)**
       — Bridges over a rectangle currently span the long axis by default, causing droop;
       favoring the shortest span (or letting the user pick) would fix this. Touches bridging
       logic that reaches emitted extrusion paths.
 
-  **Context:** `src/libslic3r/Fill/` · `src/libslic3r/LayerRegion.cpp`
+  **Context:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
   **Route:** claude
-  **Effort:** 105
-  **Chars:** ~52,671 total (largest: src/libslic3r/LayerRegion.cpp ~52,671) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 384
+  **Chars:** ~192,221 total (largest: src/libslic3r/Fill/FillBase.cpp ~139,550) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Option to stop heating the bed N layers before print end (#12037)**
       — Lets prints start cooling sooner. Small, bounded config + G-code change.
@@ -784,124 +787,322 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
 These tasks implement the staged direction documented in
 `research/architecture-maintainability.md`. They are ordered prerequisites, not a license for a
-monolithic rewrite. Preserve behavior first, then move one boundary at a time.
+monolithic rewrite. Preserve behavior first, keep every commit buildable, and stop after any pilot
+whose maintenance cost exceeds its demonstrated value. Generated schema work stays in shadow mode
+until equivalence and upstream-merge cost are measured. The capability pilot may proceed after the
+baseline without waiting for broad schema adoption.
 
-- [ ] **Score 5 🥇 · Class 2 — Baseline the configuration contract and legacy compatibility**
-      — Inventory the compiled setting registry and its GUI/CLI/3MF/profile consumers; emit a
-      machine-readable schema snapshot; add representative legacy 3MF, profile-inheritance,
-      default-value, enum-serialization, and feature-disabled fixtures. This baseline must land
-      before schema generation so later work can prove behavioral equivalence.
+- [ ] **Score 5 🥇 · Class 1 — Inventory configuration consumers and establish the migration dashboard**
+      — Map representative settings from registration and typed accessors through GUI/editor,
+      CLI, presets/inheritance, validation, 3MF/import-export, and slicing consumers. Establish
+      baseline counters for hand registration, settings edited in more than two ownership
+      locations, vendor/model branches, GUI modules with config semantics, forbidden dependency
+      edges, and upstream merge conflicts. This is evidence gathering, not schema redesign.
 
-  **Implement:** `tests/libslic3r/test_config.cpp` · `tests/libslic3r/test_3mf.cpp` · `src/dev-utils/OrcaSlicer_profile_validator.cpp`
-  **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/Preset.cpp` · `src/libslic3r/Format/bbs_3mf.cpp`
+  **Read:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/Preset.cpp` · `src/libslic3r/Format/bbs_3mf.cpp` · `src/slic3r/GUI/Tab.cpp` · `src/OrcaSlicer.cpp`
   **Write:** `research/configuration-contract.md`
   **Route:** claude
-  **Effort:** 10918
-  **Chars:** ~1,364,731 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 15415
+  **Chars:** ~2,202,120 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 5 🥇 · Class 2 — Export the normalized active configuration registry**
+      — Add a headless validator/debug output that deterministically records stable setting IDs,
+      types, defaults, bounds, enum encodings, CLI exposure, GUI metadata, and deprecation data.
+      This active-registry snapshot becomes the oracle for shadow-generated differential tests
+      and should also explain unknown or invalid profile keys.
+
+  **Implement:** `src/dev-utils/OrcaSlicer_profile_validator.cpp` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp`
+  **Context:** `research/configuration-contract.md` · `src/CMakeLists.txt`
+  **Write:** `tests/data/config_registry/`
+  **Route:** claude
+  **Effort:** 4124
+  **Chars:** ~687,411 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 5 🥇 · Class 2 — Add focused configuration and preset compatibility fixtures**
+      — Cover representative setting types, defaults, enum serialization, feature-disabled
+      behavior, a system→user inheritance chain, unknown keys, and compatibility explanations.
+      Prefer normalized comparisons against the active implementation and real artifacts over
+      manually duplicating all 877 expected values.
+
+  **Implement:** `tests/libslic3r/test_config.cpp` · `tests/libslic3r/CMakeLists.txt`
+  **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/Preset.cpp` · `research/configuration-contract.md`
+  **Write:** `tests/data/config/` · `tests/data/presets/`
+  **Route:** claude
+  **Effort:** 5577
+  **Chars:** ~796,716 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 5 🥇 · Class 2 — Add versioned 3MF migration and round-trip fixtures**
+      — Build a small legacy corpus covering detection on open, in-memory migration, explicit
+      save to the current format, and unchanged source files during reads. Record approved deltas
+      and require recoverable backup or atomic replacement for destructive migrations.
+
+  **Implement:** `tests/libslic3r/test_3mf.cpp` · `tests/libslic3r/CMakeLists.txt`
+  **Context:** `src/libslic3r/Format/3mf.cpp` · `src/libslic3r/Format/bbs_3mf.cpp`
+  **Write:** `tests/data/test_3mf/compatibility/`
+  **Route:** claude
+  **Effort:** 3057
+  **Chars:** ~611,471 total (largest: src/libslic3r/Format/bbs_3mf.cpp ~454,405) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 1 — Record architecture performance, build-time, and binary-size baselines**
+      — On one documented stable configuration, record clean and representative incremental
+      builds, application/core binary size, registry load, startup/profile validation, and
+      canonical slice-time trends. Start as non-gating measurements; define a material-regression
+      review rule only after variance is understood.
+
+  **Read:** `CMakeLists.txt` · `src/libslic3r/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt` · `build_windows.ps1`
+  **Write:** `research/architecture-baselines.md` · `scripts/architecture_metrics.ps1`
+  **Route:** kimi
+  **Effort:** 353
+  **Chars:** ~58,784 total (largest: CMakeLists.txt ~40,040) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Record the configuration-schema architecture decision**
       — Specify ownership of setting identity, type, defaults, bounds, units, translation keys,
       serialization version, deprecation/replacement, generated C++ bindings, runtime metadata,
-      validation hooks, and migrations. Compare build-time code generation with runtime schema
-      interpretation and explicitly reject or defer arbitrary native plugins.
+      validation-hook interface, and migrations. Compare JSON, YAML, and TOML for deterministic
+      parsing, comments, source locations, dependency cost, gettext extraction, and CMake/Python
+      availability. Decide compiled-versus-header bindings and explicitly reject or defer custom
+      DSLs, runtime schema interpretation, and arbitrary native plugins.
 
-  **Read:** `research/architecture-maintainability.md` · `research/configuration-contract.md` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp`
+  **Read:** `research/architecture-maintainability.md` · `research/configuration-contract.md` · `research/architecture-baselines.md` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `CMakeLists.txt`
   **Write:** `docs/architecture/configuration-schema.md`
   **Route:** claude
-  **Effort:** 3400
-  **Chars:** ~680,066 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 5129
+  **Chars:** ~732,745 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 2 — Generate one behavior-equivalent PrintConfig setting family from a declarative schema**
-      — Build the smallest end-to-end generator slice for a representative, low-risk setting
-      family. Generated registration and typed bindings must match existing defaults,
-      serialization, CLI exposure, and GUI metadata under differential tests. Do not move
-      slicing semantics or hand-edit generated output in this milestone.
+- [ ] **Score 5 🥇 · Class 1 — Build a deterministic shadow schema generator with golden tests**
+      — Implement the ADR's parser and generator in new local files with deterministic ordering,
+      source-located errors, golden-output tests, and a `--check` mode. Generate compiled
+      implementation data rather than a template-heavy public header. Keep the active
+      `PrintConfig` registry untouched and do not redesign any setting in this task.
 
-  **Implement:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/CMakeLists.txt` · `cmake/`
-  **Context:** `research/configuration-contract.md` · `docs/architecture/configuration-schema.md` · `tests/libslic3r/test_config.cpp`
-  **Write:** `src/libslic3r/config_schema/`
+  **Implement:** `src/libslic3r/CMakeLists.txt` · `cmake/`
+  **Context:** `docs/architecture/configuration-schema.md` · `research/architecture-baselines.md`
+  **Write:** `src/libslic3r/config_schema/` · `scripts/generate_config_schema.py` · `tests/config_schema/`
+  **Route:** kimi
+  **Effort:** 116
+  **Chars:** ~16,520 total (largest: src/libslic3r/CMakeLists.txt ~16,520) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 5 🥇 · Class 2 — Shadow-generate one low-risk PrintConfig setting family**
+      — Encode one representative setting family without activating it. Differentially compare
+      IDs, types, defaults, bounds, enum encodings, serialization, CLI exposure, GUI metadata,
+      and named validation hooks against the normalized active registry. A mismatch blocks
+      conversion; acceptable build and binary-size deltas are also required.
+
+  **Implement:** `src/libslic3r/config_schema/` · `tests/libslic3r/test_config.cpp` · `src/libslic3r/CMakeLists.txt`
+  **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `tests/data/config_registry/` · `research/architecture-baselines.md`
   **Route:** claude
-  **Effort:** 5633
+  **Effort:** 4929
   **Chars:** ~704,128 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 1 — Add the post-upstream schema reconciliation report**
+      — Compare the active registry with the shadow schema after each upstream merge and report
+      missing settings, changed registrations, and stale schema entries. Document the workflow
+      for re-importing upstream semantics without mixing schema refactors with behavior changes.
+      If recurring reconciliation cost exceeds the pilot's value, retain the schema as an audit
+      artifact rather than making it authoritative.
+
+  **Implement:** `scripts/generate_config_schema.py`
+  **Context:** `TRIAGE_POLICY.md` · `docs/architecture/configuration-schema.md` · `tests/data/config_registry/`
+  **Write:** `docs/architecture/upstream-schema-reconciliation.md`
+  **Route:** kimi
+  **Effort:** 199
+  **Chars:** ~39,761 total (largest: TRIAGE_POLICY.md ~39,761) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 5 🥇 · Class 2 — Activate generated bindings for one setting family consumer by consumer**
+      — Cut over the proven family atomically while tracking each consumer: registration, typed
+      accessor, GUI/editor, CLI, preset/3MF serialization, validation, and slicing hook. Keep
+      semantics unchanged, update the migration dashboard, and leave any remaining duplicate
+      table explicitly recorded rather than assumed away.
+
+  **Implement:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/config_schema/`
+  **Context:** `research/configuration-contract.md` · `tests/libslic3r/test_config.cpp` · `tests/libslic3r/test_3mf.cpp`
+  **Route:** claude
+  **Effort:** 4175
+  **Chars:** ~695,770 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Separate safe runtime presentation metadata from slicing semantics**
       — After generated bindings are stable, load versioned labels, tooltips, grouping, help
       links, and safe visibility predicates as runtime metadata while keeping stable setting
       identity, defaults, serialization, migrations, and algorithmic validation typed and
-      versioned. Snapshot current Tab behavior before migrating one settings page.
+      versioned. Migrate one settings page only, preserve stable gettext message IDs and
+      translator context, and load metadata at startup; hot reload remains deferred.
 
   **Implement:** `src/slic3r/GUI/Tab.cpp` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/config_schema/`
   **Context:** `docs/architecture/configuration-schema.md` · `resources/data/`
-  **Write:** `resources/data/config_ui/` · `tests/slic3r_gui/`
+  **Write:** `resources/data/config_ui/` · `tests/slic3r_gui/` · `docs/architecture/config-ui-metadata.md`
   **Route:** claude
-  **Effort:** 6972
+  **Effort:** 7967
   **Chars:** ~995,933 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 2 — Define typed printer capabilities and migrate one vendor check family**
-      — Introduce a versioned capability model for hardware facts such as camera, lidar,
-      multi-material support, remote-print transport, tool count, and nozzle constraints. Add
-      validation and equivalence tests, then replace one bounded vendor/model-name branch family.
-      Protocol and security-sensitive implementations remain compiled.
+- [ ] **Score 5 🥇 · Class 1 — Define the printer-capability contract for owned hardware**
+      — Specify typed, versioned hardware facts needed by custom FDM, Flashforge, and future
+      toolchanging printers: tool count, nozzle constraints, multi-material support, remote-print
+      transport, bed leveling, camera, and lidar where applicable. Keep hardware facts distinct
+      from application policy and vendor packaging; record unknown-capability behavior and
+      migration rules.
+
+  **Read:** `src/libslic3r/Preset.hpp` · `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `resources/profiles_template/Template.json` · `TRIAGE_POLICY.md`
+  **Write:** `docs/architecture/printer-capabilities.md`
+  **Route:** claude
+  **Effort:** 3752
+  **Chars:** ~625,251 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 5 🥇 · Class 2 — Load and validate typed printer capabilities without changing behavior**
+      — Add the capability representation, startup loading, schema-version checks, structured
+      diagnostics, and equivalence fixtures for representative owned/in-scope printers. Keep
+      current vendor/model branches active so this task is additive and independently reversible.
 
   **Implement:** `src/libslic3r/Preset.hpp` · `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `src/dev-utils/OrcaSlicer_profile_validator.cpp`
-  **Context:** `resources/profiles_template/Template.json` · `research/architecture-maintainability.md`
-  **Write:** `docs/architecture/printer-capabilities.md` · `tests/libslic3r/test_printer_capabilities.cpp`
+  **Context:** `docs/architecture/printer-capabilities.md` · `resources/profiles_template/Template.json`
+  **Write:** `tests/libslic3r/test_printer_capabilities.cpp` · `tests/data/printer_capabilities/`
   **Route:** claude
-  **Effort:** 4845
-  **Chars:** ~605,669 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 4743
+  **Chars:** ~592,837 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 1 — Split configuration and preset loading into enforceable CMake targets**
-      — Extract narrow `slic3r_config` and `slic3r_presets` targets without changing public
-      behavior. Document allowed dependency direction, remove accidental GUI dependencies, and
-      make their focused tests link without the full GUI. This is the pilot for later geometry,
-      format, G-code, gizmo, plater, and device boundaries.
+- [ ] **Score 5 🥇 · Class 2 — Replace one vendor/model check family with capability queries**
+      — Select one bounded branch relevant to owned hardware, snapshot old visibility/behavior,
+      migrate consumers to typed capability queries, and remove only the superseded name check.
+      Do not turn capability data into UI policy expressions or migrate unrelated vendors.
 
-  **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
-  **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/Preset.cpp` · `research/architecture-maintainability.md`
+  **Implement:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
+  **Context:** `docs/architecture/printer-capabilities.md` · `tests/libslic3r/test_printer_capabilities.cpp` · `research/configuration-contract.md`
+  **Route:** claude
+  **Effort:** 2592
+  **Chars:** ~518,497 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 1 — Define a transport-agnostic device print-job boundary**
+      — Document the minimum domain interface that prevents plater/slicing code from depending on
+      MQTT, OctoPrint, Moonraker, or Flashforge details. Inventory current protocol leakage and
+      identify one read-only pilot seam; do not redesign network sandboxing, credentials, or
+      protocol implementations in this task.
+
+  **Read:** `src/slic3r/Utils/PrintHost.hpp` · `src/slic3r/Utils/OctoPrint.hpp` · `src/slic3r/Utils/Flashforge.hpp` · `src/slic3r/GUI/Plater.cpp`
+  **Write:** `docs/architecture/device-print-job.md`
+  **Route:** claude
+  **Effort:** 4272
+  **Chars:** ~854,330 total (largest: src/slic3r/GUI/Plater.cpp ~840,187) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 1 — Map module dependencies and set target budgets before splitting**
+      — Document current configuration/preset incoming and outgoing edges, initialization order,
+      public headers, PCH assumptions, and forbidden GUI dependencies. Define success budgets for
+      focused GUI-free linking, clean/incremental build trends, and binary size; do not change
+      target ownership yet.
+
+  **Read:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/Preset.cpp`
   **Write:** `docs/architecture/module-boundaries.md`
   **Route:** claude
-  **Effort:** 5730
-  **Chars:** ~818,524 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 4834
+  **Chars:** ~805,692 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 2 — Extract a first stateful service from Plater with characterization tests**
-      — Choose one cohesive, non-G-code responsibility such as plate repository, selection
-      model, printer assignment, or project session. Document ownership and background-thread
-      access, characterize current behavior, and leave `Plater` as coordinator. Do not combine
-      this with unrelated cleanup or mechanically split the file by size.
+- [ ] **Score 3 🥈 · Class 1 — Pilot a read-only slic3r_config CMake boundary**
+      — Extract the smallest configuration registry/read interface into a compiled target, keep
+      write/migration paths in place, and make focused config tests link without wxWidgets or the
+      full GUI. Compare clean/incremental builds and binary size with the recorded baseline; stop
+      rather than broaden the split if the boundary adds more cost than value.
+
+  **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
+  **Context:** `docs/architecture/module-boundaries.md` · `research/architecture-baselines.md` · `src/libslic3r/PrintConfig.hpp`
+  **Route:** claude
+  **Effort:** 780
+  **Chars:** ~130,021 total (largest: src/libslic3r/PrintConfig.hpp ~99,386) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 2 — Move configuration write and preset-loading paths behind proven targets**
+      — Only after the read-only pilot passes its gate, add the mutation/migration interface and a
+      narrow `slic3r_presets` target. Preserve initialization order, inheritance, and load/save
+      semantics; add a dependency check for the explicitly forbidden GUI edges.
+
+  **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
+  **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `docs/architecture/module-boundaries.md`
+  **Route:** claude
+  **Effort:** 3295
+  **Chars:** ~549,132 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 1 — Characterize one Plater responsibility and its state boundaries**
+      — Choose one cohesive, non-G-code candidate such as selection model, printer assignment, or
+      project session. Document state ownership, command ordering, existing undo transaction use,
+      and one of three thread-affinity models: main-thread-only, immutable/thread-safe, or
+      serialized through the existing job/event queue. Produce headless characterization cases
+      before moving code.
+
+  **Read:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Plater.hpp` · `src/slic3r/GUI/BackgroundSlicingProcess.cpp`
+  **Write:** `docs/architecture/plater-service-pilot.md` · `tests/slic3r_gui/plater_service_cases.md`
+  **Route:** claude
+  **Effort:** 4589
+  **Chars:** ~917,713 total (largest: src/slic3r/GUI/Plater.cpp ~840,187) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 2 — Extract the characterized Plater service behind a headless interface**
+      — Move only the responsibility selected by the characterization task, keep domain state and
+      commands free of wxWidgets types where practical, reuse the existing undo boundary, and
+      leave `Plater` as coordinator. Do not bundle an undo redesign, actor framework, rendering
+      changes, or unrelated cleanup.
 
   **Implement:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Plater.hpp` · `src/slic3r/CMakeLists.txt`
-  **Context:** `src/slic3r/GUI/BackgroundSlicingProcess.cpp` · `research/architecture-maintainability.md` · `docs/architecture/module-boundaries.md`
+  **Context:** `docs/architecture/plater-service-pilot.md` · `src/slic3r/GUI/BackgroundSlicingProcess.cpp`
   **Write:** `tests/slic3r_gui/`
   **Route:** claude
-  **Effort:** 6691
-  **Chars:** ~955,913 total (largest: src/slic3r/GUI/Plater.cpp ~840,187) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 5658
+  **Chars:** ~943,081 total (largest: src/slic3r/GUI/Plater.cpp ~840,187) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 2 — Formalize versioned runtime content packages and atomic validation**
-      — Define a manifest with package ID/version, schema compatibility range, dependencies,
-      content hashes, and optional signature. Extend the profile validator for unknown keys,
-      missing references, inheritance cycles, invalid capabilities, atomic install/rollback, and
-      a last-known-good package. Do not introduce executable plugins or independently update
-      slicing-affecting semantics.
+- [ ] **Score 3 🥈 · Class 2 — Define and validate a local runtime-content package manifest**
+      — Specify package ID/version, schema compatibility range, dependencies, and mandatory
+      content hashes. Extend the validator for unknown keys, missing references, inheritance
+      cycles, invalid capabilities, and incompatible schema versions. Packages remain local,
+      startup-loaded, and non-executable; remote signing and hot reload are deferred.
 
-  **Implement:** `src/dev-utils/OrcaSlicer_profile_validator.cpp` · `src/libslic3r/PresetBundle.cpp` · `src/libslic3r/Preset.cpp`
+  **Implement:** `src/dev-utils/OrcaSlicer_profile_validator.cpp`
   **Context:** `resources/profiles_template/` · `docs/architecture/configuration-schema.md` · `docs/architecture/printer-capabilities.md`
-  **Write:** `docs/architecture/runtime-content-packages.md` · `tests/libslic3r/test_profile_packages.cpp`
-  **Route:** claude
-  **Effort:** 4207
-  **Chars:** ~525,844 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Write:** `docs/architecture/runtime-content-packages.md` · `tests/libslic3r/test_profile_packages.cpp` · `tests/data/profile_packages/`
+  **Route:** kimi
+  **Effort:** 51
+  **Chars:** ~7,347 total (largest: src/dev-utils/OrcaSlicer_profile_validator.cpp ~7,347) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 2 — Consolidate product switches behind a typed runtime feature policy**
-      — Inventory product/release/hardware macros separately from platform, dependency, and debug
-      guards. Compose runtime policy from compiled capabilities, platform capabilities, release
-      channel, user experiments, and active-printer capabilities; migrate one bounded switch
-      family with feature-on and feature-off equivalence tests.
+- [ ] **Score 3 🥈 · Class 2 — Add staged package activation, atomic rollback, and last-known-good recovery**
+      — After local manifest validation is stable, stage a candidate package, validate before
+      activation, atomically switch it into use, and recover the last-known-good copy after
+      failure. Keep activation at application startup; hot updates require a later explicit
+      design. If multi-author remote distribution is ever enabled, add a separate mandatory
+      signature/trust/key-rotation decision first.
+
+  **Implement:** `src/libslic3r/PresetBundle.cpp` · `src/libslic3r/Preset.cpp`
+  **Context:** `docs/architecture/runtime-content-packages.md` · `tests/libslic3r/test_profile_packages.cpp`
+  **Route:** claude
+  **Effort:** 2074
+  **Chars:** ~518,497 total (largest: src/libslic3r/PresetBundle.cpp ~311,288) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 1 — Classify feature macros and identify one product-policy pilot**
+      — Inventory platform availability, optional dependency, debug/instrumentation, algorithm
+      experiment, and product-policy macros. Only product policy is a default runtime-migration
+      candidate. Select one bounded family whose implementations can safely coexist and record
+      current on/off behavior across platforms.
+
+  **Read:** `CMakeLists.txt` · `src/CMakeLists.txt` · `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp`
+  **Write:** `docs/architecture/feature-policy.md`
+  **Route:** claude
+  **Effort:** 2378
+  **Chars:** ~475,696 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 2 — Introduce the typed runtime feature-policy composition root**
+      — Compose build capabilities, platform capabilities, release channel, user experiments,
+      and active-printer capabilities behind one typed query interface. Do not migrate existing
+      macro families or remove legitimate compile-time guards in this task.
 
   **Implement:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp` · `src/CMakeLists.txt`
-  **Context:** `CMakeLists.txt` · `docs/architecture/printer-capabilities.md` · `research/architecture-maintainability.md`
-  **Write:** `docs/architecture/feature-policy.md` · `tests/slic3r_gui/`
+  **Context:** `docs/architecture/feature-policy.md` · `docs/architecture/printer-capabilities.md`
+  **Write:** `tests/slic3r_gui/feature_policy_tests.cpp`
   **Route:** claude
-  **Effort:** 3908
-  **Chars:** ~488,528 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 2614
+  **Chars:** ~435,656 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [ ] **Score 3 🥈 · Class 2 — Migrate one product-policy switch family with on/off equivalence tests**
+      — Replace only the family selected by the macro inventory, preserve compiled availability
+      checks, verify feature-on and feature-off behavior on Windows/macOS/Linux, and update the
+      migration dashboard. Retain all other macros until their own bounded pilot is justified.
+
+  **Implement:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp` · `src/CMakeLists.txt`
+  **Context:** `docs/architecture/feature-policy.md` · `tests/slic3r_gui/feature_policy_tests.cpp`
+  **Route:** claude
+  **Effort:** 2178
+  **Chars:** ~435,656 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -934,9 +1135,10 @@ diff-read time, not assumed from the title here.
 - [ ] **Score 1 🥉 · Class 3 — Top/bottom fill order control (Outward/Inward) (#14179)** —
       changes fill order, which ends up in emitted G-code path order.
 
-  **Context:** `src/libslic3r/Fill/`
+  **Context:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
   **Route:** claude
-  **Effort:** 1
+  **Effort:** 384
+  **Chars:** ~192,221 total (largest: src/libslic3r/Fill/FillBase.cpp ~139,550) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Retract amount after wipe (#11015)** — touches retraction/wipe
       transitions (Known Risky Subsystem, E-value accounting).
@@ -1031,18 +1233,19 @@ diff-read time, not assumed from the title here.
 - [ ] **Score 3 🥈 · Class 3 — Alternate internal walls direction within a layer (#5839)**
       — related to #9362 below (also a wall-alternation refinement) — read both together.
 
-  **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/slic3r/GUI/Gizmos/SeamPlacer.cpp`
+  **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/GCode/SeamPlacer.cpp`
   **Route:** claude
-  **Effort:** 302
-  **Chars:** ~151,019 total (largest: src/libslic3r/PerimeterGenerator.cpp ~151,019) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 455
+  **Chars:** ~227,421 total (largest: src/libslic3r/PerimeterGenerator.cpp ~151,019) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Precise Seam placement feature (#12974)** — substantial,
       widely-wanted seam feature. Bundles an unrelated Russian localization `.po` file update —
       strip that before adopting per the localization-touch antipattern.
 
-  **Context:** `src/libslic3r/GCode/PreciseSeam.cpp` · `src/slic3r/GUI/Gizmos/SeamPlacer.cpp`
+  **Context:** `src/libslic3r/GCode/SeamPlacer.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp`
   **Route:** claude
-  **Effort:** 1
+  **Effort:** 181
+  **Chars:** ~90,395 total (largest: src/libslic3r/GCode/SeamPlacer.cpp ~76,402) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Add multiple / 3D bed exclusion volumes (#13777)** — genuinely
       useful for custom FDM printers with bed clips, probes, or other obstacles.
@@ -1242,9 +1445,10 @@ diff-read time, not assumed from the title here.
 - [ ] **Score 3 🥈 · Class 1 — Add Align/Distribute objects on the print plate (#13373)**
       — widely useful, self-contained new GUI gizmo; no G-code path involvement.
 
-  **Context:** `src/slic3r/GUI/Gizmos/GLGizmoAlignment.cpp`
-  **Route:** gemini
-  **Effort:** 1
+  **Context:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Selection.cpp`
+  **Route:** kimi
+  **Effort:** 1953
+  **Chars:** ~976,254 total (largest: src/slic3r/GUI/Plater.cpp ~840,187) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Cache system presets to eliminate startup/wizard load time (#14217)**
       — real, self-contained performance win (cold start reported ~10-30s → milliseconds);
@@ -1259,9 +1463,10 @@ diff-read time, not assumed from the title here.
 - [ ] **Score 3 🥈 · Class 2 — Fix bottom shell thickness + spiral vase interaction (#11496)**
       — tiny (1-line) real bug fix, excellent impact/effort ratio.
 
-  **Context:** `src/libslic3r/ConfigManipulation.cpp`
+  **Context:** `src/slic3r/GUI/ConfigManipulation.cpp`
   **Route:** gemini
-  **Effort:** 1
+  **Effort:** 67
+  **Chars:** ~67,260 total (largest: src/slic3r/GUI/ConfigManipulation.cpp ~67,260) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
