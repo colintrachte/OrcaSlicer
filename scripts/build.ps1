@@ -373,14 +373,8 @@ try {
             Assert-CommandSucceeded (Invoke-LoggedCommand 'Install' $cmake @('--build', $slicerBuild, '--config', $Configuration, '--target', 'install') $slicerLog) 'Install'
 
             if ($Run) {
-                $executableCandidates = @(
-                    (Join-Path $slicerBuild 'OrcaSlicer\OrcaSlicer.exe'),
-                    (Join-Path $slicerBuild "src\$Configuration\orca-slicer.exe")
-                )
-                $executable = $executableCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-                if (-not $executable) { throw "Build succeeded, but OrcaSlicer.exe was not found under $slicerBuild" }
-                Write-Host "Launching $executable"
-                Start-Process -FilePath $executable
+                $launcher = Join-Path $script:RepoRoot 'run.ps1'
+                & $launcher -Configuration $Configuration -Architecture $Architecture -BuildDirectory $slicerBuild
             }
         }
     }

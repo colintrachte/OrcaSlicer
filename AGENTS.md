@@ -42,6 +42,7 @@ ctest --test-dir ./tests/fff_print
 
 ## Critical Constraints
 
+- **Path portability** — do not hard-code absolute paths when they can be derived from the repository, script, executable, or user input. Prefer relative paths in committed files and resolve them at runtime. Use absolute paths only when an external API or file format requires them, and generate those paths locally.
 - **Backward compatibility required** for .3mf project files and printer profiles
 - **Cross-platform** — all changes must work on Windows, macOS, and Linux
 - Profile/format changes need version migration handling

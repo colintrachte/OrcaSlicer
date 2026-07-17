@@ -73,10 +73,23 @@ Use the canonical PowerShell driver from the repository root:
 .\scripts\build.ps1 -Run
 ```
 
+Launch an existing local build from any directory with `run.bat`, or select a
+configuration explicitly with `run.ps1 -Configuration RelWithDebInfo`. To create a
+desktop shortcut suitable for taskbar pinning, run:
+
+```powershell
+.\scripts\create-shortcut.ps1
+```
+
+The shortcut points directly to the installed executable so Windows uses the normal
+OrcaSlicer icon and application grouping. Recreate it after changing build directories
+or switching the shortcut to another configuration.
+
 `build_release_vs.bat` remains the double-click and CI-compatible launcher. It accepts
 the established `debug`, `debuginfo`, `x64`, `arm64`, `deps`, `slicer`, `pack`, and `-x`
-arguments. `build_windows.ps1` is retained only as a compatibility wrapper for older
-local commands.
+arguments. `build_release_vs2022.bat` and `build_windows.ps1` are retained only as
+compatibility wrappers for older local commands; the canonical driver detects the
+installed Visual Studio version.
 
 The driver requires Visual Studio with the Desktop C++ workload, CMake, Git, and
 Strawberry Perl when compiling dependencies. It displays output live and writes full,
