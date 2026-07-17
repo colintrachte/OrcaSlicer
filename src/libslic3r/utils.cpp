@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <filesystem>
+#include <string_view>
 
 #include "format.hpp"
 #include "Platform.hpp"
@@ -1677,6 +1678,22 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
 }
 
 // SoftFever: copy directory recursively
+std::string versioned_data_dir_name(std::string_view version)
+{
+    std::string result;
+    result.reserve(version.size());
+
+    for (const unsigned char ch : version) {
+        const bool safe = (ch >= 'a' && ch <= 'z') ||
+                          (ch >= 'A' && ch <= 'Z') ||
+                          (ch >= '0' && ch <= '9') ||
+                          ch == '.' || ch == '-' || ch == '_';
+        result.push_back(safe ? static_cast<char>(ch) : '_');
+    }
+
+    return result.empty() ? "unknown" : result;
+}
+
 void copy_directory_recursively(const boost::filesystem::path& source,
                                 const boost::filesystem::path& target,
                                 std::function<bool(const std::string)> filter,

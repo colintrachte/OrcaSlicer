@@ -514,6 +514,11 @@ void PrintHostSendDialog::init()
         m_valid_suffix = recent_path.substr(extension_start);
     // .gcode suffix control
     auto validate_path = [this](const wxString &path) -> bool {
+        if (into_path(path).filename().empty()) {
+            MessageDialog(this, _L("The name cannot be empty."), wxString(SLIC3R_APP_NAME),
+                          wxOK | wxICON_WARNING).ShowModal();
+            return false;
+        }
         if (! path.Lower().EndsWith(m_valid_suffix.Lower())) {
             MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), m_valid_suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
             if (msg_wingow.ShowModal() == wxID_NO)

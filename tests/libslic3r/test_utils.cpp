@@ -52,3 +52,11 @@ TEST_CASE("per-user temp root is unchanged on Windows, isolated elsewhere", "[ut
     REQUIRE_THAT(root, Catch::Matchers::StartsWith(base + "/orcaslicer_"));
 #endif
 }
+
+TEST_CASE("versioned data directory names are safe and version-specific", "[utils]") {
+    REQUIRE(versioned_data_dir_name("2.3.1") == "2.3.1");
+    REQUIRE(versioned_data_dir_name("2.5.0-dev") == "2.5.0-dev");
+    REQUIRE(versioned_data_dir_name("2.5.0+local/build") == "2.5.0_local_build");
+    REQUIRE(versioned_data_dir_name("") == "unknown");
+    REQUIRE(versioned_data_dir_name("2.3.1") != versioned_data_dir_name("2.5.0-dev"));
+}

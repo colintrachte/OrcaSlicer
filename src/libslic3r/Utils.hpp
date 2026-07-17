@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <system_error>
 #include <regex>
+#include <string_view>
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
@@ -713,6 +714,11 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 
     return filteredStr;
 }
+
+// Return a filesystem-safe directory name for an OrcaSlicer version. Keeping
+// each version in its own data directory prevents newer profile schemas and
+// caches from being consumed by an older application during a downgrade.
+std::string versioned_data_dir_name(std::string_view version);
 
 void copy_directory_recursively(const boost::filesystem::path& source,
                                 const boost::filesystem::path& target,

@@ -25,6 +25,7 @@
 #include "slic3r/GUI/I18N.hpp"
 
 #include <algorithm>
+#include <array>
 #include <iterator>
 #include <exception>
 #include <cstdlib>
@@ -482,6 +483,113 @@ bool static check_old_linux_datadir(const wxString& app_name) {
     return true;
 }
 #endif
+
+static boost::optional<Semver> data_dir_config_version(const boost::filesystem::path& data_dir_path)
+{
+    const boost::filesystem::path config_path = data_dir_path / (std::string(SLIC3R_APP_KEY) + ".conf");
+    boost::nowide::ifstream       config(config_path.string());
+    if (!config)
+        return boost::none;
+
+    std::stringstream contents;
+    contents << config.rdbuf();
+
+    std::smatch match;
+    const std::string text = contents.str();
+    if (std::regex_search(text, match, std::regex(R"orca("header"\s*:\s*"OrcaSlicer\s+([^"]+)")orca")) && match.size() == 2)
+        return Semver::parse(match[1].str());
+
+    return boost::none;
+}
+
+static boost::filesystem::path find_data_dir_migration_source(const boost::filesystem::path& legacy_data_dir,
+                                                              const boost::filesystem::path& versions_dir,
+                                                              const Semver&                  current_version)
+{
+    namespace fs = boost::filesystem;
+
+    boost::optional<Semver> best_version;
+    fs::path                best_path;
+    if (fs::is_directory(versions_dir)) {
+        for (const fs::directory_entry& entry : fs::directory_iterator(versions_dir)) {
+            if (!fs::is_directory(entry.path()))
+                continue;
+
+            const boost::optional<Semver> version = Semver::parse(entry.path().filename().string());
+            if (version && *version < current_version && (!best_version || *best_version < *version)) {
+                best_version = *version;
+                best_path    = entry.path();
+            }
+        }
+    }
+
+    if (!best_path.empty())
+        return best_path;
+
+    // Never seed an older application from a legacy directory last written by
+    // a newer version. Starting clean is safer than attempting a downgrade of
+    // configuration and profile schemas.
+    const boost::optional<Semver> legacy_version = data_dir_config_version(legacy_data_dir);
+    if (legacy_version && current_version < *legacy_version)
+        return {};
+
+    return legacy_data_dir;
+}
+
+static void migrate_versioned_data_dir(const boost::filesystem::path& legacy_data_dir,
+                                       const boost::filesystem::path& versioned_data_dir,
+                                       const Semver&                  current_version)
+{
+    namespace fs = boost::filesystem;
+
+    if (fs::exists(versioned_data_dir))
+        return;
+
+    const fs::path source = find_data_dir_migration_source(legacy_data_dir, versioned_data_dir.parent_path(), current_version);
+    if (source.empty() || !fs::is_directory(source)) {
+        fs::create_directories(versioned_data_dir);
+        std::cerr << "No compatible OrcaSlicer data directory found; starting with clean settings at "
+                  << versioned_data_dir << std::endl;
+        return;
+    }
+
+    // Stage the migration beside the final directory so an interrupted copy
+    // cannot leave a partial directory that looks successfully initialized on
+    // the next launch.
+    const fs::path staging_dir(versioned_data_dir.string() + ".migrating-" + std::to_string(get_current_pid()));
+    fs::remove_all(staging_dir);
+    fs::create_directories(staging_dir);
+
+    // Migrate only user-owned state. System profiles, printer metadata, OTA
+    // downloads, plugins, caches, and logs are version-specific and must be
+    // recreated by the destination version.
+    static const std::array<const char*, 2> user_directories = {"user", "models"};
+    static const std::array<const char*, 3> user_files = {
+        ".orcaslicer_machine_id", SLIC3R_APP_KEY ".conf", SLIC3R_APP_KEY ".conf.bak"
+    };
+
+    try {
+        std::cerr << "Migrating compatible OrcaSlicer user settings from " << source
+                  << " to " << versioned_data_dir << std::endl;
+        for (const char* name : user_directories) {
+            const fs::path from = source / name;
+            if (fs::is_directory(from))
+                copy_directory_recursively(from, staging_dir / name);
+        }
+        for (const char* name : user_files) {
+            const fs::path from = source / name;
+            if (fs::is_regular_file(from))
+                fs::copy_file(from, staging_dir / name);
+        }
+        fs::rename(staging_dir, versioned_data_dir);
+    } catch (const std::exception& ex) {
+        std::cerr << "Failed to migrate OrcaSlicer user settings: " << ex.what()
+                  << ". Starting with a clean versioned directory." << std::endl;
+        fs::remove_all(staging_dir);
+        if (!fs::exists(versioned_data_dir))
+            fs::create_directories(versioned_data_dir);
+    }
+}
 
 struct FileWildcards {
     const char*                 title_id;
@@ -2428,25 +2536,29 @@ void GUI_App::init_app_config()
             set_data_dir(app_data_dir_path.string());
         }
         else{
-            boost::filesystem::path data_dir_path;
+            boost::filesystem::path legacy_data_dir_path;
             #ifndef __linux__
-                std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-                //BBS create folder if not exists
-                data_dir_path = boost::filesystem::path(data_dir);
-                set_data_dir(data_dir);
+                legacy_data_dir_path = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
             #else
                 // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
                 // https://github.com/prusa3d/PrusaSlicer/issues/2911
                 wxString dir;
                 if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                     dir = wxFileName::GetHomeDir() + wxS("/.config");
-                data_dir_path = boost::filesystem::path((dir + "/" + GetAppName()).ToUTF8().data());
-                migrate_flatpak_legacy_datadir(data_dir_path);
-                set_data_dir(data_dir_path.string());
+                legacy_data_dir_path = boost::filesystem::path((dir + "/" + GetAppName()).ToUTF8().data());
+                migrate_flatpak_legacy_datadir(legacy_data_dir_path);
             #endif
-            if (!boost::filesystem::exists(data_dir_path)){
-                boost::filesystem::create_directory(data_dir_path);
-            }
+
+            const boost::optional<Semver> current_version = Semver::parse(SoftFever_VERSION);
+            const boost::filesystem::path data_dir_path = legacy_data_dir_path / "versions" /
+                versioned_data_dir_name(SoftFever_VERSION);
+            if (current_version)
+                migrate_versioned_data_dir(legacy_data_dir_path, data_dir_path, *current_version);
+            else
+                boost::filesystem::create_directories(data_dir_path);
+
+            boost::filesystem::create_directories(data_dir_path / "log");
+            set_data_dir(data_dir_path.string());
         }
 
         // Change current dirtory of application
