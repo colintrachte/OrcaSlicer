@@ -100,8 +100,8 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 
   **Context:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp`
   **Route:** kimi
-  **Effort:** 846
-  **Chars:** ~422,826 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 856
+  **Chars:** ~427,784 total (largest: src/slic3r/GUI/GUI_App.cpp ~392,760) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Crash opening Preferences (#11641)** — 8 +1, 11 comments.
       Investigate preferences dialog initialization.
@@ -147,7 +147,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode/ToolOrdering.cpp`
   **Route:** claude
   **Effort:** 2698
-  **Chars:** ~674,391 total (largest: src/libslic3r/Print.cpp ~262,171) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~674,482 total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — Bridges sliced as overhang walls instead of using bridge flow/density (#2231)**
       — Bridge perimeters not getting bridge flow and density applied; sliced as overhang.
@@ -288,7 +288,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — AppImage hard dependency on `libbz2.so.1.0` (#12902)**
       — Ubuntu 24.04 ships `libbz2.so.1.0.8` only; symlink missing. Needs bundling or runtime
@@ -347,7 +347,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode.cpp` (M104/M109 emission, ~lines 1232, 1324, 4047)
   **Route:** claude
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — Multimaterial (IFS) broken on Flashforge Adventurer 5X — owned hardware (#10783)**
       — Directly affects this fork's own Flashforge AD5X. Orca doesn't tell the printer which
@@ -379,7 +379,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode.cpp` (fan-speed/M106 emission)
   **Route:** claude
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Crash when system language is `en` without `en_GB` locale installed (#7649)**
       — Confirmed root cause: hardcoded fallback to `en_GB` instead of a generic `en`/`en_US`
@@ -389,8 +389,8 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 
   **Context:** `src/slic3r/GUI/GUI_App.cpp` (wxLocale handling, ~lines 7290-7460)
   **Route:** kimi
-  **Effort:** 388
-  **Chars:** ~387,802 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 393
+  **Chars:** ~392,760 total (largest: src/slic3r/GUI/GUI_App.cpp ~392,760) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Blank / non-rendering viewport cluster on Linux (Nvidia, GTK) — investigate once (#11276, #10958)**
       — Both issues show the same GTK-CRITICAL blank-viewport signature reported independently
@@ -420,7 +420,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/PrintConfig.cpp`
   **Route:** claude
   **Effort:** 2750
-  **Chars:** ~916,652 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~916,743 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — UI slow to respond when changing settings tabs (#997)**
       — 79 comments; long-standing complaint. Root cause unknown (profile: tab-switching triggers
@@ -463,7 +463,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 3 — Binary G-code (`.bgcode`) support (#3564)**
       — 19 rxn. PrusaSlicer already supports `.bgcode`. New export/import path in the G-code
@@ -472,7 +472,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Add "Pause at layer" option (#6334)**
       — 19 rxn. Complements the existing "Pause at height" with a layer-index variant; a bounded
@@ -481,7 +481,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** kimi
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Custom "prepare time" metadata for Klipper (#5796)**
       — 20 rxn. Per-printer preparation-time override so ETA estimates are accurate on Klipper —
@@ -491,7 +491,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
   **Effort:** 2039
-  **Chars:** ~1,019,687 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~1,019,719 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Allow filament to override ALL settings, not only selected ones (#12401)**
       — 19 rxn. Config-scope widening; single-file change.
@@ -577,7 +577,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
   **Effort:** 2039
-  **Chars:** ~1,019,687 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~1,019,719 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Bed temperature can no longer be set to 0°C / disabled (#12855)**
       — Regression: 2.3.2 tightened validation to reject a bed-temp value of 0 that previously
@@ -615,7 +615,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
   **Effort:** 2039
-  **Chars:** ~1,019,687 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~1,019,719 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Variable layer height combined with height-range modifiers (#11549)**
       — Lets a modifier region use a different layer height than the rest of the print (e.g. a
@@ -625,7 +625,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/libslic3r/Print.cpp`
   **Route:** kimi
   **Effort:** 262
-  **Chars:** ~262,171 total (largest: src/libslic3r/Print.cpp ~262,171) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~262,262 total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Tool changer: multiple nozzle sizes in a single print (#11424)**
       — Directly relevant to future toolchanging hardware (Prusa INDX) this fork plans to add.
@@ -659,7 +659,7 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context:** `src/slic3r/Utils/Http.cpp` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
   **Effort:** 3143
-  **Chars:** ~1,047,778 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~1,047,810 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Support painting toolbox lacks a discoverable eraser tool and a "keep-out" mask to prevent accidental paint (owner pain point, 2026-07-05)**
       — Owner's complaint: the Support Painting gizmo (Paint-on supports) has no obvious toolbox
@@ -757,7 +757,7 @@ button` to erase and `Right mouse button` to paint a "blocker"
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 452
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -1078,8 +1078,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `CMakeLists.txt` · `src/CMakeLists.txt` · `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp`
   **Write:** `docs/architecture/feature-policy.md`
   **Route:** claude
-  **Effort:** 2378
-  **Chars:** ~475,696 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 2403
+  **Chars:** ~480,654 total (largest: src/slic3r/GUI/GUI_App.cpp ~392,760) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Introduce the typed runtime feature-policy composition root**
       — Compose build capabilities, platform capabilities, release channel, user experiments,
@@ -1090,8 +1090,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/feature-policy.md` · `docs/architecture/printer-capabilities.md`
   **Write:** `tests/slic3r_gui/feature_policy_tests.cpp`
   **Route:** claude
-  **Effort:** 2614
-  **Chars:** ~435,656 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 2644
+  **Chars:** ~440,614 total (largest: src/slic3r/GUI/GUI_App.cpp ~392,760) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Migrate one product-policy switch family with on/off equivalence tests**
       — Replace only the family selected by the macro inventory, preserve compiled availability
@@ -1101,8 +1101,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp` · `src/CMakeLists.txt`
   **Context:** `docs/architecture/feature-policy.md` · `tests/slic3r_gui/feature_policy_tests.cpp`
   **Route:** claude
-  **Effort:** 2178
-  **Chars:** ~435,656 total (largest: src/slic3r/GUI/GUI_App.cpp ~387,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Effort:** 2203
+  **Chars:** ~440,614 total (largest: src/slic3r/GUI/GUI_App.cpp ~392,760) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -1154,7 +1154,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/Print.cpp`
   **Route:** claude
   **Effort:** 262
-  **Chars:** ~262,171 total (largest: src/libslic3r/Print.cpp ~262,171) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~262,262 total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — Gradient filament color preview (#14324)** — visual preview
       only, no G-code path.
@@ -1172,7 +1172,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode.cpp` · `src/libslic3r/GCodeWriter.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
   **Effort:** 2298
-  **Chars:** ~765,942 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~766,065 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — Ensure spiral lift stays inside print area, avoid nozzle collision (#13634)**
       — Prevents the nozzle striking the printed part or frame during a spiral lift move.
@@ -1209,7 +1209,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
   **Effort:** 1428
-  **Chars:** ~714,010 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~714,133 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — Z-pinning for inter-layer mechanical interlocking (#12771)**
       — Substantial engineered feature (cites an ORNL paper and ASTM validation data), touches
@@ -1220,7 +1220,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/Support/SupportMaterial.cpp` · `src/libslic3r/Support/TreeSupport.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 2475
-  **Chars:** ~824,891 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~824,923 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — New wall order: Odd-Even (#10622)** — real perimeter-ordering
       quality feature.
@@ -1253,7 +1253,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/Print.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 1428
-  **Chars:** ~714,010 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~714,133 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Clean top layer with small items above (#12187)** — addresses a
       common top-surface print-quality defect.
@@ -1269,7 +1269,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode/CoolingBuffer.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 1018
-  **Chars:** ~509,076 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~509,108 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Zero flow ironing (#10350)** — real print-quality feature;
       touches E-value accounting (Known Risky Subsystem — retraction/wipe).
@@ -1277,7 +1277,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCodeWriter.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 1008
-  **Chars:** ~503,771 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~503,803 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Extra perimeters on overhangs vs. bridging (#10565)** — small,
       clean, targeted overhang-quality fix, single file. Related to the bridging area already
@@ -1336,7 +1336,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode/CoolingBuffer.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
   **Effort:** 639
-  **Chars:** ~319,408 total (largest: src/libslic3r/Print.cpp ~262,171) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~319,499 total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Add bed-specific Z offset overrides (#14030)** — useful for
       custom setups with multiple beds/plates; Z-offset feeds directly into emitted G-code.
@@ -1344,7 +1344,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
   **Effort:** 1428
-  **Chars:** ~714,010 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~714,133 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Fill in truncated octahedron tops, optional setting (#12541)**
       — fixes a visible top-surface gap defect in 3D-honeycomb infill.
@@ -1361,7 +1361,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode/OrderingStrategies.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 904
-  **Chars:** ~451,839 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~451,871 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — No fuzzy skin on bridges (#13891)** — single-file, clean
       correctness fix; fuzzy skin is currently misapplied to bridge surfaces.
@@ -1378,7 +1378,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode/AdaptivePAProcessor.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
   **Effort:** 943
-  **Chars:** ~471,658 total (largest: src/libslic3r/GCode.cpp ~451,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~471,690 total (largest: src/libslic3r/GCode.cpp ~451,871) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Tangential Sacrificial Bridging for counterbore holes (#12109)**
       — real, self-contained new slicing feature for functional-print bridging quality.

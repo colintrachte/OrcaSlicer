@@ -651,7 +651,7 @@ class App(tk.Tk):
         laxer write path than the CLI. Raises RuntimeError if the output looks truncated."""
         text = self.ROADMAP_PATH.read_text(encoding="utf-8")
         lines = text.splitlines(keepends=True)
-        updated = route_tasks._process(lines, context_pack.repo_root())
+        updated = route_tasks._process(lines, self.root_dir)
         route_tasks.write_roadmap(self.ROADMAP_PATH, lines, updated)
         return updated
 

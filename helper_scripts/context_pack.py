@@ -129,21 +129,24 @@ LANG_MAP = {
 
 
 def repo_root() -> Path:
-    """Resolve the repo root via git so headers stay repo-relative regardless of cwd."""
+    """Resolve the repo containing this script, regardless of the launch directory."""
+    script_dir = Path(__file__).resolve().parent
     try:
         out = subprocess.check_output(
-            ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL
+            ["git", "-C", str(script_dir), "rev-parse", "--show-toplevel"],
+            stderr=subprocess.DEVNULL,
         )
-        return Path(out.decode().strip())
+        return Path(out.decode().strip()).resolve()
     except Exception:
-        # Not fatal — but headers/relative paths now depend on where this was run from,
-        # which is worth knowing when a pack's paths look wrong.
+        # Keep standalone/exported copies usable without making their behavior depend on
+        # whichever directory happened to launch them.
+        fallback = script_dir.parent
         print(
-            "note: not inside a git repository — paths resolve relative to the "
-            "current directory instead of a repo root.",
+            f"note: helper scripts are not inside a git repository — paths resolve "
+            f"relative to {fallback}.",
             file=sys.stderr,
         )
-        return Path.cwd()
+        return fallback
 
 
 def is_binary(p: Path) -> bool:
