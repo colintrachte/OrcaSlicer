@@ -6500,7 +6500,8 @@ bool Tab::select_preset(
             Preset &current_preset = m_presets->get_selected_preset();
 
             // Obtain compatible filament and process presets for printers
-            if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system && !current_preset.is_from_bundle()) {
+            if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab &&
+                current_preset.printer_technology() == ptFFF && !current_preset.is_system && !current_preset.is_from_bundle()) {
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
                     if (preset.is_compatible && !preset.is_default) {
@@ -7186,7 +7187,8 @@ void Tab::delete_preset()
     bool     is_base_preset                 = false;
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         is_base_preset = true;
-        if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
+        if (current_preset.type == Preset::Type::TYPE_PRINTER &&
+            current_preset.printer_technology() == ptFFF && !current_preset.is_system) { // Customize third-party FFF printers
             Preset &current_preset = m_presets->get_selected_preset();
             int filament_preset_num    = 0;
             int process_preset_num     = 0;
