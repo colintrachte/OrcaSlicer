@@ -12,6 +12,7 @@
 #include <utility>
 #include <wx/bookctrl.h>
 #include <wx/numformatter.h>
+#include <wx/scrolwin.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include "libslic3r/Exception.hpp"
@@ -273,10 +274,10 @@ void OptionsGroup::activate_line(Line& line)
         ) {
         // BBS: new layout
         const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(h_sizer, 1, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 15);
+        m_content_sizer->Add(h_sizer, 1, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 15);
         if (line.widget != nullptr) {
             // description lines
-            sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 15);
+            m_content_sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 15);
             return;
         }
         if (!line.get_extra_widgets().empty()) {
@@ -297,9 +298,9 @@ void OptionsGroup::activate_line(Line& line)
 		// BBS: new layout
 		custom_ctrl->SetLabel("");
 		if (is_legend_line)
-			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, (wxOSX && !staticbox) ? 0 : 10);
+			m_content_sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, (wxOSX && !staticbox) ? 0 : 10);
 		else
-            sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, !staticbox ? 0 : 5);
+            m_content_sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, !staticbox ? 0 : 5);
     }
 
 	// Set sidetext width for a better alignment of options in line
@@ -319,7 +320,7 @@ void OptionsGroup::activate_line(Line& line)
 
 		// BBS: new layout
 		const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
-		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 5);
+		m_content_sizer->Add(h_sizer, 1, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 5);
 		if (is_window_field(field))
 			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, option.opt.multiline ? 0 : titleWidth * wxGetApp().em_unit());
 		if (is_sizer_field(field))
@@ -502,10 +503,18 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
                 stl->Hide();
             } else {
 			    sizer->Add(stl, 0, wxEXPAND);
-			    sizer->AddSpacer(8);
+			    m_section_spacer = sizer->AddSpacer(8);
             }
 			this->stb = stl;
+
+            if (!m_collapse_config_key.empty() && !title.IsEmpty()) {
+                m_collapsed = wxGetApp().app_config->get("settings_section_collapsed", m_collapse_config_key) == "1";
+                stl->SetCollapsible(true, m_collapsed, [this](bool collapsed) { set_collapsed(collapsed); });
+            }
 		}
+
+        m_content_sizer = new wxBoxSizer(wxVERTICAL);
+        m_content_item = sizer->Add(m_content_sizer, 0, wxEXPAND);
 
 		auto num_columns = 1U;
 		size_t grow_col = 1;
@@ -524,7 +533,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH);
 		static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(grow_col);
 
-		sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, !staticbox ? 0 : 5);
+		m_content_sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, !staticbox ? 0 : 5);
 
 		// activate lines
 		for (Line& line: m_lines) {
@@ -535,6 +544,8 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
         ctrl_horiz_alignment = horiz_alignment;
         if (custom_ctrl)
             custom_ctrl->init_max_win_width();
+
+        show_content(!m_collapsed);
 	} catch (UIBuildCanceled&) {
 		auto p = sizer;
 		this->clear();
@@ -544,6 +555,35 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 	}
 
 	return true;
+}
+
+void OptionsGroup::show_content(bool show)
+{
+    if (m_section_spacer)
+        m_section_spacer->Show(show);
+    if (m_content_item)
+        m_content_item->Show(show);
+}
+
+void OptionsGroup::set_collapsed(bool collapsed, bool persist)
+{
+    if (m_collapse_config_key.empty())
+        return;
+
+    m_collapsed = collapsed;
+    if (auto* header = dynamic_cast<::StaticLine*>(stb))
+        header->SetCollapsed(collapsed);
+    show_content(!collapsed);
+
+    if (persist)
+        wxGetApp().app_config->set("settings_section_collapsed", m_collapse_config_key, collapsed ? "1" : "0");
+
+    if (m_parent) {
+        m_parent->Layout();
+        if (auto* scrolled = dynamic_cast<wxScrolledWindow*>(m_parent))
+            scrolled->FitInside();
+        m_parent->Refresh();
+    }
 }
 
 void free_window(wxWindow *win);
@@ -557,6 +597,9 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
 	m_grid_sizer = nullptr;
 	sizer = nullptr;
     stb = nullptr; // BBS: fix pointer
+    m_section_spacer = nullptr;
+    m_content_item = nullptr;
+    m_content_sizer = nullptr;
 
 	for (Line& line : m_lines) {
         if (line.near_label_widget_win)
@@ -761,7 +804,18 @@ void ConfigOptionsGroup::Hide()
 
 void ConfigOptionsGroup::Show(const bool show)
 {
-    sizer->ShowItems(show);
+    if (!sizer)
+        return;
+
+    if (!show) {
+        sizer->ShowItems(false);
+    } else if (m_collapse_config_key.empty()) {
+        sizer->ShowItems(true);
+    } else {
+        if (stb)
+            stb->Show();
+        show_content(!m_collapsed);
+    }
 #if 0//#ifdef __WXGTK__
     m_panel->Show(show);
     m_grid_sizer->Show(show);

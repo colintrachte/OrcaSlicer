@@ -6,6 +6,7 @@
 
 #include <map>
 #include <functional>
+#include <utility>
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -200,6 +201,10 @@ public:
 
 	bool				is_activated() { return sizer != nullptr; }
 
+    void set_collapse_config_key(std::string key) { m_collapse_config_key = std::move(key); }
+    void set_collapsed(bool collapsed, bool persist = true);
+    bool is_collapsed() const { return m_collapsed; }
+
 	void remove_option_if(std::function<bool(std::string const &)> const & comp);
 protected:
 	std::map<t_config_option_key, Option>	m_options;
@@ -220,6 +225,13 @@ protected:
 
 	// "true" if control should be created on custom_ctrl
 	bool					m_use_custom_ctrl_as_parent { false };
+    bool                    m_collapsed {false};
+    std::string             m_collapse_config_key;
+    wxSizerItem*            m_section_spacer {nullptr};
+    wxSizerItem*            m_content_item {nullptr};
+    wxBoxSizer*             m_content_sizer {nullptr};
+
+    void                    show_content(bool show);
 
 	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
 	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel

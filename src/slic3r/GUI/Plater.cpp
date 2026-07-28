@@ -544,6 +544,8 @@ struct Sidebar::priv
     ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
+    ScalableButton *  m_filament_remove_preset = nullptr;
+    Button*           m_filament_import = nullptr;
     Button*           m_filament_export = nullptr;
     int m_menu_filament_id = -1;
     wxScrolledWindow* m_panel_filament_content;
@@ -563,6 +565,8 @@ struct Sidebar::priv
     ScalableButton* m_printer_connect = nullptr;
     ScalableButton* m_printer_bbl_sync = nullptr;
     ScalableButton* m_printer_setting = nullptr;
+    ScalableButton* m_printer_remove = nullptr;
+    Button*         m_printer_import = nullptr;
     Button*         m_printer_export = nullptr;
     wxStaticText *  m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
@@ -1716,7 +1720,8 @@ Sidebar::Sidebar(Plater *parent)
             deal_btn_sync();
         });
 
-        p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
+        p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "add_filament");
+        p->m_printer_setting->SetToolTip(_L("Add printer"));
         p->m_printer_setting->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             // p->editing_filament = -1;
             // wxGetApp().params_dialog()->Popup();
@@ -1724,7 +1729,25 @@ Sidebar::Sidebar(Plater *parent)
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
             });
 
-        // ORCA always-visible export of the current printer preset, even while the section is collapsed
+        p->m_printer_remove = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "cross");
+        p->m_printer_remove->SetToolTip(_L("Remove selected printer preset"));
+        p->m_printer_remove->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {
+            if (Tab *tab = wxGetApp().get_tab(Preset::TYPE_PRINTER))
+                tab->delete_preset();
+        });
+        p->m_printer_remove->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent &event) {
+            Tab *tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+            event.Enable(tab != nullptr && tab->can_delete_current_preset());
+        });
+
+        // ORCA always-visible import/export controls, even while the section is collapsed
+        p->m_printer_import = new Button(p->m_panel_printer_title, _L("IMPORT"));
+        p->m_printer_import->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
+        p->m_printer_import->SetToolTip(_L("Import printer presets from a file"));
+        p->m_printer_import->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {
+            wxGetApp().mainframe->load_config_file();
+        });
+
         p->m_printer_export = new Button(p->m_panel_printer_title, _L("EXPORT"));
         p->m_printer_export->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
         p->m_printer_export->SetToolTip(_L("Export the current printer preset to a file"));
@@ -1737,10 +1760,12 @@ Sidebar::Sidebar(Plater *parent)
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_text_printer_settings, 1, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
         //h_sizer_title->AddStretchSpacer();
+        h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
+        h_sizer_title->Add(p->m_printer_remove, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
+        h_sizer_title->Add(p->m_printer_import, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_printer_export, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_printer_connect , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing())); // used larger margin to prevent accidental clicks
         h_sizer_title->Add(p->m_printer_bbl_sync, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing())); // used larger margin to prevent accidental clicks
-        h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->SetMinSize(-1, 3 * em);
 
@@ -2111,11 +2136,11 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
     p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
-        if (!p || !p->m_panel_filament_content || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_filament_export || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
+        if (!p || !p->m_panel_filament_content || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_filament_import || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
             return;
         // ORCA exclude area of del button from titlebar collapse/expand feature to fix undesired collapse when user spams del filament button
         // also block fold/unfold feature when user clicks to spacing between icons
-        int exclude_pt = p->m_filament_export->GetPosition().x; // maximum fixed item
+        int exclude_pt = p->m_filament_import->GetPosition().x; // maximum fixed item
         if      (p->m_flushing_volume_btn->IsShown())   exclude_pt = p->m_flushing_volume_btn->GetPosition().x;
         else if (p->m_bpButton_add_filament->IsShown()) exclude_pt = p->m_bpButton_add_filament->GetPosition().x - FromDIP(30); // reserve spacing for delete button
         else if (ams_btn->IsShown())                    exclude_pt = ams_btn->GetPosition().x;
@@ -2205,8 +2230,8 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(ams_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
     //bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
-    ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
-    set_btn->SetToolTip(_L("Set filaments to use"));
+    ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
+    set_btn->SetToolTip(_L("Add filament preset"));
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         p->editing_filament = -1;
         // wxGetApp().params_dialog()->Popup();
@@ -2215,9 +2240,29 @@ Sidebar::Sidebar(Plater *parent)
         });
     p->m_bpButton_set_filament = set_btn;
 
-    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
+    p->m_filament_remove_preset = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "cross");
+    p->m_filament_remove_preset->SetToolTip(_L("Remove selected filament preset"));
+    p->m_filament_remove_preset->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {
+        const Preset::Type type = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA
+            ? Preset::TYPE_SLA_MATERIAL : Preset::TYPE_FILAMENT;
+        if (Tab *tab = wxGetApp().get_tab(type))
+            tab->delete_preset();
+    });
+    p->m_filament_remove_preset->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent &event) {
+        const Preset::Type type = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA
+            ? Preset::TYPE_SLA_MATERIAL : Preset::TYPE_FILAMENT;
+        Tab *tab = wxGetApp().get_tab(type);
+        event.Enable(tab != nullptr && tab->can_delete_current_preset());
+    });
 
-    // ORCA always-visible export of the first/active filament preset, even while the section is collapsed
+    // ORCA always-visible import/export controls, even while the section is collapsed
+    p->m_filament_import = new Button(p->m_panel_filament_title, _L("IMPORT"));
+    p->m_filament_import->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
+    p->m_filament_import->SetToolTip(_L("Import filament presets from a file"));
+    p->m_filament_import->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {
+        wxGetApp().mainframe->load_config_file();
+    });
+
     p->m_filament_export = new Button(p->m_panel_filament_title, _L("EXPORT"));
     p->m_filament_export->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
     p->m_filament_export->SetToolTip(_L("Export the current filament preset to a file"));
@@ -2228,7 +2273,10 @@ Sidebar::Sidebar(Plater *parent)
         if (filament)
             export_preset_to_file(this, *filament);
     });
-    bSizer39->Add(p->m_filament_export, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
+    bSizer39->Add(p->m_filament_remove_preset, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::ElementSpacing()));
+    bSizer39->Add(p->m_filament_import, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::ElementSpacing()));
+    bSizer39->Add(p->m_filament_export, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::ElementSpacing()));
     bSizer39->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
 
     // add filament content
@@ -3048,6 +3096,7 @@ void Sidebar::msw_rescale()
     p->m_printer_bbl_sync->msw_rescale();
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+    p->m_printer_remove->msw_rescale();
 
     p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
     p->panel_printer_preset->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
@@ -3081,6 +3130,7 @@ void Sidebar::msw_rescale()
     p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
+    p->m_filament_remove_preset->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
     set_flushing_volume_warning(is_flush_config_modified()); // ORCA reapply appearance
 
@@ -3165,12 +3215,13 @@ void Sidebar::sys_color_changed()
     //    wxGetApp().UpdateDarkUI(btn, true);
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
-    p->m_printer_setting->msw_rescale();
+    p->m_printer_remove->msw_rescale();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
+    p->m_filament_remove_preset->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
     set_flushing_volume_warning(is_flush_config_modified()); // ORCA reapply appearance
 

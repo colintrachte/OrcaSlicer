@@ -7887,16 +7887,13 @@ namespace
 ConfigOptionMode saved_mode_from_string(const std::string& mode)
 {
     return mode == "expert" ? comExpert :
-           mode == "advanced" ? comAdvanced :
-           mode == "develop" ? comAdvanced :
-           comSimple;
+           comAdvanced;
 }
 
 std::string saved_mode_to_string(ConfigOptionMode mode)
 {
     return mode == comExpert ? "expert" :
-           mode == comAdvanced ? "advanced" :
-           "simple";
+           "advanced";
 }
 
 std::string effective_mode_to_string(ConfigOptionMode mode)
@@ -7908,7 +7905,7 @@ std::string effective_mode_to_string(ConfigOptionMode mode)
 ConfigOptionMode GUI_App::get_saved_mode()
 {
     if (!app_config->has("user_mode"))
-        return comSimple;
+        return comAdvanced;
 
     return saved_mode_from_string(app_config->get("user_mode"));
 }
@@ -7932,7 +7929,6 @@ void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
 {
     const auto saved_mode = mode == comExpert ? comExpert :
                             mode == comAdvanced ? comAdvanced :
-                            mode == comSimple ? comSimple :
                             get_saved_mode();
     app_config->set("user_mode", saved_mode_to_string(saved_mode));
     update_mode();

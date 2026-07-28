@@ -259,7 +259,6 @@ ModeSwitchButton::ModeSwitchButton(wxWindow* parent, wxWindowID id)
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     SetCursor(wxCursor(wxCURSOR_HAND));
 
-    m_tooltips[0] = _L("Simple settings");
     m_tooltips[1] = _L("Advanced settings");
     m_tooltips[2] = _L("Expert settings");
     m_tooltips[3] = _L("Developer mode") + "\n" + _L("Launch troubleshoot center") + "...";
@@ -274,7 +273,7 @@ ModeSwitchButton::ModeSwitchButton(wxWindow* parent, wxWindowID id)
 
 void ModeSwitchButton::SetSelection(int selection)
 {
-    m_selection = std::clamp(selection, 0, 2);
+    m_selection = std::clamp(selection, 1, 2);
     update_tooltip();
     Refresh();
 }
@@ -290,7 +289,7 @@ void ModeSwitchButton::SelectAndNotify(int selection)
 
 void ModeSwitchButton::Rescale()
 {
-    const wxSize button_size = FromDIP(wxSize(48, 18));
+    const wxSize button_size = FromDIP(wxSize(36, 18));
     SetMinSize(button_size);
     SetMaxSize(button_size);
     SetSize(button_size);
@@ -339,20 +338,20 @@ void ModeSwitchButton::doRender(wxDC& dc)
     dc.DrawRoundedRectangle(bounds, v_center);
 
     if (!m_dev_mode) {
-        double dot_dist = (bounds.width - bounds.height) * 0.50;
+        double dot_dist = bounds.width - bounds.height;
 
         // Track
         dc.SetPen(wxPen(track_border.colorForStates(states), 1));
         dc.SetBrush(wxBrush(track_background.colorForStates(states)));
         wxRect track_rc = bounds;
-        track_rc.width = int(v_center * 2.0 + dot_dist * m_selection);
+        track_rc.width = int(v_center * 2.0 + dot_dist * (m_selection - 1));
         dc.DrawRoundedRectangle(track_rc, v_center);
 
         // Dots
         dc.SetPen(*wxTRANSPARENT_PEN);
-        for (int idx = 0; idx < 3; ++idx) {
+        for (int idx = 1; idx <= 2; ++idx) {
             dc.SetBrush(wxBrush((idx <= m_selection ? dot_active : dot_dimmed).colorForStates(states)));
-            dc.DrawCircle(wxPoint(v_center + dot_dist * idx, v_center), track_rc.height * (double)(idx == m_selection ? 0.32 : 0.16));
+            dc.DrawCircle(wxPoint(v_center + dot_dist * (idx - 1), v_center), track_rc.height * (double)(idx == m_selection ? 0.32 : 0.16));
         }
     }
     else { // Developer mode
@@ -424,7 +423,7 @@ int ModeSwitchButton::hit_test_selection(const wxPoint& point) const
 {
     const int width = std::max(1, GetClientSize().x);
     const int x = std::clamp(point.x, 0, width - 1);
-    return std::clamp((x * 3) / width, 0, 2);
+    return x < width / 2 ? 1 : 2;
 }
 
 wxRect ModeSwitchButton::thumb_rect_for(int selection) const
@@ -434,7 +433,7 @@ wxRect ModeSwitchButton::thumb_rect_for(int selection) const
     const int y = bounds.y + (bounds.height - thumb_diameter) / 2;
 
     const int travel = std::max(0, bounds.width - thumb_diameter);
-    const int x = bounds.x + (travel * std::clamp(selection, 0, 2)) / 2;
+    const int x = bounds.x + travel * (std::clamp(selection, 1, 2) - 1);
     return wxRect(x, y, thumb_diameter, thumb_diameter);
 }
 

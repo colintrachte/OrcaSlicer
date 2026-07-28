@@ -55,7 +55,9 @@ extern CopyFileResult copy_file_gui(const std::string &from, const std::string &
 // Exports a single active preset (printer/filament/process) to a standalone .json file the user
 // picks via a save dialog. Reuses the same DynamicPrintConfig::save_to_json() serialization
 // Preset::save() writes to disk, so the exported file is a normal, re-importable preset.
-void export_preset_to_file(wxWindow *parent, const Slic3r::Preset &preset);
+// Returns true only after the preset was written successfully. A cancelled save dialog or an
+// export error returns false so callers may safely abort follow-up actions such as deletion.
+bool export_preset_to_file(wxWindow *parent, const Slic3r::Preset &preset);
 
 #ifdef _WIN32
 // USB HID attach / detach events from Windows OS.

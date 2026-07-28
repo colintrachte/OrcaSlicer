@@ -26,9 +26,7 @@ namespace
 {
 int mode_to_selection(ConfigOptionMode mode)
 {
-    return mode == comExpert ? 2 :
-           mode == comAdvanced ? 1 :
-           0;
+    return mode == comExpert ? 2 : 1;
 }
 }
 
@@ -275,7 +273,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
                 return; // prevent change on dev mode
 
             const int selection = m_mode_view->GetSelection();
-            m_mode_view->SelectAndNotify((selection + 1) % 3);
+            m_mode_view->SelectAndNotify(selection == comAdvanced ? comExpert : comAdvanced);
         });
         m_mode_icon->SetToolTip(_L("Cycle settings visibility"));
         m_mode_view = new ModeSwitchButton(m_top_panel);
@@ -292,12 +290,38 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_compare_btn->SetToolTip(_L("Compare presets"));
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
 
-        // ORCA always-visible export of the current process preset, even while the section is collapsed
+        // ORCA always-visible preset controls, even while the section is collapsed
+        m_process_add_btn = new ScalableButton(m_top_panel, wxID_ANY, "add_filament");
+        m_process_add_btn->SetToolTip(_L("Create process preset"));
+        m_process_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+            if (auto *tab = dynamic_cast<Tab *>(m_tab_print))
+                tab->save_preset();
+        });
+
+        m_process_remove_btn = new ScalableButton(m_top_panel, wxID_ANY, "cross");
+        m_process_remove_btn->SetToolTip(_L("Remove selected process preset"));
+        m_process_remove_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+            if (auto *tab = dynamic_cast<Tab *>(m_tab_print))
+                tab->delete_preset();
+        });
+        m_process_remove_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent &event) {
+            auto *tab = dynamic_cast<Tab *>(m_tab_print);
+            event.Enable(tab != nullptr && tab->can_delete_current_preset());
+        });
+
+        m_process_import_btn = new Button(m_top_panel, _L("IMPORT"));
+        m_process_import_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
+        m_process_import_btn->SetToolTip(_L("Import process presets from a file"));
+        m_process_import_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {
+            wxGetApp().mainframe->load_config_file();
+        });
+
         m_process_export_btn = new Button(m_top_panel, _L("EXPORT"));
         m_process_export_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
         m_process_export_btn->SetToolTip(_L("Export the current process preset to a file"));
         m_process_export_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
-            export_preset_to_file(this, wxGetApp().get_tab(Preset::TYPE_PRINT)->get_presets()->get_edited_preset());
+            if (auto *tab = dynamic_cast<Tab *>(m_tab_print))
+                export_preset_to_file(this, tab->get_presets()->get_edited_preset());
         });
 
         m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
@@ -430,6 +454,9 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_mode_view   , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
         m_mode_sizer->Add(m_setting_btn , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
         m_mode_sizer->Add(m_compare_btn , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing()));
+        m_mode_sizer->Add(m_process_add_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
+        m_mode_sizer->Add(m_process_remove_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
+        m_mode_sizer->Add(m_process_import_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
         m_mode_sizer->Add(m_process_export_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::TitlebarMargin()));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
@@ -683,6 +710,8 @@ void ParamsPanel::update_mode()
 void ParamsPanel::msw_rescale()
 {
     if (m_process_icon) m_process_icon->msw_rescale();
+    if (m_process_add_btn) m_process_add_btn->msw_rescale();
+    if (m_process_remove_btn) m_process_remove_btn->msw_rescale();
     if (m_setting_btn) m_setting_btn->msw_rescale();
     if (m_search_btn) m_search_btn->msw_rescale();
     if (m_compare_btn) m_compare_btn->msw_rescale();

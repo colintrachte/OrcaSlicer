@@ -77,7 +77,7 @@ private:
     void update_tooltip();
 
 private:
-    int      m_selection { 0 };
+    int      m_selection { 1 };
     bool     m_pressed   { false };
     bool     m_enabled   { true };
     bool     m_dev_mode  { false };

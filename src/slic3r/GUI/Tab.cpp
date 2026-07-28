@@ -75,9 +75,7 @@ namespace
 {
 int mode_to_selection(ConfigOptionMode mode)
 {
-    return mode == comExpert ? 2 :
-           mode == comAdvanced ? 1 :
-           0;
+    return mode == comExpert ? 2 : 1;
 }
 }
 
@@ -431,7 +429,7 @@ void Tab::create_preset_tab()
                 return; // prevent change on dev mode
 
             const int selection = m_mode_view->GetSelection();
-            m_mode_view->SelectAndNotify((selection + 1) % 3);
+            m_mode_view->SelectAndNotify(selection == comAdvanced ? comExpert : comAdvanced);
         });
         m_top_sizer->Add(m_mode_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
         m_mode_view = new ModeSwitchButton(m_top_panel);
@@ -2276,6 +2274,7 @@ void Tab::update_wiping_button_visibility() {
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
     wxString page_title = translate_category(category, m_type);
+    PageShp target_page;
 
     auto cur_item = m_tabctrl->GetFirstVisibleItem();
     if (cur_item < 0)
@@ -2310,8 +2309,12 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         }
 
         m_tabctrl->SelectItem(cur_item);
+        target_page = m_pages[cur_item];
         break;
     }
+
+    if (target_page)
+        target_page->expand_option_group(opt_key);
 
     auto set_focus = [](wxWindow* win) {
         win->SetFocus();
@@ -6306,15 +6309,21 @@ void Tab::rebuild_page_tree()
 
 void Tab::update_btns_enabling()
 {
-    // we can delete any preset from the physical printer
-    // and any user preset
-    const Preset& preset = m_presets->get_edited_preset();
-    m_btn_delete_preset->Show((m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
-                              || preset.can_overwrite());
+    m_btn_delete_preset->Show(can_delete_current_preset());
 
     //if (m_btn_edit_ph_printer)
     //    m_btn_edit_ph_printer->SetToolTip( m_preset_bundle->physical_printers.has_selection() ?
     //                                       _L("Edit physical printer") : _L("Add physical printer"));
+}
+
+bool Tab::can_delete_current_preset() const
+{
+    if (m_presets == nullptr)
+        return false;
+
+    // A physical printer may drop its selected preset without deleting a bundled preset.
+    return (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
+        || m_presets->get_edited_preset().can_overwrite();
 }
 
 void Tab::update_preset_choice()
@@ -7164,6 +7173,9 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
 // Called for a currently selected preset.
 void Tab::delete_preset()
 {
+    if (!can_delete_current_preset())
+        return;
+
     auto current_preset = m_presets->get_selected_preset();
     // Don't let the user delete the ' - default - ' configuration.
     //BBS: add project embedded preset logic and refine is_external
@@ -7171,7 +7183,6 @@ void Tab::delete_preset()
     //std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
     // TRN  remove/delete
     wxString msg;
-    bool     confirm_delete_third_party_printer = false;
     bool     is_base_preset                 = false;
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         is_base_preset = true;
@@ -7192,7 +7203,6 @@ void Tab::delete_preset()
                                      filament_preset_num, process_preset_num));
             int res = dlg.ShowModal();
             if (res != wxID_OK) return;
-            confirm_delete_third_party_printer = true;
         }
         std::vector<const Preset*> children = m_presets->get_preset_children(current_preset);
         int count = (int)children.size();
@@ -7262,9 +7272,16 @@ void Tab::delete_preset()
     //action = current_preset.is_external ? _utf8(L("Remove")) : _utf8(L("Delete"));
     // TRN  Remove/Delete
     wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str());  //action + _(L(" Preset"));
-    if (current_preset.is_default || !(confirm_delete_third_party_printer ||
-        //wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
-        wxID_YES == MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()))
+    if (current_preset.is_default)
+        return;
+
+    MessageDialog confirmation(parent(), msg, title, wxYES_NO | wxCANCEL | wxNO_DEFAULT | wxICON_QUESTION);
+    confirmation.SetButtonLabel(wxID_YES, _L("Delete"));
+    confirmation.SetButtonLabel(wxID_NO, _L("Back up and delete"));
+    const int response = confirmation.ShowModal();
+    if (response == wxID_CANCEL || (response == wxID_NO && !export_preset_to_file(parent(), current_preset)))
+        return;
+    if (response != wxID_YES && response != wxID_NO)
         return;
 
     // if we just delete preset from the physical printer
@@ -8275,6 +8292,33 @@ bool Page::set_value(const t_config_option_key &opt_key, const boost::any &value
     return changed;
 }
 
+void Page::expand_option_group(const t_config_option_key& opt_key)
+{
+    const auto separator = opt_key.find('#');
+    const auto base_key = separator == std::string::npos ? opt_key : opt_key.substr(0, separator);
+
+    for (const auto& optgroup : m_optgroups) {
+        bool contains_option = optgroup->get_fieldc(opt_key, -1) != nullptr || optgroup->get_line(opt_key) != nullptr;
+        if (!contains_option) {
+            for (const auto& line : optgroup->get_lines()) {
+                for (const auto& option : line.get_options()) {
+                    if (option.opt_id == opt_key || option.opt.opt_key == base_key) {
+                        contains_option = true;
+                        break;
+                    }
+                }
+                if (contains_option)
+                    break;
+            }
+        }
+
+        if (contains_option) {
+            optgroup->set_collapsed(false);
+            return;
+        }
+    }
+}
+
 // package Slic3r::GUI::Tab::Page;
 ConfigOptionsGroupShp Page::new_optgroup(const wxString &title, const wxString &icon, int noncommon_label_width /*= -1*/, bool is_extruder_og /* false */)
 {
@@ -8294,6 +8338,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString &title, const wxString &
 #endif*/
     auto tab = m_tab_owner;
     optgroup->set_config_category_and_type(m_title, static_cast<Tab*>(tab)->type());
+    optgroup->set_collapse_config_key(std::to_string(static_cast<Tab*>(tab)->type()) + ":" + into_u8(m_title) + ":" + into_u8(title));
     optgroup->m_on_change = [tab](t_config_option_key opt_key, boost::any value) {
         //! This function will be called from OptionGroup.
         //! Using of CallAfter is redundant.

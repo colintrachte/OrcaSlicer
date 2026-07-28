@@ -4481,7 +4481,7 @@ void PrintConfigDef::init_fff_params()
                       "layer, like bricks in a wall, so vertical seams in adjacent layers don't "
                       "line up. Requires the Arachne wall generator. The outer wall is left "
                       "unaffected. Incompatible with Z contouring and spiral vase.");
-    def->mode     = comAdvanced;
+    def->mode     = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("stagger_perimeters_extrusion_multiplier", coFloat);
@@ -4492,7 +4492,7 @@ void PrintConfigDef::init_fff_params()
                       "an unstaggered wall.");
     def->min      = 1;
     def->max      = 2;
-    def->mode     = comAdvanced;
+    def->mode     = comSimple;
     def->set_default_value(new ConfigOptionFloat(1.05));
 
     def = this->add("layer_change_gcode", coString);

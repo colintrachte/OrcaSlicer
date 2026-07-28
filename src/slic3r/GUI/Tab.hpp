@@ -103,6 +103,7 @@ public:
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
     Line *      get_line(const t_config_option_key &opt_key, int opt_index = -1);
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
+	void		expand_option_group(const t_config_option_key& opt_key);
 	// BBS. Add is_extruder_og parameter.
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, const wxString& icon = wxEmptyString, int noncommon_label_width = -1, bool is_extruder_og = false);
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
@@ -358,6 +359,7 @@ public:
 	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false, bool from_input = false, std::string input_name = "");
 	//void		save_preset(std::string name = std::string(), bool detach = false);
 
+	bool        can_delete_current_preset() const;
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();

@@ -4,6 +4,8 @@
 #include "../wxExtensions.hpp"
 #include "wx/window.h"
 
+#include <functional>
+
 class StaticLine : public wxWindow
 {
 public:
@@ -15,6 +17,9 @@ public:
     void SetIcon(const wxString& icon);
 
     void SetLineColour(wxColour color);
+
+    void SetCollapsible(bool collapsible, bool collapsed, std::function<void(bool)> on_toggle = {});
+    void SetCollapsed(bool collapsed);
     
     void Rescale();
 
@@ -22,9 +27,13 @@ private:
     wxColour       lineColor;
     bool vertical;
     ScalableBitmap icon;
+    bool m_collapsible {false};
+    bool m_collapsed {false};
+    std::function<void(bool)> m_on_toggle;
 
 private:
     void paintEvent(wxPaintEvent& evt);
+    void mouseReleased(wxMouseEvent& evt);
 
     void messureSize();
 

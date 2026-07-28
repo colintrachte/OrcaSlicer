@@ -150,6 +150,19 @@ function Format-Duration([TimeSpan] $Duration) {
     return '{0}h {1}m {2}s' -f [int]$Duration.TotalHours, $Duration.Minutes, $Duration.Seconds
 }
 
+function Normalize-ProcessPathEnvironment {
+    # Windows environment blocks may contain both PATH and Path. .NET treats those
+    # names case-insensitively and MSBuild then crashes while constructing the
+    # environment for cl.exe. Keep the conventional Path entry when both exist.
+    $pathEntries = @(& $env:ComSpec /d /c 'set path')
+    $hasUpperPath = [bool]($pathEntries | Where-Object { $_ -cmatch '^PATH=' } | Select-Object -First 1)
+    $hasMixedPath = [bool]($pathEntries | Where-Object { $_ -cmatch '^Path=' } | Select-Object -First 1)
+    if ($hasUpperPath -and $hasMixedPath) {
+        Remove-Item Env:PATH -ErrorAction Stop
+        Write-Host 'Normalized duplicate PATH/Path process environment entries.'
+    }
+}
+
 function Resolve-VisualStudio {
     $vswhereCandidates = @(@(
         (Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'),
@@ -163,9 +176,18 @@ function Resolve-VisualStudio {
     if (-not $installPath -or -not $installVersion) { throw 'No Visual Studio installation with the C++ toolchain was found.' }
 
     $major = [int]($installVersion.Split('.')[0])
+    if ($major -ne 18) {
+        throw "Visual Studio 2026 with the C++ toolchain is required; latest detected installation is $installVersion at $installPath."
+    }
     $year = switch ($major) { 16 { '2019' } 17 { '2022' } 18 { '2026' } default { $major.ToString() } }
     $cmake = Join-Path $installPath 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
-    if (-not (Test-Path -LiteralPath $cmake)) { $cmake = 'cmake.exe' }
+    if (-not (Test-Path -LiteralPath $cmake)) {
+        throw "Visual Studio 2026's bundled CMake was not found: $cmake"
+    }
+    $msbuild = Join-Path $installPath 'MSBuild\Current\Bin\MSBuild.exe'
+    if (-not (Test-Path -LiteralPath $msbuild)) {
+        throw "Visual Studio 2026's MSBuild was not found: $msbuild"
+    }
 
     return [pscustomobject]@{
         InstallPath = $installPath
@@ -174,6 +196,7 @@ function Resolve-VisualStudio {
         Year = $year
         Generator = "Visual Studio $major $year"
         CMake = $cmake
+        MSBuild = $msbuild
     }
 }
 
@@ -199,12 +222,13 @@ function Get-RecommendedParallelism {
         $system = Get-CimInstance Win32_ComputerSystem
         $memoryGB = [math]::Floor($system.TotalPhysicalMemory / 1GB)
         $processors = [int]$system.NumberOfLogicalProcessors
-        # RelWithDebInfo PCH compilation can consume roughly 2 GB per cl.exe.
-        # Four GB per worker leaves headroom for linking, the OS, and the IDE.
-        return [math]::Max(2, [math]::Min($processors, [math]::Floor($memoryGB / 4)))
+        # GUI PCH compilation can consume several GB of committed memory per cl.exe.
+        # Eight GB per worker leaves headroom for linking, the OS, and the IDE,
+        # including systems configured with a small paging file.
+        return [math]::Max(2, [math]::Min($processors, [math]::Floor($memoryGB / 8)))
     }
     catch {
-        return 8
+        return 2
     }
 }
 
@@ -260,10 +284,12 @@ $manifestPath = Join-Path $logDirectory "build_${Architecture}_${Configuration}_
 
 try {
     Write-Section 'Preflight'
+    Normalize-ProcessPathEnvironment
     if ($Ninja) {
         $generator = 'Ninja Multi-Config'
         $vsYear = 'Ninja'
         $cmake = (Get-Command cmake.exe -ErrorAction Stop).Source
+        $msbuild = $null
         if (-not (Get-Command ninja.exe -ErrorAction SilentlyContinue)) { throw 'ninja.exe was not found on PATH.' }
     }
     else {
@@ -271,6 +297,7 @@ try {
         $generator = $vs.Generator
         $vsYear = $vs.Year
         $cmake = $vs.CMake
+        $msbuild = $vs.MSBuild
         Initialize-VisualStudioEnvironment $vs.InstallPath $Architecture
         Write-Host "Visual Studio $($vs.Year): $($vs.InstallVersion)"
     }
@@ -337,9 +364,15 @@ try {
             Assert-CommandSucceeded (Invoke-LoggedCommand 'Configure dependencies' $cmake $args $depsLog) 'Configure dependencies'
 
             Write-Section 'Build dependencies'
-            $args = @('--build', $depsBuild, '--config', $Configuration, '--target', 'deps')
-            if (-not $Ninja) { $args += @('--', '-m', "-p:CL_MPCount=$Parallel") }
-            Assert-CommandSucceeded (Invoke-LoggedCommand 'Build dependencies' $cmake $args $depsLog) 'Build dependencies'
+            if ($Ninja) {
+                $args = @('--build', $depsBuild, '--config', $Configuration, '--target', 'deps')
+                Assert-CommandSucceeded (Invoke-LoggedCommand 'Build dependencies' $cmake $args $depsLog) 'Build dependencies'
+            }
+            else {
+                $depsProject = Join-Path $depsBuild 'deps.vcxproj'
+                $args = @($depsProject, '/t:Build', "/p:Configuration=$Configuration", "/p:Platform=$Architecture", "/m:$Parallel", "/p:CL_MPCount=$Parallel", '/nr:false', '/v:minimal')
+                Assert-CommandSucceeded (Invoke-LoggedCommand 'Build dependencies' $msbuild $args $depsLog) 'Build dependencies'
+            }
             [ordered]@{
                 completed = $true
                 completed_at = (Get-Date).ToString('o')
@@ -361,16 +394,28 @@ try {
             Assert-CommandSucceeded (Invoke-LoggedCommand 'Configure OrcaSlicer' $cmake $args $slicerLog) 'Configure OrcaSlicer'
 
             Write-Section 'Build OrcaSlicer'
-            $args = @('--build', $slicerBuild, '--config', $Configuration)
-            if (-not $Ninja) { $args += @('--target', 'ALL_BUILD', '--', '-m', "-p:CL_MPCount=$Parallel") }
-            Assert-CommandSucceeded (Invoke-LoggedCommand 'Build OrcaSlicer' $cmake $args $slicerLog) 'Build OrcaSlicer'
+            if ($Ninja) {
+                Assert-CommandSucceeded (Invoke-LoggedCommand 'Build OrcaSlicer' $cmake @('--build', $slicerBuild, '--config', $Configuration) $slicerLog) 'Build OrcaSlicer'
+            }
+            else {
+                $allBuildProject = Join-Path $slicerBuild 'ALL_BUILD.vcxproj'
+                $args = @($allBuildProject, '/t:Build', "/p:Configuration=$Configuration", "/p:Platform=$Architecture", "/m:$Parallel", "/p:CL_MPCount=$Parallel", '/nr:false', '/v:minimal')
+                Assert-CommandSucceeded (Invoke-LoggedCommand 'Build OrcaSlicer' $msbuild $args $slicerLog) 'Build OrcaSlicer'
+            }
 
             if (-not (Test-Path -LiteralPath $gettext)) { throw "Gettext helper was not found: $gettext" }
             Write-Section 'Compile translations'
             Assert-CommandSucceeded (Invoke-LoggedCommand 'Gettext' 'cmd.exe' @('/d', '/c', $gettext) $slicerLog) 'Gettext'
 
             Write-Section 'Install OrcaSlicer'
-            Assert-CommandSucceeded (Invoke-LoggedCommand 'Install' $cmake @('--build', $slicerBuild, '--config', $Configuration, '--target', 'install') $slicerLog) 'Install'
+            if ($Ninja) {
+                Assert-CommandSucceeded (Invoke-LoggedCommand 'Install' $cmake @('--build', $slicerBuild, '--config', $Configuration, '--target', 'install') $slicerLog) 'Install'
+            }
+            else {
+                $installProject = Join-Path $slicerBuild 'INSTALL.vcxproj'
+                $args = @($installProject, '/t:Build', "/p:Configuration=$Configuration", "/p:Platform=$Architecture", "/m:$Parallel", "/p:CL_MPCount=$Parallel", '/nr:false', '/v:minimal')
+                Assert-CommandSucceeded (Invoke-LoggedCommand 'Install' $msbuild $args $slicerLog) 'Install'
+            }
 
             if ($Run) {
                 $launcher = Join-Path $script:RepoRoot 'run.ps1'

@@ -322,9 +322,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     }
 #endif
 
-    if (!wxGetApp().app_config->has("user_mode")) {
-        wxGetApp().app_config->set("user_mode", "simple");
-        wxGetApp().app_config->set_bool("developer_mode", false);
+    const bool has_user_mode = wxGetApp().app_config->has("user_mode");
+    if (!has_user_mode || wxGetApp().app_config->get("user_mode") == "simple") {
+        wxGetApp().app_config->set("user_mode", "advanced");
+        if (!has_user_mode)
+            wxGetApp().app_config->set_bool("developer_mode", false);
         wxGetApp().app_config->save();
     }
 
