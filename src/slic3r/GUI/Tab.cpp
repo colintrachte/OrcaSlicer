@@ -3,6 +3,7 @@
 #include "Tab.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/PresetInspector.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -22,6 +23,7 @@
 #include <wx/imaglist.h>
 #include <wx/settings.h>
 #include <wx/filedlg.h>
+#include <wx/textdlg.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -258,7 +260,7 @@ void Tab::create_preset_tab()
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
     //buttons
-    m_scaled_buttons.reserve(6);
+    m_scaled_buttons.reserve(7);
     m_scaled_bitmaps.reserve(4);
 
     m_top_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -270,7 +272,9 @@ void Tab::create_preset_tab()
 
     //add_scaled_button(panel, &m_btn_compare_preset, "compare");
     add_scaled_button(m_top_panel, &m_btn_save_preset, "save");
+    add_scaled_button(m_top_panel, &m_btn_rename_preset, "rename_edit");
     add_scaled_button(m_top_panel, &m_btn_delete_preset, "cross");
+    add_scaled_button(m_top_panel, &m_btn_preset_relationships, "param_dependencies_presets");
     //if (m_type == Preset::Type::TYPE_PRINTER)
     //    add_scaled_button(panel, &m_btn_edit_ph_printer, "cog");
 
@@ -284,8 +288,15 @@ void Tab::create_preset_tab()
     //m_btn_compare_preset->SetToolTip(_L("Compare presets"));
     // TRN "Save current Settings"
     m_btn_save_preset->SetToolTip(wxString::Format(_L("Save current %s"), m_title));
+    m_btn_rename_preset->SetToolTip(_L("Rename this preset in place"));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
+    m_btn_preset_relationships->SetToolTip(_L("Browse preset relationships and repair problems"));
+    m_btn_preset_relationships->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+        if (wxGetApp().mainframe != nullptr && m_presets != nullptr)
+            wxGetApp().mainframe->show_preset_recovery(m_type, m_presets->get_selected_preset().name);
+    });
     m_btn_delete_preset->Hide();
+    m_btn_rename_preset->Hide();
 
     /*add_scaled_button(panel, &m_question_btn, "question");
     m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information\n"
@@ -344,7 +355,9 @@ void Tab::create_preset_tab()
         if (m_presets_choice) m_presets_choice->Show();
 
         m_btn_save_preset->Show();
+        m_btn_rename_preset->Show();
         m_btn_delete_preset->Show(); // ORCA: fixes delete preset button visible while search box focused
+        m_btn_preset_relationships->Show();
         m_undo_btn->Show();          // ORCA: fixes revert preset button visible while search box focused
         m_btn_search->Show();
         m_search_item->Hide();
@@ -374,7 +387,9 @@ void Tab::create_preset_tab()
              m_presets_choice->Hide();
 
          m_btn_save_preset->Hide();
+         m_btn_rename_preset->Hide();
          m_btn_delete_preset->Hide(); // ORCA: fixes delete preset button visible while search box focused
+         m_btn_preset_relationships->Hide();
          m_undo_btn->Hide();          // ORCA: fixes revert preset button visible while search box focused
          m_btn_search->Hide();
          m_search_item->Show();
@@ -416,7 +431,9 @@ void Tab::create_preset_tab()
     m_top_sizer->AddSpacer(FromDIP(SidebarProps::IconSpacing()));
 #endif
     m_top_sizer->Add(m_btn_save_preset  , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_rename_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_preset_relationships, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_btn_search       , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
     m_top_sizer->Add(m_search_item      , 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ContentMargin()));
@@ -581,6 +598,7 @@ void Tab::create_preset_tab()
 
     //m_btn_compare_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { compare_preset(); }));
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { save_preset(); }));
+    m_btn_rename_preset->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { rename_preset(); });
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { delete_preset(); }));
     /*m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
         toggle_show_hide_incompatible();
@@ -6310,10 +6328,81 @@ void Tab::rebuild_page_tree()
 void Tab::update_btns_enabling()
 {
     m_btn_delete_preset->Show(can_delete_current_preset());
+    const Preset &edited = m_presets->get_edited_preset();
+    m_btn_rename_preset->Show(edited.can_overwrite() && ! edited.is_project_embedded && ! edited.is_from_bundle());
 
     //if (m_btn_edit_ph_printer)
     //    m_btn_edit_ph_printer->SetToolTip( m_preset_bundle->physical_printers.has_selection() ?
     //                                       _L("Edit physical printer") : _L("Add physical printer"));
+}
+
+void Tab::rename_preset()
+{
+    if (m_presets == nullptr)
+        return;
+    const Preset &selected = m_presets->get_selected_preset();
+    if (! selected.can_overwrite() || selected.is_project_embedded || selected.is_from_bundle()) {
+        show_error(m_parent, _L("Only a writable user preset can be renamed in place."));
+        return;
+    }
+
+    const std::string old_name = selected.name;
+    wxTextEntryDialog name_dialog(
+        m_parent, _L("Enter the new name. OrcaSlicer will rename this preset rather than create a copy."),
+        _L("Rename Preset"), from_u8(old_name));
+    if (name_dialog.ShowModal() != wxID_OK)
+        return;
+    const std::string new_name = into_u8(name_dialog.GetValue());
+    const char *invalid_symbols = "<>[]:/\\|?*\"";
+    if (new_name.empty() || new_name.front() == ' ' || new_name.back() == ' ' ||
+        new_name.find_first_of(invalid_symbols) != std::string::npos ||
+        new_name.find(PresetCollection::get_suffix_modified()) != std::string::npos) {
+        show_error(m_parent, _L("That preset name is empty or contains characters OrcaSlicer cannot use."));
+        return;
+    }
+    if (new_name == old_name)
+        return;
+    if (m_presets->find_preset(new_name, false, true) != nullptr) {
+        show_error(m_parent, from_u8("A preset named '" + new_name + "' already exists. Rename does not overwrite another preset."));
+        return;
+    }
+
+    const size_t child_count = m_presets->get_preset_children(selected).size();
+    MessageDialog confirmation(
+        m_parent,
+        wxString::Format(_L("Rename '%s' to '%s'?\n\n"
+                            "OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."),
+                         from_u8(old_name), from_u8(new_name), child_count),
+        _L("Confirm Preset Rename"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+    if (confirmation.ShowModal() != wxID_YES)
+        return;
+
+    const std::string selected_physical_printer =
+        m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()
+            ? m_preset_bundle->physical_printers.get_selected_printer_name() : std::string();
+    const PresetRecoveryActionResult result =
+        rename_user_preset(*m_presets, old_name, new_name, m_preset_bundle);
+    if (! result.succeeded) {
+        show_error(m_parent, from_u8(result.error));
+        return;
+    }
+
+    if (m_type == Preset::TYPE_PRINTER) {
+        if (! selected_physical_printer.empty())
+            m_preset_bundle->physical_printers.select_printer(selected_physical_printer, new_name);
+    }
+    if (m_type == Preset::TYPE_FILAMENT)
+        wxGetApp().plater()->sidebar().update_presets_from_to(m_type, old_name, new_name);
+
+    m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+    update_tab_ui();
+    on_presets_changed();
+    m_preset_bundle->export_selections(*wxGetApp().app_config);
+    MessageDialog completed(
+        m_parent,
+        from_u8("Renamed '" + old_name + "' to '" + new_name + "'. Backup: " + result.backup_file),
+        _L("Preset Renamed"), wxOK | wxICON_INFORMATION);
+    completed.ShowModal();
 }
 
 bool Tab::can_delete_current_preset() const
@@ -7171,7 +7260,6 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     wxGetApp().mainframe->diff_dialog.update_presets(m_type);
 }
 
-// Called for a currently selected preset.
 void Tab::delete_preset()
 {
     if (!can_delete_current_preset())

@@ -36,6 +36,7 @@ enum CUSTOM_ID
     ID_MODEL_STORE,
     ID_PUBLISH,
     ID_CALIB,
+    ID_PRESET_RECOVERY,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
@@ -316,6 +317,11 @@ void BBLTopbar::Init(wxFrame* parent)
     m_calib_item                   = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
     m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
 
+    this->AddSpacer(FromDIP(10));
+    m_preset_recovery_item = this->AddTool(
+        ID_PRESET_RECOVERY, "", create_scaled_bitmap("param_dependencies_presets", nullptr, TOPBAR_ICON_SIZE),
+        _L("Find missing or unavailable presets"), wxITEM_NORMAL);
+
     this->AddSpacer(FromDIP(25));
     //this->AddStretchSpacer(1);
 
@@ -376,6 +382,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_FILE_MENU);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_TOP_DROPDOWN_MENU);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCalibToolItem, this, ID_CALIB);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPresetRecovery, this, ID_PRESET_RECOVERY);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
@@ -448,6 +455,23 @@ void BBLTopbar::DisableUndoRedoItems()
     this->EnableTool(m_undo_item->GetId(), false);
     this->EnableTool(m_redo_item->GetId(), false);
     this->EnableTool(m_calib_item->GetId(), false);
+    Refresh();
+}
+
+void BBLTopbar::SetPresetRecoveryWarning(size_t issue_count)
+{
+    m_preset_recovery_issue_count = issue_count;
+    if (m_preset_recovery_item == nullptr)
+        return;
+    m_preset_recovery_item->SetBitmap(create_scaled_bitmap(
+        issue_count == 0 ? "param_dependencies_presets" : "obj_warning", this, TOPBAR_ICON_SIZE));
+    m_preset_recovery_item->SetShortHelp(issue_count == 0 ?
+        _L("Find missing or unavailable presets") :
+        wxString::Format(_L_PLURAL("%d preset needs attention. Find missing or unavailable presets.",
+                                     "%d presets need attention. Find missing or unavailable presets.", issue_count),
+                         static_cast<int>(issue_count)));
+    // The bitmap dimensions do not change. Re-realizing the proportional toolbar here moves the
+    // Windows caption controls after a modal dialog closes.
     Refresh();
 }
 
@@ -563,6 +587,8 @@ void BBLTopbar::Rescale() {
     item = this->FindTool(ID_CALIB);
     item->SetBitmap(create_scaled_bitmap("calib_sf", this, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("calib_sf_inactive", this, TOPBAR_ICON_SIZE));
+
+    SetPresetRecoveryWarning(m_preset_recovery_issue_count);
 
     if (m_title_ctrl)
         m_title_ctrl->SetTitle(m_titleText);
@@ -697,6 +723,12 @@ void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent &evt)
 
     // make sure the button is "un-stuck"
     tb->SetToolSticky(evt.GetId(), false);
+}
+
+void BBLTopbar::OnPresetRecovery(wxAuiToolBarEvent &)
+{
+    if (MainFrame *main_frame = dynamic_cast<MainFrame *>(m_frame))
+        main_frame->show_preset_recovery();
 }
 
 void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)

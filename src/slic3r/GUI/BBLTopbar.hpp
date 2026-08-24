@@ -42,6 +42,7 @@ public:
     void OnFileToolItem(wxAuiToolBarEvent& evt);
     void OnDropdownToolItem(wxAuiToolBarEvent& evt);
     void OnCalibToolItem(wxAuiToolBarEvent &evt);
+    void OnPresetRecovery(wxAuiToolBarEvent &evt);
     void OnMouseLeftDClock(wxMouseEvent& mouse);
     void OnMouseLeftDown(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
@@ -73,6 +74,7 @@ public:
     void SaveNormalRect();
 
     void ShowCalibrationButton(bool show = true);
+    void SetPresetRecoveryWarning(size_t issue_count);
 
 protected:
 #ifdef __WXMSW__
@@ -100,6 +102,8 @@ private:
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* m_calib_item;
+    wxAuiToolBarItem* m_preset_recovery_item { nullptr };
+    size_t            m_preset_recovery_issue_count { 0 };
     wxAuiToolBarItem* maximize_btn;
 
     wxBitmap m_publish_bitmap;

@@ -2,7 +2,8 @@
 #include "format.hpp"
 #include "Utils.hpp"
 #include "LocalesUtils.hpp"
-#include "Preset.hpp"
+#include "PresetJsonKeys.hpp"
+#include "PrintConfig.hpp"
 
 #include <assert.h>
 #include <fstream>
@@ -32,8 +33,6 @@ using namespace nlohmann;
 
 //FIXME for GCodeFlavor and gcfMarlin (for forward-compatibility conversion)
 // This is not nice, likely it would be better to pass the ConfigSubstitutionContext to handle_legacy().
-#include "PrintConfig.hpp"
-
 namespace Slic3r {
 
 //BBS: add json support
@@ -908,6 +907,17 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no config defs!";
             return -1;
         }
+        auto deserialize_or_record_unknown = [&](const t_config_option_key &opt_key, const std::string &value) {
+            try {
+                this->set_deserialize(opt_key, value, substitution_context);
+                return true;
+            } catch (const UnknownOptionException &) {
+                if (std::find(substitution_context.unrecogized_keys.begin(), substitution_context.unrecogized_keys.end(), opt_key) ==
+                    substitution_context.unrecogized_keys.end())
+                    substitution_context.unrecogized_keys.push_back(opt_key);
+                return false;
+            }
+        };
         //parse the json elements
         for (auto it = j.begin(); it != j.end(); it++) {
             if (boost::iequals(it.key(),BBL_JSON_KEY_VERSION)) {
@@ -952,7 +962,8 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
 
                 if (it.value().is_string()) {
                     //bool test1 = (it.key() == std::string("end_gcode"));
-                    this->set_deserialize(opt_key, it.value(), substitution_context);
+                    if (! deserialize_or_record_unknown(opt_key, it.value()))
+                        continue;
                     //some logic for special values
                     if (opt_key == "support_type") {
                         //std::string new_value = dynamic_cast<ConfigOptionString*>(this->option(opt_key))->value;
@@ -1023,7 +1034,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         break;
                     }
                     if (valid)
-                        this->set_deserialize(opt_key, value_str, substitution_context);
+                        deserialize_or_record_unknown(opt_key, value_str);
                 }
                 else {
                     //should not happen
@@ -1291,7 +1302,10 @@ size_t ConfigBase::load_from_gcode_string_legacy(ConfigBase& config, const char*
             ++num_key_value_pairs;
         }
         catch (UnknownOptionException & /* e */) {
-            // ignore
+            const std::string unknown_key(key, key_end);
+            if (std::find(substitutions.unrecogized_keys.begin(), substitutions.unrecogized_keys.end(), unknown_key) ==
+                substitutions.unrecogized_keys.end())
+                substitutions.unrecogized_keys.push_back(unknown_key);
         }
         end = start;
     }

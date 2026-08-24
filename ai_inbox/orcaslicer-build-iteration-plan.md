@@ -1,9 +1,48 @@
 # OrcaSlicer Build-Iteration Improvement Plan
 
-**Status:** Proposed  
+**Status:** Phases 0–2 implemented; Phase 4 budget complete; Phase 5 header retained/PCH rejected; Phase 6 first seam retained/target held
+
 **Date:** 2026-07-27  
-**Scope:** Windows developer builds first, followed by cross-platform architectural improvements  
+**Scope:** Windows developer builds and architectural pilots; macOS/Linux validation explicitly deferred by user
 **Primary goal:** Make ordinary OrcaSlicer edit-build-test loops fast, predictable, resource-safe, and explainable without weakening release verification or print correctness.
+
+## Execution checkpoint — 2026-07-28
+
+- Phase 0: added scenario-labeled benchmark manifests, an opt-in MSBuild binary-log/rebuild-reason
+  mode, and an MSVC `.tlog` transitive-consumer analyzer. Repeated Windows measurements and the
+  resulting gate decisions are recorded in `research/architecture-baselines.md`.
+- Phase 1: `scripts/build.ps1` now accepts friendly or exact targets, skips explicit configure in a
+  compatible hot-loop tree, and makes gettext/install explicit in developer mode while preserving
+  the historical full workflow.
+- Phase 2 v1: Visual Studio project parallelism is fixed at one, compiler parallelism is bounded by
+  `-Parallel`/`-MaxParallel`/`-SafeBuild`, ceilings are learned by build identity, and recognized
+  memory failures retry at most once at half the ceiling.
+- Phase 3: the Ninja Multi-Config experiment is on hold because the VS 2026 compiler-identification
+  subprocess reproducibly leaves Ninja waiting after `cl.exe` exits. No generator speed claim is made.
+- Phase 4: `/Bt+` translation-unit timings are joined to `.tlog` transitive consumers. The weighted
+  baseline selected `GUI_App.hpp` as the first bounded header pilot. A complete single-worker
+  `/showIncludes` capture now adds compiler-native direct edges, and the first checked dependency
+  budget prevents growth beyond 240 transitive consumers, 175 direct includers, or 160 direct
+  source consumers in the same application scope.
+- Phase 5 first pilot: hide `HttpServer.hpp` behind private ownership and move implementation bodies
+  out of `GUI_App.hpp`. Three controlled header rebuilds improved the mean by 6.44%, and three
+  leaf-GUI rebuilds improved by 5.02%. A post-change isolated clean build completed 12.00% below
+  the baseline with the same 665 objects and 29 warnings; linked application artifacts did not
+  grow. The bounded patch is retained. Broader header/PCH changes, target splits, generation, and
+  caching remain behind the plan's gates.
+- Phase 5 GUI PCH pilot: a controlled rebuild of the current PCH took 1064.58 seconds and rebuilt
+  357 objects at the Windows p2 ceiling. The stable external-focused candidate removed OrcaSlicer
+  headers from the forced PCH, but exceeded 1200 seconds without completing. It therefore failed
+  the first performance gate by at least 12.7% and was reverted before downstream measurements.
+- Phase 6 configuration pilot: the target map and budgets are recorded in
+  `docs/architecture/module-boundaries.md`. A lightweight `PresetJsonKeys.hpp` seam removes
+  `Config.cpp`'s full preset-header dependency with all 39 macro values unchanged. The settled
+  config-leaf mean is 32.111 seconds versus 32.121 seconds before, and 19/19 focused tests pass.
+  The compiled `slic3r_config` target is held because the current object still has forbidden
+  print-schema/application utility dependencies and cannot yet provide a focused link boundary.
+- Scope decision, 2026-07-31: macOS/Linux validation is intentionally skipped for the current
+  execution. Windows gates remain mandatory; cross-platform evidence is deferred rather than
+  represented as passing.
 
 ## Executive decision
 

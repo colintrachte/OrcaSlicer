@@ -2,6 +2,7 @@
 #include <ctime>
 
 #include "PresetBundle.hpp"
+#include "PresetImportPreflight.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r.h"
 #include "I18N.hpp"
@@ -245,11 +246,18 @@ DynamicPrintConfig PresetBundle::construct_full_config(
 
 std::string PresetBundle::find_preset_vendor(const std::string &preset_name, Preset::Type type)
 {
+    const std::vector<std::string> vendors = find_preset_vendors(preset_name, type);
+    return vendors.empty() ? std::string() : vendors.front();
+}
+
+std::vector<std::string> PresetBundle::find_preset_vendors(const std::string &preset_name, Preset::Type type)
+{
+    std::vector<std::string> matches;
     // Get the resources preset directory (contains all bundled vendor profiles)
     fs::path system_dir = fs::path(Slic3r::resources_dir()) / PRESET_PROFILES_DIR;
     if (!fs::exists(system_dir) || !fs::is_directory(system_dir)) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " Resources profiles directory does not exist: " << system_dir.string();
-        return "";
+        return matches;
     }
 
     // Determine which preset list key to search for based on type
@@ -262,7 +270,7 @@ std::string PresetBundle::find_preset_vendor(const std::string &preset_name, Pre
         preset_list_key = BBL_JSON_KEY_MACHINE_LIST;
     else {
         // Not supported for other types
-        return "";
+        return matches;
     }
 
     // Iterate through vendor JSON files in the system directory
@@ -303,21 +311,18 @@ std::string PresetBundle::find_preset_vendor(const std::string &preset_name, Pre
                 if (p_name != preset_name)
                     continue;
 
-                // Found the preset! Get the vendor name and install the entire bundle
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Found preset " << p_name
-                                            << " in vendor bundle " << vendor_name;
-                
-                return vendor_name;
+                matches.push_back(vendor_name);
+                break;
             }
         }
         catch (const std::exception &e) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to find vendor name for " << preset_name << ": " << e.what();
-            return "";
         }
     }
 
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Could not find vendor for preset " << preset_name;
-    return "";
+    std::sort(matches.begin(), matches.end());
+    matches.erase(std::unique(matches.begin(), matches.end()), matches.end());
+    return matches;
 }
 
 PresetBundle::PresetBundle()
@@ -1310,6 +1315,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                                                         AppConfig&                            config)
 {
     bundles.PauseRead(); // Pause threads from reading
+    ScopeGuard resume_bundle_reads([this]() { bundles.UnpauseRead(); });
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry";
     PresetsConfigSubstitutions substitutions;
     int overwrite = 0;
@@ -1318,6 +1324,28 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
     if (user_id.empty())
         user_id = DEFAULT_USER_FOLDER_NAME;
     this->update_user_presets_directory(user_id);
+
+    std::vector<std::string> direct_json_files;
+    for (const std::string &file : files)
+        if (Slic3r::is_json_file(file))
+            direct_json_files.push_back(file);
+    if (! direct_json_files.empty()) {
+        const PresetImportPreflight preflight = preflight_preset_imports(*this, direct_json_files, rule);
+        if (! preflight.can_import()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Direct preset dependency preflight failed: "
+                                     << format_preset_import_preflight(preflight);
+            files.clear();
+            return substitutions;
+        }
+        if (! preflight.warnings.empty())
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " " << format_preset_import_warnings(preflight.warnings);
+        std::vector<std::string> reordered_files = preflight.ordered_files;
+        for (const std::string &file : files)
+            if (! Slic3r::is_json_file(file))
+                reordered_files.push_back(file);
+        files = std::move(reordered_files);
+    }
+
     for (auto &file : files) {
         if (Slic3r::is_json_file(file)) {
             import_json_presets(substitutions, file, override_confirm, rule, overwrite, result);
@@ -1347,13 +1375,21 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             mz_bool status;
 
             FILE *zipFile = boost::nowide::fopen(file.c_str(), "rb");
+            if (zipFile == nullptr) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to open ZIP archive: " << file;
+                if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
+                continue;
+            }
+            ScopeGuard close_zip_file([zipFile]() { fclose(zipFile); });
             status        = mz_zip_reader_init_cfile(&zip_archive, zipFile, 0, MZ_ZIP_FLAG_CASE_SENSITIVE | MZ_ZIP_FLAG_IGNORE_PATH);
             if (MZ_FALSE == status) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to initialize reader ZIP archive";
-                return substitutions;
+                if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
+                continue;
             } else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Success to initialize reader ZIP archive";
             }
+            ScopeGuard close_zip_archive([&zip_archive]() { mz_zip_reader_end(&zip_archive); });
 
             // First, extract bundle_structure.json to get the bundle_id
             // Track whether bundle_structure.json exists to determine routing
@@ -1374,45 +1410,75 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " bundle_id was empty, so generating a UUID: " << metadata.id;
             }
 
-            // Build bundle directory path based on whether bundle_structure.json was present
+            // Determine the eventual bundle path, but do not create it until every preset in the
+            // archive has passed dependency preflight.
             fs::path bundle_base_dir;
             if (has_bundle_structure) {
-                // Use the bundle ID from metadata when bundle_structure.json exists
                 bundle_base_dir = user_folder / user_id / PRESET_LOCAL_DIR / metadata.id;
-                if (!fs::exists(bundle_base_dir))
-                    fs::create_directories(bundle_base_dir, ec);
-                if (ec)
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to create bundle directory: " << bundle_base_dir.string() << " error: " << ec.message();
             } else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " No bundle_structure.json found, importing presets into the user preset directory";
             }
 
-            // Extract Files
+            // Extract all preset files first. Unique temporary names prevent archive paths with
+            // identical basenames from overwriting one another before duplicate detection. One
+            // unreadable/unextractable entry only forfeits that entry — it must not discard
+            // presets already successfully extracted from the same archive.
+            std::vector<std::string> extracted_files;
             int num_files = mz_zip_reader_get_num_files(&zip_archive);
             for (int i = 0; i < num_files; i++) {
                 mz_zip_archive_file_stat file_stat;
                 status = mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
-                if (status) {
-                    std::string file_name = file_stat.m_filename;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " From zip file: " << file << ". Read file name: " << file_stat.m_filename;
-                    size_t index = file_name.find_last_of('/');
-                    if (std::string::npos != index) {
-                        file_name = file_name.substr(index + 1);
-                    }
-                    if (BUNDLE_STRUCTURE_JSON_NAME == file_name) continue;
-                    // create target file path
-                    std::string target_file_path = boost::filesystem::path(temp_folder / file_name).make_preferred().string();
-
-                    status = mz_zip_reader_extract_to_file(&zip_archive, i, encode_path(target_file_path.c_str()).c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
-                    // target file is opened
-                    if (MZ_FALSE == status) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to open target file: " << target_file_path;
-                    } else {
-                        bool is_success = import_json_presets(substitutions, target_file_path, override_confirm, rule, overwrite, result,
-                                                              has_bundle_structure ? bundle_base_dir.string() : std::string());
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " import target file: " << target_file_path << " import result" << is_success;
-                    }
+                if (! status) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to stat entry " << i << " in archive " << file << "; skipping this entry";
+                    continue;
                 }
+                std::string file_name = file_stat.m_filename;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " From zip file: " << file << ". Read file name: " << file_stat.m_filename;
+                size_t index = file_name.find_last_of('/');
+                if (std::string::npos != index) {
+                    file_name = file_name.substr(index + 1);
+                }
+                if (BUNDLE_STRUCTURE_JSON_NAME == file_name || PRESET_BUNDLE_METADATA == file_name ||
+                    ! boost::iends_with(file_name, ".json")) continue;
+                // create target file path
+                std::string target_file_path = boost::filesystem::path(temp_folder / (std::to_string(i) + ".json")).make_preferred().string();
+
+                status = mz_zip_reader_extract_to_file(&zip_archive, i, encode_path(target_file_path.c_str()).c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
+                if (MZ_FALSE == status) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to extract target file: " << target_file_path << "; skipping this entry";
+                    continue;
+                }
+                extracted_files.push_back(std::move(target_file_path));
+            }
+
+            PresetImportPreflight preflight;
+            if (! extracted_files.empty())
+                preflight = preflight_preset_imports(*this, extracted_files, rule, ! has_bundle_structure);
+            if (extracted_files.empty() || ! preflight.can_import()) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Archive dependency preflight failed for " << file << ": "
+                                         << format_preset_import_preflight(preflight);
+                if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
+                continue;
+            }
+            if (! preflight.warnings.empty())
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " " << format_preset_import_warnings(preflight.warnings);
+
+            if (has_bundle_structure && ! fs::exists(bundle_base_dir)) {
+                fs::create_directories(bundle_base_dir, ec);
+                if (ec) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to create bundle directory: " << bundle_base_dir.string()
+                                             << " error: " << ec.message();
+                    if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
+                    continue;
+                }
+            }
+
+            bool archive_import_succeeded = true;
+            for (std::string target_file_path : preflight.ordered_files) {
+                const bool is_success = import_json_presets(substitutions, target_file_path, override_confirm, rule, overwrite, result,
+                                                            has_bundle_structure ? bundle_base_dir.string() : std::string());
+                archive_import_succeeded = archive_import_succeeded && is_success;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " import target file: " << target_file_path << " import result" << is_success;
             }
 
             // Set imported_time to current time if not already set
@@ -1421,7 +1487,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             }
 
             // Only save bundle_metadata.json for bundles (when bundle_structure.json was present)
-            if (has_bundle_structure) {
+            if (has_bundle_structure && archive_import_succeeded) {
                 // Save metadata to bundle_metadata.json
                 fs::path metadata_save_path = bundle_base_dir / PRESET_BUNDLE_METADATA;
                 if (metadata.save_to_json(metadata_save_path.string())) {
@@ -1440,12 +1506,10 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 }
             }
 
-            fclose(zipFile);
             if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
             if (ec) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " remove directory failed: " << ec.message();
         }
     }
-    bundles.UnpauseRead();
     files = result;
     return substitutions;
 }
@@ -1458,6 +1522,32 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
                                        std::vector<std::string> &              result,
                                        const std::string &                     bundle_dir)
 {
+    fs::path rollback_source;
+    fs::path rollback_target;
+    bool     import_succeeded = false;
+    // Declared here, not inside the try block below, so they are still alive when this guard's
+    // destructor runs during stack unwinding out of the try block.
+    Preset                  *overwritten_preset = nullptr;
+    boost::optional<Preset>  preset_backup;
+    ScopeGuard restore_overwritten_preset([&]() {
+        if (import_succeeded)
+            return;
+        if (! rollback_source.empty() && ! rollback_target.empty()) {
+            boost::system::error_code restore_error;
+            fs::copy_file(rollback_source, rollback_target, fs::copy_option::overwrite_if_exists, restore_error);
+            if (restore_error)
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Could not roll back overwritten preset file: "
+                                         << restore_error.message();
+        }
+        if (preset_backup && overwritten_preset != nullptr) {
+            // load_preset() below mutates the existing in-memory Preset in place; restoring only
+            // the on-disk backup above would otherwise leave the running session showing the new
+            // (failed) config while disk holds the old one.
+            *overwritten_preset = *preset_backup;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Reverted in-memory preset " << overwritten_preset->name
+                                    << " after failed import";
+        }
+    });
     try {
         DynamicPrintConfig config;
         // BBS: change to json format
@@ -1492,7 +1582,9 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         const std::string      preset_name = get_preset_canonical_name(name, load_origin);
 
         if (overwrite == 0) overwrite = 1;
-        if (auto p = collection->find_preset(preset_name, false)) {
+        Preset *existing_preset = collection->find_preset(preset_name, false);
+        if (existing_preset != nullptr) {
+            auto p = existing_preset;
             if (p->is_default || p->is_system) {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset already present and is system preset, not loading: " << preset_name;
                 return false;
@@ -1502,6 +1594,25 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         if (overwrite == 0 || overwrite == 2) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset already present, not loading: " << preset_name;
             return false;
+        }
+
+        if (existing_preset != nullptr && ! existing_preset->file.empty()) {
+            const fs::path existing_file(existing_preset->file);
+            if (fs::is_regular_file(existing_file)) {
+                const fs::path backup_file(find_unique_candidate(existing_preset->file + ".import-backup", "-",
+                    [](const std::string &candidate) { return fs::exists(candidate); }));
+                boost::system::error_code backup_error;
+                fs::copy_file(existing_file, backup_file, backup_error);
+                if (backup_error) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Could not back up existing preset "
+                                             << preset_name << ": " << backup_error.message();
+                    return false;
+                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Backed up existing preset " << preset_name
+                                        << " to " << backup_file.string();
+                rollback_source = backup_file;
+                rollback_target = existing_file;
+            }
         }
 
         DynamicPrintConfig new_config;
@@ -1534,6 +1645,10 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
             extend_default_config_length(new_config, true, default_preset.config);
         }
 
+        if (existing_preset != nullptr) {
+            overwritten_preset = existing_preset;
+            preset_backup      = *existing_preset;
+        }
         Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), preset_name, std::move(new_config), false);
         preset.bundle_id = load_origin.bundle_id;
         if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
@@ -1567,6 +1682,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         }
 
         result.push_back(file);
+        import_succeeded = true;
     } catch (const std::ifstream::failure &err) {
         ++m_errors;
         BOOST_LOG_TRIVIAL(error) << boost::format("The config cannot be loaded: %1%. Reason: %2%") % file % err.what();
@@ -1574,7 +1690,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         ++m_errors;
         BOOST_LOG_TRIVIAL(error) << boost::format("Failed importing config file: %1%. Reason: %2%") % file % err.what();
     }
-    return true;
+    return import_succeeded;
 }
 
 //BBS save user preset to user_id preset folder

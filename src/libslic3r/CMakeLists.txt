@@ -100,6 +100,11 @@ set(lisbslic3r_sources
     CommonDefs.hpp
     Config.cpp
     Config.hpp
+    # ConfigRegistry.cpp/.hpp are deliberately NOT compiled into this target: they have no
+    # production caller (only tests/libslic3r/test_config_registry.cpp) and pull in
+    # PrintConfig.hpp, the header this library's Phase 6 firewall pilot is trying to shrink
+    # exposure to. See tests/libslic3r/CMakeLists.txt, which compiles ConfigRegistry.cpp
+    # directly into the test binary instead.
     ContourZ.cpp
     CustomGCode.cpp
     CustomGCode.hpp
@@ -346,6 +351,11 @@ set(lisbslic3r_sources
     PresetBundle.hpp
     Preset.cpp
     Preset.hpp
+    PresetInspector.cpp
+    PresetInspector.hpp
+    PresetImportPreflight.cpp
+    PresetImportPreflight.hpp
+    PresetJsonKeys.hpp
     PrincipalComponents2D.cpp
     PrincipalComponents2D.hpp
     PrintApply.cpp

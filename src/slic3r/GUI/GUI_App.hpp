@@ -11,14 +11,13 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/UserNotification.hpp"
+#include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/Utils/BBLCloudServiceAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
 #include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
-#include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
-#include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 
 #include <wx/app.h>
@@ -26,7 +25,6 @@
 #include <wx/font.h>
 #include <wx/string.h>
 #include <wx/snglinst.h>
-#include <wx/msgdlg.h>
 
 #include <mutex>
 #include <stack>
@@ -61,10 +59,12 @@ class PresetBundle;
 class PresetUpdater;
 class ModelObject;
 class Model;
+class MachineObject;
 class UserManager;
 class DeviceManager;
 class NetworkAgent;
 class TaskManager;
+class PrintHostJobQueue;
 
 namespace GUI{
 
@@ -85,6 +85,11 @@ class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
 class NetworkErrorDialog;
+class HttpServer;
+class ImGuiWrapper;
+class PresetBundleDialog;
+class UpgradeNetworkJob;
+class ZUserLogin;
 
 
 enum FileType
@@ -164,63 +169,15 @@ public:
     std::string url;
     bool        force_upgrade{ false };
     int      ver_items[VERSION_LEN];  // AA.BB.CC.DD
-    VersionInfo() {
-        for (int i = 0; i < VERSION_LEN; i++) {
-            ver_items[i] = 0;
-        }
-        force_upgrade = false;
-        version_str = "";
-    }
+    VersionInfo();
 
-    void parse_version_str(std::string str) {
-        version_str = str;
-        std::vector<std::string> items;
-        boost::split(items, str, boost::is_any_of("."));
-        if (items.size() == VERSION_LEN) {
-            try {
-                for (int i = 0; i < VERSION_LEN; i++) {
-                    ver_items[i] = stoi(items[i]);
-                }
-            }
-            catch (...) {
-                ;
-            }
-        }
-    }
+    void parse_version_str(std::string str);
     static std::string convert_full_version(std::string short_version);
     static std::string convert_short_version(std::string full_version);
-    static std::string get_full_version() {
-        return convert_full_version(SLIC3R_VERSION);
-    }
+    static std::string get_full_version();
 
     /* return > 0, need update */
-    int compare(std::string ver_str) {
-        if (version_str.empty()) return -1;
-
-        int      ver_target[VERSION_LEN];
-        std::vector<std::string> items;
-        boost::split(items, ver_str, boost::is_any_of("."));
-        if (items.size() == VERSION_LEN) {
-            try {
-                for (int i = 0; i < VERSION_LEN; i++) {
-                    ver_target[i] = stoi(items[i]);
-                    if (ver_target[i] < ver_items[i]) {
-                        return 1;
-                    }
-                    else if (ver_target[i] == ver_items[i]) {
-                        continue;
-                    }
-                    else {
-                        return -1;
-                    }
-                }
-            }
-            catch (...) {
-                return -1;
-            }
-        }
-        return -1;
-    }
+    int compare(std::string ver_str);
 };
 
 class GUI_App : public wxApp
@@ -333,7 +290,7 @@ private:
     std::chrono::steady_clock::time_point m_last_401_error_time;
     bool             m_show_error_msgdlg{false};
     wxString         m_info_dialog_content;
-    HttpServer       m_http_server;
+    std::unique_ptr<HttpServer> m_http_server;
     bool             m_show_gcode_window{true};
     boost::thread    m_check_network_thread;
 public:
@@ -343,7 +300,7 @@ public:
     bool            OnInit() override;
     int             OnExit() override;
     bool            initialized() const { return m_initialized; }
-    inline bool     is_enable_multi_machine() { return this->app_config&& this->app_config->get("enable_multi_machine") == "true"; }
+    bool            is_enable_multi_machine();
 
     std::map<std::string, bool> test_url_state;
 
@@ -352,7 +309,7 @@ public:
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
-    void show_message_box(std::string msg) { wxMessageBox(msg); }
+    void show_message_box(std::string msg);
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
     bool                   is_blocking_printing(MachineObject *obj_ = nullptr);
@@ -376,17 +333,17 @@ public:
     bool show_gcode_window() const { return m_show_gcode_window; }
     void toggle_show_gcode_window();
 
-    bool show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
-    void toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
+    bool show_3d_navigator() const;
+    void toggle_show_3d_navigator() const;
 
-    bool show_plate_gridlines() const { return app_config->get_bool("show_plate_gridlines"); }
-    void toggle_show_plate_gridlines() const { app_config->set_bool("show_plate_gridlines", !show_plate_gridlines()); }
+    bool show_plate_gridlines() const;
+    void toggle_show_plate_gridlines() const;
 
-    bool show_canvas_zoom_button() const { return app_config->get_bool("show_canvas_zoom_button"); }
-    void toggle_canvas_zoom_button() const { app_config->set_bool("show_canvas_zoom_button", !show_canvas_zoom_button()); }
+    bool show_canvas_zoom_button() const;
+    void toggle_canvas_zoom_button() const;
 
-    bool show_outline() const { return app_config->get_bool("show_outline"); }
-    void toggle_show_outline() const { app_config->set_bool("show_outline", !show_outline()); }
+    bool show_outline() const;
+    void toggle_show_outline() const;
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
@@ -800,7 +757,7 @@ wxDECLARE_EVENT(EVT_UPDATE_BUNDLE_COMPLETE, wxCommandEvent);
 bool is_support_filament(int extruder_id, bool strict_check = true);
 bool is_soluble_filament(int extruder_id);
 // check if the filament for model is in the list
-bool has_filaments(const std::vector<string>& model_filaments);
+bool has_filaments(const std::vector<std::string>& model_filaments);
 } // namespace GUI
 } // Slic3r
 

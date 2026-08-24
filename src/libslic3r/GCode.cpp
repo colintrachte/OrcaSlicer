@@ -3651,7 +3651,20 @@ size_t GCode::cur_extruder_index() const
 {
     //TODO: check if the function is duplicated
     //just return m_writer.filament()->extruder_id()
-    return get_extruder_id(m_writer.filament()->id());
+    const Extruder *filament = m_writer.filament();
+    if (filament != nullptr)
+        return get_extruder_id(filament->id());
+    const std::vector<unsigned int> configured_filaments = m_writer.extruder_ids();
+    if (!configured_filaments.empty())
+        return get_extruder_id(configured_filaments.front());
+    if (m_print != nullptr) {
+        const std::vector<unsigned int> print_filaments = m_print->extruders();
+        if (!print_filaments.empty())
+            return get_extruder_id(print_filaments.front());
+    }
+    // Support speed may be resolved before a current filament is selected. The
+    // first physical nozzle is the established fallback for an unmapped filament.
+    return 0;
 }
 
 size_t GCode::get_extruder_id(unsigned int filament_id) const
@@ -6215,7 +6228,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     static constexpr const char* support_transition_label = "support transition";
     static constexpr const char* support_ironing_label    = "support ironing";
 
-    static const auto speed_for_path = [&](double length, ExtrusionRole role, double default_speed = -1.0) {
+    const auto speed_for_path = [&](double length, ExtrusionRole role, double default_speed = -1.0) {
         if (!is_support(role) || length > SMALL_PERIMETER_LENGTH(NOZZLE_CONFIG(small_support_perimeter_threshold)))
             return default_speed;
 

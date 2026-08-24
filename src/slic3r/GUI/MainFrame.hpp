@@ -295,6 +295,9 @@ public:
     void        update_ui_from_settings();
     //BBS
     void        show_sync_dialog();
+    void        show_preset_recovery(Preset::Type focus_type = Preset::TYPE_INVALID,
+                                     const std::string &focus_name = {});
+    void        update_preset_recovery_state();
     void        update_side_preset_ui();
     void        on_select_default_preset(SimpleEvent& evt);
 
@@ -307,8 +310,11 @@ public:
     void        export_config();
     // Query user for the config file and open it.
     void        load_config_file();
+    // Discover and import preset JSON files from an OrcaSlicer user/version/backup folder.
+    void        load_config_folder();
     // Open a config file. Return true if loaded.
     bool        load_config_file(const std::string &path);
+    void        import_config_files(std::vector<std::string> files);
 
     //BBS: export current config bundle as BBL default reference
     //void        export_current_configbundle();

@@ -1,13 +1,18 @@
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/Zipper.hpp"
+#include "libslic3r/miniz_extension.hpp"
 
 #include <boost/filesystem/operations.hpp>
 
 #include <catch2/catch_tostring.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+#include <fstream>
 #include <type_traits> // for std::enable_if_t
 #include <typeinfo>    // for typeid
 
@@ -60,6 +65,106 @@ namespace Catch {
 
 using namespace Slic3r;
 
+namespace {
+
+namespace fs = boost::filesystem;
+
+struct Temp3mfDir {
+    fs::path path;
+
+    Temp3mfDir()
+    {
+        path = fs::temp_directory_path() / fs::unique_path("orcaslicer-3mf-%%%%-%%%%-%%%%");
+        fs::create_directories(path);
+    }
+
+    ~Temp3mfDir()
+    {
+        boost::system::error_code ec;
+        fs::remove_all(path, ec);
+    }
+};
+
+struct LoadedBbsArtifacts {
+    PlateDataPtrs         plates;
+    std::vector<Preset *> presets;
+
+    ~LoadedBbsArtifacts()
+    {
+        release_PlateData_list(plates);
+        for (Preset *preset : presets)
+            delete preset;
+    }
+};
+
+std::vector<unsigned char> read_file_bytes(const fs::path &path)
+{
+    std::ifstream input(path.string(), std::ios::binary);
+    REQUIRE(input.good());
+    return std::vector<unsigned char>(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
+
+std::string read_zip_entry(const fs::path &archive_path, const std::string &entry_name)
+{
+    mz_zip_archive archive {};
+    REQUIRE(open_zip_reader(&archive, archive_path.string()));
+
+    const int index = mz_zip_reader_locate_file(&archive, entry_name.c_str(), nullptr, 0);
+    REQUIRE(index >= 0);
+
+    mz_zip_archive_file_stat stat {};
+    REQUIRE(mz_zip_reader_file_stat(&archive, index, &stat));
+    std::string data(static_cast<size_t>(stat.m_uncomp_size), '\0');
+    REQUIRE(mz_zip_reader_extract_to_mem(&archive, index, data.data(), data.size(), 0));
+    REQUIRE(close_zip_reader(&archive));
+    return data;
+}
+
+void rewrite_zip_entry(const fs::path &archive_path, const std::string &entry_name,
+                       const std::function<void(std::string &)> &rewrite)
+{
+    struct Entry {
+        std::string                name;
+        std::vector<unsigned char> data;
+    };
+
+    mz_zip_archive archive {};
+    REQUIRE(open_zip_reader(&archive, archive_path.string()));
+
+    std::vector<Entry> entries;
+    const mz_uint      entry_count = mz_zip_reader_get_num_files(&archive);
+    for (mz_uint i = 0; i < entry_count; ++i) {
+        mz_zip_archive_file_stat stat {};
+        REQUIRE(mz_zip_reader_file_stat(&archive, i, &stat));
+        if (mz_zip_reader_is_file_a_directory(&archive, i))
+            continue;
+
+        Entry entry;
+        entry.name = stat.m_filename;
+        entry.data.resize(static_cast<size_t>(stat.m_uncomp_size));
+        REQUIRE(mz_zip_reader_extract_to_mem(&archive, i, entry.data.data(), entry.data.size(), 0));
+        if (entry.name == entry_name) {
+            std::string text(entry.data.begin(), entry.data.end());
+            rewrite(text);
+            entry.data.assign(text.begin(), text.end());
+        }
+        entries.emplace_back(std::move(entry));
+    }
+    REQUIRE(close_zip_reader(&archive));
+
+    const fs::path replacement = archive_path.parent_path() / (archive_path.stem().string() + "-replacement.3mf");
+    {
+        Zipper output(replacement.string());
+        for (const Entry &entry : entries)
+            output.add_entry(entry.name, entry.data.data(), entry.data.size());
+        output.finalize();
+    }
+    fs::copy_file(replacement, archive_path, fs::copy_options::overwrite_existing);
+    fs::remove(replacement);
+}
+
+} // namespace
+
 
 SCENARIO("Reading 3mf file", "[3mf]") {
     GIVEN("umlauts in the path of the file") {
@@ -74,6 +179,98 @@ SCENARIO("Reading 3mf file", "[3mf]") {
             }
         }
     }
+}
+
+TEST_CASE("Legacy 3MF configuration migrates only in memory until explicitly saved", "[3mf][Compatibility]")
+{
+    static constexpr const char *project_config_entry = "Metadata/project_settings.config";
+    static constexpr const char *unknown_key          = "future_orcaslicer_setting";
+
+    Temp3mfDir temp_dir;
+    const fs::path legacy_file   = temp_dir.path / "legacy-source.3mf";
+    const fs::path migrated_file = temp_dir.path / "migrated-output.3mf";
+
+    Model model;
+    model.set_backup_path((temp_dir.path / "source-backup").string());
+    REQUIRE(load_stl((std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl").c_str(), &model));
+    model.add_default_instances();
+
+    DynamicPrintConfig source_config;
+    source_config.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+    source_config.set_key_value("support_angle", new ConfigOptionFloat(37.0));
+    const std::string legacy_path = legacy_file.string();
+    StoreParams       source_store;
+    source_store.path     = legacy_path.c_str();
+    source_store.model    = &model;
+    source_store.config   = &source_config;
+    source_store.strategy = SaveStrategy::Zip64;
+    REQUIRE(store_bbs_3mf(source_store));
+
+    rewrite_zip_entry(legacy_file, project_config_entry, [](std::string &config_text) {
+        const std::string current = "\"enable_prime_tower\"";
+        const size_t      pos     = config_text.find(current);
+        REQUIRE(pos != std::string::npos);
+        config_text.replace(pos, current.size(), "\"enable_wipe_tower\"");
+        const size_t object_end = config_text.find_last_of('}');
+        REQUIRE(object_end != std::string::npos);
+        config_text.insert(object_end, ",\n\t\"future_orcaslicer_setting\": \"123\"\n");
+    });
+
+    const std::vector<unsigned char> source_before = read_file_bytes(legacy_file);
+    CHECK(read_zip_entry(legacy_file, project_config_entry).find("\"enable_wipe_tower\"") != std::string::npos);
+
+    Model                     loaded_model;
+    loaded_model.set_backup_path((temp_dir.path / "loaded-backup").string());
+    DynamicPrintConfig        migrated_config;
+    ConfigSubstitutionContext substitutions { ForwardCompatibilitySubstitutionRule::Disable };
+    LoadedBbsArtifacts        loaded_artifacts;
+    bool                      is_bbl_3mf  = false;
+    bool                      is_orca_3mf = false;
+    Semver                    file_version;
+    REQUIRE(load_bbs_3mf(legacy_path.c_str(), &migrated_config, &substitutions, &loaded_model,
+                         &loaded_artifacts.plates, &loaded_artifacts.presets, &is_bbl_3mf, &is_orca_3mf,
+                         &file_version, nullptr, LoadStrategy::LoadModel | LoadStrategy::LoadConfig));
+
+    CHECK(read_file_bytes(legacy_file) == source_before);
+    const auto loaded_keys = migrated_config.keys();
+    CAPTURE(loaded_keys, substitutions.unrecogized_keys);
+    REQUIRE(migrated_config.option("enable_prime_tower") != nullptr);
+    CHECK(migrated_config.opt_bool("enable_prime_tower"));
+    CHECK(migrated_config.option("enable_wipe_tower") == nullptr);
+    CHECK(migrated_config.opt_float("support_angle") == Catch::Approx(37.0));
+    CHECK(substitutions.unrecogized_keys == std::vector<std::string> { unknown_key });
+
+    const std::string migrated_path = migrated_file.string();
+    StoreParams       migrated_store;
+    migrated_store.path     = migrated_path.c_str();
+    migrated_store.model    = &loaded_model;
+    migrated_store.config   = &migrated_config;
+    migrated_store.strategy = SaveStrategy::Zip64;
+    REQUIRE(store_bbs_3mf(migrated_store));
+    CHECK(read_file_bytes(legacy_file) == source_before);
+
+    const std::string saved_config = read_zip_entry(migrated_file, project_config_entry);
+    CHECK(saved_config.find("\"enable_prime_tower\"") != std::string::npos);
+    CHECK(saved_config.find("enable_wipe_tower") == std::string::npos);
+    CHECK(saved_config.find(unknown_key) == std::string::npos);
+
+    Model                     roundtrip_model;
+    roundtrip_model.set_backup_path((temp_dir.path / "roundtrip-backup").string());
+    DynamicPrintConfig        roundtrip_config;
+    ConfigSubstitutionContext roundtrip_substitutions { ForwardCompatibilitySubstitutionRule::Disable };
+    LoadedBbsArtifacts        roundtrip_artifacts;
+    bool                      roundtrip_is_bbl  = false;
+    bool                      roundtrip_is_orca = false;
+    Semver                    roundtrip_version;
+    REQUIRE(load_bbs_3mf(migrated_path.c_str(), &roundtrip_config, &roundtrip_substitutions, &roundtrip_model,
+                         &roundtrip_artifacts.plates, &roundtrip_artifacts.presets, &roundtrip_is_bbl,
+                         &roundtrip_is_orca, &roundtrip_version, nullptr,
+                         LoadStrategy::LoadModel | LoadStrategy::LoadConfig));
+    REQUIRE(roundtrip_config.option("enable_prime_tower") != nullptr);
+    CHECK(roundtrip_config.opt_bool("enable_prime_tower"));
+    CHECK(roundtrip_config.opt_float("support_angle") == Catch::Approx(37.0));
+    CHECK(roundtrip_substitutions.unrecogized_keys.empty());
+    CHECK(roundtrip_model.objects.size() == loaded_model.objects.size());
 }
 
 SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {

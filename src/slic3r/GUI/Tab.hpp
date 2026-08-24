@@ -156,7 +156,9 @@ protected:
 
 	ScalableButton*		m_btn_compare_preset;
 	ScalableButton*		m_btn_save_preset;
+	ScalableButton*      m_btn_rename_preset { nullptr };
 	ScalableButton*		m_btn_delete_preset;
+	ScalableButton*      m_btn_preset_relationships { nullptr };
 	//ScalableButton*		m_btn_edit_ph_printer {nullptr};
 	ScalableButton*		m_btn_hide_incompatible_presets {nullptr};
 	//wxBoxSizer*			m_hsizer;
@@ -357,6 +359,7 @@ public:
 	void		transfer_options(const std::string&name_from, const std::string&name_to, std::vector<std::string> options);
 	//BBS: add project embedded preset relate logic
 	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false, bool from_input = false, std::string input_name = "");
+	void        rename_preset();
 	//void		save_preset(std::string name = std::string(), bool detach = false);
 
 	bool        can_delete_current_preset() const;

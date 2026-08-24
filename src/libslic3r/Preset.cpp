@@ -126,6 +126,15 @@ PresetOrigin detect_origin_from_path(const boost::filesystem::path &path, const 
     return PresetOrigin(PresetOrigin::Kind::User);
 }
 
+std::string find_unique_candidate(const std::string &base, const std::string &suffix_separator,
+                                   const std::function<bool(const std::string &)> &is_taken)
+{
+    std::string candidate = base;
+    for (size_t suffix = 2; is_taken(candidate); ++ suffix)
+        candidate = base + suffix_separator + std::to_string(suffix);
+    return candidate;
+}
+
 //BBS: add a function to load the version from xxx.json
 Semver get_version_from_json(std::string file_path)
 {
@@ -748,6 +757,15 @@ void Preset::save(DynamicPrintConfig* parent_config)
     }
 }
 
+DynamicPrintConfig Preset::standalone_export_config() const
+{
+    DynamicPrintConfig exported = config;
+    exported.set_key_value(BBL_JSON_KEY_INHERITS, new ConfigOptionString());
+    if (! filament_id.empty())
+        exported.set_key_value(BBL_JSON_KEY_FILAMENT_ID, new ConfigOptionString(filament_id));
+    return exported;
+}
+
 void Preset::reload(Preset const &parent)
 {
     DynamicPrintConfig config;
@@ -790,6 +808,8 @@ bool is_compatible_with_print(const PresetWithVendorProfile &preset, const Prese
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
             printf("Preset::is_compatible_with_print - parsing error of compatible_prints_condition %s:\n%s\n", active_print.preset.name.c_str(), err.what());
+            if (reason)
+                *reason = "Could not evaluate this preset's \"compatible_prints_condition\": " + condition + ". " + err.what();
             return true;
         }
     }
@@ -847,6 +867,8 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": parsing error of compatible_printers_condition %1%: %2%")%active_printer.preset.name %err.what();
+            if (reason)
+                *reason = "Could not evaluate this preset's \"compatible_printers_condition\": " + condition + ". " + err.what();
             return true;
         }
     }
@@ -1545,6 +1567,7 @@ PresetCollection& PresetCollection::operator=(const PresetCollection &rhs)
     m_default_suppressed = rhs.m_default_suppressed;
     m_num_default_presets = rhs.m_num_default_presets;
     m_dir_path = rhs.m_dir_path;
+    m_load_issues = rhs.m_load_issues;
 
     return *this;
 }
@@ -1570,6 +1593,7 @@ void PresetCollection::reset(bool delete_files)
     unlock();
     m_map_alias_to_profile_name.clear();
     m_map_system_profile_renamed.clear();
+    m_load_issues.clear();
 }
 
 void PresetCollection::add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name)
@@ -1639,10 +1663,15 @@ void PresetCollection::load_presets(
             // Remove the .ini suffix.
             std::string name = file_name.erase(file_name.size() - 5);
             std::string canonical_name = this->canonical_preset_name(name, resolved_origin);
+            const std::string source_file = dir_entry.path().string();
+            m_load_issues.erase(std::remove_if(m_load_issues.begin(), m_load_issues.end(),
+                [&source_file](const PresetLoadIssue &issue) { return issue.file == source_file; }), m_load_issues.end());
             if (this->find_preset(canonical_name, false)) {
                 // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
                 // that's already been loaded from a bundle.
                 BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << canonical_name;
+                m_load_issues.push_back({ canonical_name, source_file,
+                    "Another preset with the same canonical name is already loaded.", {} });
                 continue;
             }
             try {
@@ -1661,7 +1690,10 @@ void PresetCollection::load_presets(
                     //ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
                     std::map<std::string, std::string> key_values;
                     std::string reason;
-                    ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule, key_values, reason);
+                    ConfigSubstitutionContext substitution_context(substitution_rule);
+                    config.load_from_json(preset.file, substitution_context, true, key_values, reason);
+                    preset.loading_unknown_keys = substitution_context.unrecogized_keys;
+                    ConfigSubstitutions config_substitutions = std::move(substitution_context.substitutions);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
                     if (!reason.empty()) {
@@ -1672,13 +1704,36 @@ void PresetCollection::load_presets(
                         // to recover.
                         BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed")%preset.file;
                         ++m_errors;
+                        m_load_issues.push_back({ preset.name, preset.file, reason, preset.loading_unknown_keys });
                         continue;
                     }
 
-                    std::string version_str = key_values[BBL_JSON_KEY_VERSION];
-                    boost::optional<Semver> version = Semver::parse(version_str);
-                    if (!version) continue;
-                    preset.version = *version;
+                    auto version_it = key_values.find(BBL_JSON_KEY_VERSION);
+                    bool version_key_present = version_it != key_values.end() && !version_it->second.empty();
+                    boost::optional<Semver> version = version_key_present ? Semver::parse(version_it->second) : boost::none;
+                    if (!version_key_present) {
+                        // Version is provenance metadata, not part of the preset's slicing
+                        // configuration. Older Orca forks and hand-carried user presets may omit
+                        // it; rejecting the whole preset makes otherwise recoverable settings
+                        // inaccessible. Keep startup read-only and normalize the metadata when the
+                        // user next saves or imports the preset.
+                        preset.version = SEMVER;
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "Preset has no version metadata; loading with the current version: "
+                            << preset.file;
+                    } else if (!version) {
+                        // A version key IS present but failed to parse as semver: this is a sign
+                        // of a corrupted or foreign (non-OrcaSlicer) file, not a legacy preset.
+                        // Reject it rather than silently treating it as trustworthy user data.
+                        BOOST_LOG_TRIVIAL(error)
+                            << "Preset has an unparseable version value '" << version_it->second
+                            << "'; skipping: " << preset.file;
+                        ++m_errors;
+                        m_load_issues.push_back({ preset.name, preset.file, "invalid version metadata", preset.loading_unknown_keys });
+                        continue;
+                    } else {
+                        preset.version = *version;
+                    }
 
                     if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
                         preset.filament_id = key_values[BBL_JSON_KEY_FILAMENT_ID];
@@ -1713,6 +1768,9 @@ void PresetCollection::load_presets(
                         if ((inherits_config2 && !inherits_config2->value.empty())) {
                             BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent %1% for config %2%!")%inherits_config2->value %preset.file;
                             ++m_errors;
+                            m_load_issues.push_back({ preset.name, preset.file,
+                                "Parent preset \"" + inherits_config2->value + "\" could not be found.",
+                                preset.loading_unknown_keys });
                             continue;
                         }
                         // We support custom root preset now
@@ -1755,6 +1813,8 @@ void PresetCollection::load_presets(
                     set_custom_preset_alias(preset);
                 } catch (const std::ifstream::failure &err) {
                     ++m_errors;
+                    m_load_issues.push_back({ preset.name, preset.file,
+                        std::string("The preset file could not be read: ") + err.what(), preset.loading_unknown_keys });
                     BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%")%preset.file %err.what();
                     // Don't delete the user's preset file here - an I/O failure reading it may be
                     // transient (locked by another process, momentary disk/AV hiccup on Windows),
@@ -1763,6 +1823,8 @@ void PresetCollection::load_presets(
                     //throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
                     ++m_errors;
+                    m_load_issues.push_back({ preset.name, preset.file,
+                        std::string("The preset could not be loaded: ") + err.what(), preset.loading_unknown_keys });
                     BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%")%preset.file %err.what();
                     //throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                     // Don't delete the user's preset file - a merge/parse error (e.g. a vector-
@@ -2478,6 +2540,12 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     DynamicPrintConfig cfg(this->default_preset().config);
     cfg.apply_only(config, cfg.keys(), true);
     return this->load_preset(path, name, std::move(cfg), select, file_version);
+}
+
+void PresetCollection::clear_load_issue(const std::string &file)
+{
+    m_load_issues.erase(std::remove_if(m_load_issues.begin(), m_load_issues.end(),
+        [&file](const PresetLoadIssue &issue) { return issue.file == file; }), m_load_issues.end());
 }
 
 static bool profile_print_params_same(const DynamicPrintConfig &cfg_old, const DynamicPrintConfig &cfg_new)

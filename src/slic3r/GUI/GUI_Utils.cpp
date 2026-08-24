@@ -50,7 +50,8 @@ bool export_preset_to_file(wxWindow *parent, const Slic3r::Preset &preset)
     std::string path = into_u8(dlg.GetPath());
     std::string from_str = preset.is_system ? "System" : (preset.is_from_bundle() ? "Bundle" : "User");
     try {
-        preset.config.save_to_json(path, get_preset_bare_name(preset.name), from_str, preset.version.to_string());
+        const DynamicPrintConfig exported = preset.standalone_export_config();
+        exported.save_to_json(path, get_preset_bare_name(preset.name), from_str, preset.version.to_string());
         wxGetApp().app_config->update_config_dir(wxFileName(path).GetPath().ToUTF8().data());
         return true;
     } catch (const std::exception &ex) {

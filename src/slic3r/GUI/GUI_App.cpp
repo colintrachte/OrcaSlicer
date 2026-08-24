@@ -2,6 +2,15 @@
 #include "OrcaCloudServiceAgent.hpp"
 #include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
+#include "ImGuiWrapper.hpp"
+#include "PresetBundleDialog.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/UserNotification.hpp"
+#include "slic3r/Utils/NetworkAgent.hpp"
+#include "slic3r/Utils/BBLCloudServiceAgent.hpp"
+#include "slic3r/GUI/WebUserLoginDialog.hpp"
+#include "slic3r/GUI/HMS.hpp"
+#include "slic3r/GUI/HttpServer.hpp"
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "slic3r/GUI/UserManager.hpp"
@@ -58,6 +67,7 @@
 #include <wx/richmsgdlg.h>
 #include <wx/log.h>
 #include <wx/intl.h>
+#include <wx/msgdlg.h>
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
@@ -232,6 +242,55 @@ void start_ping_test()
         output_temp = output_i.ToStdString(wxConvUTF8);
         BOOST_LOG_TRIVIAL(info) << "ping 192.168.0.1:" << output_temp;
     }
+}
+
+VersionInfo::VersionInfo()
+{
+    for (int &ver_item : ver_items)
+        ver_item = 0;
+}
+
+void VersionInfo::parse_version_str(std::string str)
+{
+    version_str = std::move(str);
+    std::vector<std::string> items;
+    boost::split(items, version_str, boost::is_any_of("."));
+    if (items.size() == VERSION_LEN) {
+        try {
+            for (int i = 0; i < VERSION_LEN; ++i)
+                ver_items[i] = std::stoi(items[i]);
+        } catch (...) {
+        }
+    }
+}
+
+std::string VersionInfo::get_full_version()
+{
+    return convert_full_version(SLIC3R_VERSION);
+}
+
+int VersionInfo::compare(std::string ver_str)
+{
+    if (version_str.empty())
+        return -1;
+
+    int ver_target[VERSION_LEN];
+    std::vector<std::string> items;
+    boost::split(items, ver_str, boost::is_any_of("."));
+    if (items.size() == VERSION_LEN) {
+        try {
+            for (int i = 0; i < VERSION_LEN; ++i) {
+                ver_target[i] = std::stoi(items[i]);
+                if (ver_target[i] < ver_items[i])
+                    return 1;
+                if (ver_target[i] > ver_items[i])
+                    return -1;
+            }
+        } catch (...) {
+            return -1;
+        }
+    }
+    return -1;
 }
 
 std::string VersionInfo::convert_full_version(std::string short_version)
@@ -1192,6 +1251,7 @@ GUI_App::GUI_App()
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
     , m_downloader(std::make_unique<Downloader>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+	, m_http_server(std::make_unique<HttpServer>())
 {
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
@@ -2371,6 +2431,56 @@ GUI_App::~GUI_App()
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
     shutdown_console_logging();
+}
+
+bool GUI_App::is_enable_multi_machine()
+{
+    return app_config && app_config->get("enable_multi_machine") == "true";
+}
+
+void GUI_App::show_message_box(std::string msg)
+{
+    wxMessageBox(msg);
+}
+
+bool GUI_App::show_3d_navigator() const
+{
+    return app_config->get_bool("show_3d_navigator");
+}
+
+void GUI_App::toggle_show_3d_navigator() const
+{
+    app_config->set_bool("show_3d_navigator", !show_3d_navigator());
+}
+
+bool GUI_App::show_plate_gridlines() const
+{
+    return app_config->get_bool("show_plate_gridlines");
+}
+
+void GUI_App::toggle_show_plate_gridlines() const
+{
+    app_config->set_bool("show_plate_gridlines", !show_plate_gridlines());
+}
+
+bool GUI_App::show_canvas_zoom_button() const
+{
+    return app_config->get_bool("show_canvas_zoom_button");
+}
+
+void GUI_App::toggle_canvas_zoom_button() const
+{
+    app_config->set_bool("show_canvas_zoom_button", !show_canvas_zoom_button());
+}
+
+bool GUI_App::show_outline() const
+{
+    return app_config->get_bool("show_outline");
+}
+
+void GUI_App::toggle_show_outline() const
+{
+    app_config->set_bool("show_outline", !show_outline());
 }
 
 bool GUI_App::is_blocking_printing(MachineObject *obj_)
@@ -7428,12 +7538,12 @@ void GUI_App::on_stealth_mode_enter()
 
 void GUI_App::start_http_server(const std::string& provider)
 {
-    m_http_server.set_request_handler([provider](const std::string& url) {
+    m_http_server->set_request_handler([provider](const std::string& url) {
         return HttpServer::auth_handle_request(url, provider);
     });
 
-    if (!m_http_server.is_started())
-        m_http_server.start();
+    if (!m_http_server->is_started())
+        m_http_server->start();
 }
 
 void GUI_App::start_http_server(int port, const std::string& provider)
@@ -7443,24 +7553,24 @@ void GUI_App::start_http_server(int port, const std::string& provider)
         return;
     }
 
-    m_http_server.set_request_handler([provider](const std::string& url) {
+    m_http_server->set_request_handler([provider](const std::string& url) {
         return HttpServer::auth_handle_request(url, provider);
     });
 
-    if (m_http_server.is_started()) {
-        if (m_http_server.get_port() == static_cast<boost::asio::ip::port_type>(port)) {
+    if (m_http_server->is_started()) {
+        if (m_http_server->get_port() == static_cast<boost::asio::ip::port_type>(port)) {
             return;
         }
-        m_http_server.stop();
+        m_http_server->stop();
     }
 
-    m_http_server.set_port(static_cast<boost::asio::ip::port_type>(port));
-    m_http_server.start();
+    m_http_server->set_port(static_cast<boost::asio::ip::port_type>(port));
+    m_http_server->start();
 }
 
 void GUI_App::stop_http_server()
 {
-    m_http_server.stop();
+    m_http_server->stop();
 }
 
 void GUI_App::switch_staff_pick(bool on)

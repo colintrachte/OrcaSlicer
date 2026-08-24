@@ -13,6 +13,7 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 
 #include "PrintConfig.hpp"
+#include "PresetJsonKeys.hpp"
 #include "Semver.hpp"
 #include "ProjectTask.hpp"
 
@@ -38,52 +39,6 @@
 #define PRESET_IOT_PRINTER_TYPE     "printer"
 #define PRESET_IOT_FILAMENT_TYPE    "filament"
 #define PRESET_IOT_PRINT_TYPE       "print"
-
-
-//BBS: add json support
-#define BBL_JSON_KEY_VERSION        "version"
-#define BBL_JSON_KEY_IS_CUSTOM      "is_custom_defined"
-#define BBL_JSON_KEY_URL            "url"
-#define BBL_JSON_KEY_NAME           "name"
-#define BBL_JSON_KEY_DESCRIPTION    "description"
-#define BBL_JSON_KEY_FORCE_UPDATE   "force_update"
-#define BBL_JSON_KEY_MACHINE_MODEL_LIST     "machine_model_list"
-#define BBL_JSON_KEY_PROCESS_LIST   "process_list"
-#define BBL_JSON_KEY_SUB_PATH       "sub_path"
-#define BBL_JSON_KEY_FILAMENT_LIST  "filament_list"
-#define BBL_JSON_KEY_MACHINE_LIST   "machine_list"
-// Orca: SLA process/material lists, parallel to process_list/filament_list above.
-#define BBL_JSON_KEY_SLA_PRINT_LIST     "sla_print_list"
-#define BBL_JSON_KEY_SLA_MATERIAL_LIST  "sla_material_list"
-#define BBL_JSON_KEY_TYPE           "type"
-#define BBL_JSON_KEY_FROM           "from"
-#define BBL_JSON_KEY_SETTING_ID     "setting_id"
-#define BBL_JSON_KEY_BASE_ID        "base_id"
-#define BBL_JSON_KEY_USER_ID        "user_id"
-#define BBL_JSON_KEY_FILAMENT_ID    "filament_id"
-#define UNKNOWN_FILAMENT_ID         "__unknown__"
-#define ORCA_JSON_KEY_UPDATE_TIME    "updated_time"
-#define ORCA_JSON_KEY_CREATED_TIME    "created_time"
-#define BBL_JSON_KEY_INHERITS       "inherits"
-#define BBL_JSON_KEY_INSTANTIATION  "instantiation"
-#define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
-#define BBL_JSON_KEY_PRINTER_TECH                 "machine_tech"
-#define BBL_JSON_KEY_FAMILY                     "family"
-#define BBL_JSON_KEY_BED_MODEL                  "bed_model"
-#define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
-#define BBL_JSON_KEY_IMAGE_BED_TYPE             "image_bed_type"
-#define BBL_JSON_KEY_BOTTOM_TEXTURE_END_NAME    "bottom_texture_end_name"
-#define BBL_JSON_KEY_USE_DOUBLE_EXTRUDER_DEFAULT_TEXTURE  "use_double_extruder_default_texture"
-#define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT        "bottom_texture_rect"
-#define BBL_JSON_KEY_MIDDLE_TEXTURE_RECT        "middle_texture_rect"
-
-#define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
-#define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
-#define BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE       "not_support_bed_type"
-#define BBL_JSON_KEY_MODEL_ID                   "model_id"
-
-// Orca extension
-#define ORCA_JSON_KEY_RENAMED_FROM              "renamed_from"
 
 
 static constexpr const char* GENERIC_PREFIX = "Generic ";
@@ -246,6 +201,8 @@ public:
     //BBS: add type for project-embedded
     bool                is_project_embedded = false;
     ConfigSubstitutions *loading_substitutions{nullptr};
+    // Unknown keys observed while loading this preset. Retained for read-only diagnostics.
+    std::vector<std::string> loading_unknown_keys;
     bool                is_user() const { return ! this->is_default && ! this->is_system && ! this->is_project_embedded && ! this->is_from_bundle(); }
     bool                can_overwrite() const { return ! this->is_default && ! this->is_system && ! this->is_from_bundle(); }
     //bool                is_user() const { return ! this->is_default && ! this->is_system; }
@@ -308,6 +265,9 @@ public:
     //BBS: add logic for only difference save
     //if parent_config is null, save all keys, otherwise, only save difference
     void                save(DynamicPrintConfig* parent_config);
+    // Build a portable, fully materialized config for a single-preset export. The exported copy
+    // intentionally has no hard parent dependency; the live preset and its on-disk file are unchanged.
+    DynamicPrintConfig  standalone_export_config() const;
     void                reload(Preset const & parent);
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
@@ -458,6 +418,12 @@ std::string get_preset_bare_name(const std::string &canonical_name);
 // Resolve an origin from a directory path when the caller passes Kind::Auto.
 PresetOrigin detect_origin_from_path(const boost::filesystem::path &path, const PresetOrigin &explicit_origin = PresetOrigin());
 
+// Return `base`, or `base + suffix_separator + "2"`, `"3"`, ... — the first candidate for which
+// `is_taken` returns false. Shared by every "find a free backup/recovery name" call site instead
+// of each one hand-rolling its own increment-until-free loop.
+std::string find_unique_candidate(const std::string &base, const std::string &suffix_separator,
+                                   const std::function<bool(const std::string &)> &is_taken);
+
 enum class PresetSelectCompatibleType {
 	// Never select a compatible preset if the newly selected profile is not compatible.
 	Never,
@@ -485,6 +451,14 @@ struct PresetConfigSubstitutions {
     std::string                             preset_file;
     // What config value has been substituted with what.
     ConfigSubstitutions                     substitutions;
+};
+
+struct PresetLoadIssue
+{
+    std::string              preset_name;
+    std::string              file;
+    std::string              reason;
+    std::vector<std::string> unknown_keys;
 };
 
 // Substitutions having been performed during parsing a set of configuration files, for example when starting up
@@ -678,7 +652,10 @@ public:
     void                    set_printer_hold_alias(const std::string &alias, Preset &preset, bool remove = false);
 
 	// used to update preset_choice from Tab
-	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
+    const std::deque<Preset>&	get_presets() const	{ return m_presets; }
+    const std::vector<PresetLoadIssue>& load_issues() const { return m_load_issues; }
+    void clear_load_issue(const std::string &file);
+    const std::string& directory_path() const { return m_dir_path; }
     size_t                      get_idx_selected()	{ return m_idx_selected; }
 	static const std::string&	get_suffix_modified();
 
@@ -939,6 +916,7 @@ private:
 
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
+    std::vector<PresetLoadIssue> m_load_issues;
 
     // to access select_preset_by_name_strict() and the default & copy constructors.
     friend class PresetBundle;

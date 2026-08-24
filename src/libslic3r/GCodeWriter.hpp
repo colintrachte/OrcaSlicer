@@ -2,6 +2,7 @@
 #define slic3r_GCodeWriter_hpp_
 
 #include "libslic3r.h"
+#include <array>
 #include <string>
 #include <charconv>
 #include "Extruder.hpp"
@@ -17,7 +18,7 @@ public:
     bool multiple_extruders;
 
     GCodeWriter() :
-        multiple_extruders(false), m_curr_filament_extruder(MAXIMUM_EXTRUDER_NUMBER, nullptr),
+        multiple_extruders(false), m_curr_filament_extruder_idx{},
         m_curr_extruder_id (-1),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),m_last_travel_acceleration(0), m_max_travel_acceleration(0),
@@ -27,11 +28,11 @@ public:
         m_to_lift(0),
         m_to_lift_type(LiftType::NormalLift),
         m_current_speed(3600), m_is_first_layer(true)
-        {}
-    Extruder* filament(size_t extruder_id) { assert(extruder_id < m_curr_filament_extruder.size()); return m_curr_filament_extruder[extruder_id]; }
-    const Extruder* filament(size_t extruder_id) const { assert(extruder_id < m_curr_filament_extruder.size()); return m_curr_filament_extruder[extruder_id]; }
-    Extruder* filament() { if (m_curr_extruder_id == -1) return nullptr; return m_curr_filament_extruder[m_curr_extruder_id]; }
-    const Extruder* filament() const { if(m_curr_extruder_id==-1) return nullptr; return m_curr_filament_extruder[m_curr_extruder_id]; }
+        { m_curr_filament_extruder_idx.fill(-1); }
+    Extruder*       filament(size_t extruder_id);
+    const Extruder* filament(size_t extruder_id) const;
+    Extruder*       filament();
+    const Extruder* filament() const;
 
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
@@ -133,7 +134,7 @@ public:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_filament_extruders;
     bool            m_single_extruder_multi_material;
-    std::vector<Extruder*> m_curr_filament_extruder;
+    std::array<int, MAXIMUM_EXTRUDER_NUMBER> m_curr_filament_extruder_idx;
     int        m_curr_extruder_id;
     unsigned int              m_last_acceleration;
     unsigned int              m_last_travel_acceleration;
@@ -173,7 +174,7 @@ public:
 
     // Orca: slicing resolution in mm
     double          m_resolution = 0.01;
-    
+
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
 

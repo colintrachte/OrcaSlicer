@@ -18,6 +18,31 @@
 
 namespace Slic3r {
 
+Extruder* GCodeWriter::filament(size_t extruder_id)
+{
+    return const_cast<Extruder*>(static_cast<const GCodeWriter&>(*this).filament(extruder_id));
+}
+
+const Extruder* GCodeWriter::filament(size_t extruder_id) const
+{
+    if (extruder_id >= m_curr_filament_extruder_idx.size())
+        return nullptr;
+    const int filament_idx = m_curr_filament_extruder_idx[extruder_id];
+    if (filament_idx < 0 || size_t(filament_idx) >= m_filament_extruders.size())
+        return nullptr;
+    return &m_filament_extruders[size_t(filament_idx)];
+}
+
+Extruder* GCodeWriter::filament()
+{
+    return const_cast<Extruder*>(static_cast<const GCodeWriter&>(*this).filament());
+}
+
+const Extruder* GCodeWriter::filament() const
+{
+    return m_curr_extruder_id < 0 ? nullptr : filament(size_t(m_curr_extruder_id));
+}
+
 bool GCodeWriter::full_gcode_comment = true;
 
 bool GCodeWriter::supports_separate_travel_acceleration(GCodeFlavor flavor)
@@ -108,9 +133,9 @@ void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
     std::sort(extruder_ids.begin(), extruder_ids.end());
     m_filament_extruders.clear();
-    //ORCA: Reset current extruder ID and clear pointers to prevent dangling pointers when extruders are recreated.
+    // Reset the selected physical extruder and cached owned-vector indices when extruders are recreated.
     m_curr_extruder_id = -1;
-    std::fill(m_curr_filament_extruder.begin(), m_curr_filament_extruder.end(), nullptr);
+    m_curr_filament_extruder_idx.fill(-1);
     m_filament_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
         m_filament_extruders.emplace_back(Extruder(extruder_id, &this->config, config.single_extruder_multi_material.value));
@@ -532,10 +557,10 @@ std::string GCodeWriter::reset_e(bool force)
         || FLAVOR_IS(gcfSailfish))
         return "";
 
-    if (m_curr_extruder_id!=-1 && m_curr_filament_extruder[m_curr_extruder_id] != nullptr) {
-        if (is_zero(m_curr_filament_extruder[m_curr_extruder_id]->E()) && ! force)
+    if (Extruder *current_filament = filament(); current_filament != nullptr) {
+        if (is_zero(current_filament->E()) && ! force)
             return "";
-        m_curr_filament_extruder[m_curr_extruder_id]->reset_E();
+        current_filament->reset_E();
     }
 
     if (! this->config.use_relative_e_distances) {
@@ -614,9 +639,10 @@ std::string GCodeWriter::toolchange(unsigned int filament_id)
 {
     // set the new extruder
     auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
-    assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
+    if (filament_extruder_iter == m_filament_extruders.end() || filament_extruder_iter->id() != filament_id)
+        throw Slic3r::InvalidArgument("Cannot select a filament that is not configured in GCodeWriter.");
     m_curr_extruder_id = filament_extruder_iter->extruder_id();
-    m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+    m_curr_filament_extruder_idx[m_curr_extruder_id] = int(std::distance(m_filament_extruders.begin(), filament_extruder_iter));
 
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing
@@ -696,7 +722,7 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase)
 }
 
 // BBS: immediately execute an undelayed lift move with a spiral lift pattern
-// designed specifically for subsequent gcode injection (e.g. timelapse) 
+// designed specifically for subsequent gcode injection (e.g. timelapse)
 std::string GCodeWriter::eager_lift(const LiftType type) {
     std::string lift_move;
     double target_lift = 0;
@@ -715,7 +741,7 @@ std::string GCodeWriter::eager_lift(const LiftType type) {
     if (type == LiftType::SpiralLift && this->is_current_position_clear()) {
         double radius = target_lift / (2 * PI * atan(filament()->travel_slope()));
         // static spiral alignment when no move in x,y plane.
-        // spiral centra is a radius distance to the right (y=0) 
+        // spiral centra is a radius distance to the right (y=0)
         Vec2d ij_offset = { radius, 0 };
         if (target_lift > 0) {
             lift_move = this->_spiral_travel_to_z(m_pos(2) + target_lift, ij_offset, "spiral lift Z");
@@ -1248,8 +1274,8 @@ void GCodeWriter::add_object_change_labels(std::string& gcode)
 std::string GCodeWriter::set_extruder(unsigned int filament_id)
 {
     auto filament_ext_it = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
-    unsigned int extruder_id = filament_ext_it->extruder_id();
-    assert(filament_ext_it != m_filament_extruders.end() && filament_ext_it->id() == filament_id);
+    if (filament_ext_it == m_filament_extruders.end() || filament_ext_it->id() != filament_id)
+        throw Slic3r::InvalidArgument("Cannot select a filament that is not configured in GCodeWriter.");
     //TODO: optmize here, pass extruder_id to toolchange
     return this->need_toolchange(filament_id) ? this->toolchange(filament_id) : "";
 }
@@ -1258,9 +1284,10 @@ void GCodeWriter::init_extruder(unsigned int filament_id)
 {
     if (m_curr_extruder_id == -1 && filament_id != -1) {
         auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
-        assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
+        if (filament_extruder_iter == m_filament_extruders.end() || filament_extruder_iter->id() != filament_id)
+            throw Slic3r::InvalidArgument("Cannot initialize a filament that is not configured in GCodeWriter.");
         m_curr_extruder_id = filament_extruder_iter->extruder_id();
-        m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+        m_curr_filament_extruder_idx[m_curr_extruder_id] = int(std::distance(m_filament_extruders.begin(), filament_extruder_iter));
     }
 }
 

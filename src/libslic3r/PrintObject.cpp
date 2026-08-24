@@ -1051,6 +1051,7 @@ SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_
 
 void PrintObject::clear_support_layers()
 {
+    m_tree_support_diagnostics = {};
     if (!m_shared_object) {
         for (SupportLayer* l : m_support_layers)
             delete l;
@@ -1130,8 +1131,7 @@ bool PrintObject::invalidate_state_by_config_options(
                     steps.emplace_back(posPerimeters);
             }
         } else if (
-               opt_key == "wall_loops"
-            || opt_key == "alternate_extra_wall"
+               opt_key == "alternate_extra_wall"
             || opt_key == "top_one_wall_type"
             || opt_key == "min_width_top_surface"
             || opt_key == "only_one_wall_first_layer"
@@ -1144,7 +1144,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "seam_gap"
             || opt_key == "role_based_wipe_speed"
             || opt_key == "wipe_on_loops"
-            || opt_key == "wipe_speed") {
+            || opt_key == "wipe_speed"
+            || opt_key == "wall_loops") {
             steps.emplace_back(posPerimeters);
         } else if (
             opt_key == "small_area_infill_flow_compensation_model") {
@@ -1409,6 +1410,14 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSlice);
         } else if (
                opt_key == "seam_position"
+            || opt_key == "default_acceleration"
+            || opt_key == "outer_wall_acceleration"
+            || opt_key == "inner_wall_acceleration"
+            || opt_key == "initial_layer_acceleration"
+            || opt_key == "top_surface_acceleration"
+            || opt_key == "bridge_acceleration"
+            || opt_key == "sparse_infill_acceleration"
+            || opt_key == "internal_solid_infill_acceleration"
             || opt_key == "seam_slope_type"
             || opt_key == "seam_slope_conditional"
             || opt_key == "scarf_angle_threshold"

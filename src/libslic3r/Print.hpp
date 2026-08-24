@@ -186,6 +186,23 @@ class ConstSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<SupportLaye
     ConstSupportLayerPtrsAdaptor(const SupportLayerPtrs *data) : ConstVectorOfPtrsAdaptor<SupportLayer>(data) {}
 };
 
+struct TreeSupportGenerationDiagnostics {
+    size_t pending_roof_recovery_tips { 0 };
+    size_t recovered_roof_slices      { 0 };
+    size_t lost_branch_nodes          { 0 };
+    size_t very_lost_branch_nodes     { 0 };
+    size_t discarded_branch_meshes    { 0 };
+
+    bool operator==(const TreeSupportGenerationDiagnostics &rhs) const
+    {
+        return pending_roof_recovery_tips == rhs.pending_roof_recovery_tips &&
+               recovered_roof_slices == rhs.recovered_roof_slices &&
+               lost_branch_nodes == rhs.lost_branch_nodes &&
+               very_lost_branch_nodes == rhs.very_lost_branch_nodes &&
+               discarded_branch_meshes == rhs.discarded_branch_meshes;
+    }
+};
+
 // Single instance of a PrintObject.
 // As multiple PrintObjects may be generated for a single ModelObject (their instances differ in rotation around Z),
 // ModelObject's instancess will be distributed among these multiple PrintObjects.
@@ -332,6 +349,8 @@ public:
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
     LayerPtrs&                   layers()               { return m_layers; }
     SupportLayerPtrs&            support_layers()       { return m_support_layers; }
+    const TreeSupportGenerationDiagnostics& tree_support_diagnostics() const { return m_tree_support_diagnostics; }
+    void set_tree_support_diagnostics(TreeSupportGenerationDiagnostics diagnostics) { m_tree_support_diagnostics = diagnostics; }
 
     template<typename PolysType>
     static void remove_bridges_from_contacts(
@@ -557,6 +576,7 @@ private:
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
+    TreeSupportGenerationDiagnostics        m_tree_support_diagnostics;
     // BBS
     std::shared_ptr<TreeSupportData>        m_tree_support_preview_cache;
 

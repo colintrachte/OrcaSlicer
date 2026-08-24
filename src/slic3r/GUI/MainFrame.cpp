@@ -12,6 +12,8 @@
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
 #include <wx/debug.h>
+#include <wx/dirdlg.h>
+#include <wx/choicdlg.h>
 #include <wx/utils.h>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -23,11 +25,15 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/PresetImportPreflight.hpp"
+#include "libslic3r/PresetInspector.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "ParamsDialog.hpp"
+#include "PresetInspectorDialog.hpp"
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
@@ -48,6 +54,7 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/PrintHost.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <string_view>
 
@@ -521,6 +528,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     wxToolTip::SetAutoPop(32767);
 
     m_loaded = true;
+    update_preset_recovery_state();
 
     // initialize layout
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -2764,6 +2772,10 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(import_menu, wxID_ANY, _L("Import Configs") + dots /*+ "\t" + ctrl + "I"*/, _L("Load configs"),
             [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
             [this](){return true; }, this);
+        append_menu_item(import_menu, wxID_ANY, _L("Migrate Presets from Folder") + dots,
+            _L("Find printer, process, and filament presets in an OrcaSlicer user or backup folder"),
+            [this](wxCommandEvent&) { load_config_folder(); }, "menu_import", nullptr,
+            [this](){return true; }, this);
 
         append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
 
@@ -3739,6 +3751,51 @@ void MainFrame::load_config_file()
         cfiles.push_back(into_u8(file));
         m_last_config = file;
     }
+    import_config_files(std::move(cfiles));
+}
+
+void MainFrame::import_config_files(std::vector<std::string> cfiles)
+{
+    std::vector<std::string> json_files;
+    std::vector<std::string> archive_files;
+    std::vector<PresetImportIssue> compatibility_warnings;
+    PresetImportPreflight migration_review;
+    for (const std::string &file : cfiles) {
+        (Slic3r::is_json_file(file) ? json_files : archive_files).push_back(file);
+    }
+    if (! json_files.empty()) {
+        const PresetImportPreflight preflight = preflight_preset_imports(
+            *wxGetApp().preset_bundle, json_files, ForwardCompatibilitySubstitutionRule::Enable);
+        if (! preflight.can_import()) {
+            MessageDialog preflight_dialog(this, from_u8(format_preset_import_preflight(preflight)),
+                                           _L("Preset import needs attention"), wxOK | wxICON_WARNING);
+            preflight_dialog.ShowModal();
+            return;
+        }
+        compatibility_warnings.insert(compatibility_warnings.end(), preflight.warnings.begin(), preflight.warnings.end());
+        migration_review.candidates.insert(migration_review.candidates.end(), preflight.candidates.begin(), preflight.candidates.end());
+        migration_review.warnings.insert(migration_review.warnings.end(), preflight.warnings.begin(), preflight.warnings.end());
+        json_files = preflight.ordered_files;
+    }
+    for (const std::string &file : archive_files) {
+        const PresetImportPreflight preflight = preflight_preset_archive(
+            *wxGetApp().preset_bundle, file, ForwardCompatibilitySubstitutionRule::Enable);
+        if (! preflight.can_import()) {
+            MessageDialog preflight_dialog(this, from_u8(format_preset_import_preflight(preflight)),
+                                           _L("Preset import needs attention"), wxOK | wxICON_WARNING);
+            preflight_dialog.ShowModal();
+            return;
+        }
+        compatibility_warnings.insert(compatibility_warnings.end(), preflight.warnings.begin(), preflight.warnings.end());
+        migration_review.candidates.insert(migration_review.candidates.end(), preflight.candidates.begin(), preflight.candidates.end());
+        migration_review.warnings.insert(migration_review.warnings.end(), preflight.warnings.begin(), preflight.warnings.end());
+    }
+    MessageDialog review_dialog(this, from_u8(format_preset_import_review(migration_review)),
+                                _L("Review Preset Migration"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+    if (review_dialog.ShowModal() != wxID_YES)
+        return;
+    cfiles = std::move(json_files);
+    cfiles.insert(cfiles.end(), archive_files.begin(), archive_files.end());
     bool update = false;
     wxGetApp().preset_bundle->import_presets(cfiles, [this](std::string const & name) {
             ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), false);
@@ -3763,9 +3820,68 @@ void MainFrame::load_config_file()
         "There are %d configs imported. (Only non-system and compatible configs)", cfiles.size()), cfiles.size());
     if(cfiles.empty())
         msg += _L("\nHint: Make sure you have added the corresponding printer before importing the configs.");
+    if (! compatibility_warnings.empty())
+        msg += "\n\n" + from_u8(format_preset_import_warnings(compatibility_warnings));
+    if (std::any_of(migration_review.candidates.begin(), migration_review.candidates.end(),
+                    [](const PresetImportCandidate &candidate) { return candidate.replaces_user_preset; }))
+        msg += _L("\n\nAny existing user presets you chose to replace were backed up beside their original files.");
     MessageDialog dlg2(this,msg ,
                         _L("Import result"), wxOK);
     dlg2.ShowModal();
+}
+
+void MainFrame::load_config_folder()
+{
+    boost::filesystem::path suggested_root(data_dir());
+    if (suggested_root.parent_path().filename() == "versions")
+        suggested_root = suggested_root.parent_path().parent_path();
+    wxDirDialog dialog(
+        this,
+        _L("Select an OrcaSlicer user, version backup, or preset folder:"),
+        from_u8(suggested_root.string()), wxDD_DIR_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    boost::filesystem::path root(into_u8(dialog.GetPath()));
+    std::vector<std::string> files;
+    try {
+        const std::vector<PresetMigrationSource> sources = discover_preset_migration_sources(root.string());
+        if (sources.size() > 1) {
+            wxArrayString choices;
+            const boost::filesystem::path current_user = boost::filesystem::path(data_dir()) / PRESET_USER_DIR;
+            for (const PresetMigrationSource &source : sources) {
+                const size_t count = discover_preset_migration_files(source.folder).size();
+                const bool is_current = boost::filesystem::path(source.folder).lexically_normal() == current_user.lexically_normal();
+                const wxString label = is_current ? _L("Current settings") + " — " + from_u8(source.label)
+                                                  : from_u8(source.label);
+                choices.Add(wxString::Format("%s (%zu)", label, count));
+            }
+            wxSingleChoiceDialog source_dialog(
+                this, _L("Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."),
+                _L("Choose Preset Source"), choices);
+            if (source_dialog.ShowModal() != wxID_OK)
+                return;
+            root = boost::filesystem::path(sources[source_dialog.GetSelection()].folder);
+        } else if (sources.size() == 1) {
+            root = boost::filesystem::path(sources.front().folder);
+        }
+        files = discover_preset_migration_files(root.string());
+    } catch (const boost::filesystem::filesystem_error &error) {
+        show_error(this, error.what());
+        return;
+    }
+
+    std::sort(files.begin(), files.end());
+    if (files.empty()) {
+        MessageDialog empty(this,
+            _L("No printer, process, or filament preset JSON files were found in that folder."),
+            _L("No Presets Found"), wxOK | wxICON_INFORMATION);
+        empty.ShowModal();
+        return;
+    }
+
+    wxGetApp().app_config->update_config_dir(root.string());
+    import_config_files(std::move(files));
 }
 
 // Load a config file containing a Print, Filament & Printer preset from command line.
@@ -4287,6 +4403,363 @@ void MainFrame::show_sync_dialog()
     wxQueueEvent(this, evt);
 }
 
+void MainFrame::show_preset_recovery(Preset::Type focus_type, const std::string &focus_name)
+{
+    PresetBundle *bundle = wxGetApp().preset_bundle;
+    if (bundle == nullptr)
+        return;
+
+    std::vector<PresetInspectorDialog::Entry> reports;
+    size_t initial_index = 0;
+    bool initial_index_found = false;
+    const bool type_browser = focus_type != Preset::TYPE_INVALID;
+
+    struct ProjectPresetInstall {
+        PresetCollection *collection;
+        std::string        source_name;
+        std::string        installed_name;
+        std::string        category;
+    };
+    std::vector<ProjectPresetInstall> project_presets;
+    if (! type_browser) {
+        auto collect_project_presets = [&project_presets](const char *category, PresetCollection &collection) {
+            for (const Preset &preset : collection.get_presets())
+                if (preset.is_project_embedded)
+                    project_presets.push_back({ &collection, preset.name, project_preset_install_name(preset), category });
+        };
+        collect_project_presets("Printer", bundle->printers);
+        if (bundle->printers.get_edited_preset().printer_technology() == ptSLA) {
+            collect_project_presets("Resin process", bundle->sla_prints);
+            collect_project_presets("Resin material", bundle->sla_materials);
+        } else {
+            collect_project_presets("Process", bundle->prints);
+            collect_project_presets("Filament", bundle->filaments);
+        }
+        if (project_presets.size() > 1) {
+            PresetInspectorDialog::Entry install_all;
+            install_all.label = "Project settings: Install all for future projects";
+            install_all.current_path = { "Open project", "Temporary printer, process, and filament settings" };
+            install_all.report = [project_presets]() {
+                std::ostringstream report;
+                report << "Status: Available in this project only\n\n"
+                       << "These resolved settings came from the open project. Install them together to use them in new projects.\n\n"
+                       << "Presets to install\n";
+                for (const ProjectPresetInstall &item : project_presets)
+                    report << "- " << item.category << ": " << item.installed_name << "\n";
+                report << "\nThe installed presets will be standalone. They will not require unavailable parents from the OrcaSlicer copy that created the project.\n";
+                return report.str();
+            };
+            install_all.action_label = "Install All for Future Projects";
+            install_all.action_hint = "Install the project's printer, process, and filament settings together. OrcaSlicer checks every name first and will not create numbered copies.";
+            install_all.action_before_label = "Temporary settings in the open project";
+            install_all.action_after_label = "Reusable printer, process, and filament presets";
+            install_all.action = [this, project_presets]() -> std::pair<bool, std::string> {
+                MessageDialog confirmation(
+                    this,
+                    _L("Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n\n"
+                       "The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."),
+                    _L("Install Project Settings"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+                if (confirmation.ShowModal() != wxID_YES)
+                    return std::make_pair(false, std::string());
+                for (const ProjectPresetInstall &item : project_presets) {
+                    if (item.installed_name.empty())
+                        return std::make_pair(false, "One project preset has no reusable name. No presets were installed.");
+                    if (const Preset *existing = item.collection->find_preset(item.installed_name, false);
+                        existing != nullptr && (! existing->can_overwrite() || existing->is_project_embedded))
+                        return std::make_pair(false, "'" + item.installed_name +
+                            "' already exists as a read-only preset. No presets were changed.");
+                    if (item.collection->find_preset(item.source_name, false, true) == nullptr)
+                        return std::make_pair(false, "The open project's temporary presets changed. No presets were installed.");
+                }
+                std::vector<ProjectPresetInstall> installed;
+                for (const ProjectPresetInstall &item : project_presets) {
+                    const Preset *source = item.collection->find_preset(item.source_name, false, true);
+                    if (source == nullptr) {
+                        for (auto installed_item = installed.rbegin(); installed_item != installed.rend(); ++ installed_item)
+                            installed_item->collection->delete_preset(installed_item->installed_name, true);
+                        return std::make_pair(false, "The open project's temporary presets changed. Any newly created presets from this operation were removed; replaced presets retain their backups.");
+                    }
+                    const bool replacing = item.collection->find_preset(item.installed_name, false) != nullptr;
+                    const PresetRecoveryActionResult result = replacing
+                        ? replace_user_preset_from_project(*item.collection, *source, item.installed_name)
+                        : install_project_preset(*item.collection, *source, item.installed_name);
+                    if (! result.succeeded) {
+                        for (auto installed_item = installed.rbegin(); installed_item != installed.rend(); ++ installed_item)
+                            installed_item->collection->delete_preset(installed_item->installed_name, true);
+                        return std::make_pair(false, result.error + " Any newly created presets from this operation were removed; replaced presets retain their backups.");
+                    }
+                    if (! replacing)
+                        installed.push_back(item);
+                }
+                return std::make_pair(true, "Installed or replaced " + std::to_string(project_presets.size()) +
+                    " project presets for future projects. The source project was not changed and no numbered copies were created.");
+            };
+            reports.push_back(std::move(install_all));
+        }
+    }
+    auto add_collection = [&](const char *category, PresetCollection &collection) {
+        if (type_browser && collection.type() != focus_type)
+            return;
+        for (const Preset &preset : collection.get_presets()) {
+            if (! type_browser && ! preset.is_project_embedded && ! preset_needs_recovery(collection, preset))
+                continue;
+            const PresetWithVendorProfile active_printer =
+                bundle->printers.get_edited_preset_with_vendor_profile();
+            const PresetWithVendorProfile active_print =
+                preset.type == Preset::TYPE_SLA_MATERIAL
+                    ? bundle->sla_prints.get_edited_preset_with_vendor_profile()
+                    : bundle->prints.get_edited_preset_with_vendor_profile();
+            const PresetInspection inspection =
+                (preset.type == Preset::TYPE_FILAMENT || preset.type == Preset::TYPE_SLA_MATERIAL)
+                    ? inspect_preset(collection, preset, &active_printer, &active_print)
+                    : inspect_preset(collection, preset, &active_printer);
+
+            PresetInspectorDialog::Entry entry;
+            entry.label = std::string(category) + ": " + preset.name;
+            entry.current_path = inspection.parent_chain;
+            std::reverse(entry.current_path.begin(), entry.current_path.end());
+            if (! inspection.broken_parent.empty())
+                entry.current_path.insert(entry.current_path.begin(), "[Missing] " + inspection.broken_parent);
+            entry.current_path.push_back(preset.name);
+            entry.report =
+                // A previous action in this same dialog session (e.g. a rename, replace, or
+                // install) can mutate the collection's underlying std::deque<Preset>, which
+                // invalidates pointers/references to any other element in it. Capture only the
+                // stable name and re-resolve the Preset* on demand instead of holding a raw
+                // pointer that can dangle by the time this runs.
+                [bundle, collection_ptr = &collection, preset_name = preset.name]() {
+                    const Preset *preset_ptr = collection_ptr->find_preset(preset_name, false, true);
+                    if (preset_ptr == nullptr)
+                        return std::string("This preset no longer exists in this session — it may have "
+                                            "been renamed, replaced, or removed by an earlier action in "
+                                            "this dialog. Close and reopen the recovery dialog to refresh.");
+                    const PresetWithVendorProfile active_printer =
+                        bundle->printers.get_edited_preset_with_vendor_profile();
+                    if (preset_ptr->type == Preset::TYPE_FILAMENT) {
+                        const PresetWithVendorProfile active_print =
+                            bundle->prints.get_edited_preset_with_vendor_profile();
+                        return format_preset_recovery(
+                            inspect_preset(*collection_ptr, *preset_ptr, &active_printer, &active_print));
+                    }
+                    if (preset_ptr->type == Preset::TYPE_SLA_MATERIAL) {
+                        const PresetWithVendorProfile active_print =
+                            bundle->sla_prints.get_edited_preset_with_vendor_profile();
+                        return format_preset_recovery(
+                            inspect_preset(*collection_ptr, *preset_ptr, &active_printer, &active_print));
+                    }
+                    return format_preset_recovery(
+                        inspect_preset(*collection_ptr, *preset_ptr, &active_printer));
+                };
+            if (preset.is_project_embedded) {
+                entry.action_label = "Install for Future Projects";
+                entry.action_hint = "This preset currently belongs only to the open project. Install its resolved settings as a standalone user preset for new projects.";
+                entry.action_before_label = "Temporary setting in the open project";
+                entry.action_after_label = "Reusable user preset";
+                entry.action = [this, collection_ptr = &collection, preset_name = preset.name]() -> std::pair<bool, std::string> {
+                    const Preset *preset_ptr = collection_ptr->find_preset(preset_name, false, true);
+                    if (preset_ptr == nullptr)
+                        return std::make_pair(false, "This preset no longer exists in this session — it may have "
+                                                      "been renamed, replaced, or removed by an earlier action in this dialog.");
+                    const std::string suggested_name = project_preset_install_name(*preset_ptr);
+                    wxTextEntryDialog name_dialog(
+                        this, _L("Install this project's settings as a reusable user preset."),
+                        _L("Install Project Preset"), from_u8(suggested_name));
+                    if (name_dialog.ShowModal() != wxID_OK)
+                        return std::make_pair(false, std::string());
+                    const std::string installed_name = into_u8(name_dialog.GetValue());
+                    const Preset *existing = collection_ptr->find_preset(installed_name, false, true);
+                    if (existing != nullptr) {
+                        if (! existing->can_overwrite() || existing->is_project_embedded)
+                            return std::make_pair(false, "The same-named preset is read-only and cannot be replaced.");
+                        MessageDialog replace_dialog(
+                            this,
+                            wxString::Format(_L("Replace the existing user preset '%s' with the resolved settings from this project?\n\n"
+                                                "The existing file will be backed up, the preset will keep this exact name, and no copy will be created."),
+                                             from_u8(installed_name)),
+                            _L("Replace Existing Preset"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+                        if (replace_dialog.ShowModal() != wxID_YES)
+                            return std::make_pair(false, std::string());
+                    }
+                    const PresetRecoveryActionResult result = existing != nullptr
+                        ? replace_user_preset_from_project(*collection_ptr, *preset_ptr, installed_name)
+                        : install_project_preset(*collection_ptr, *preset_ptr, installed_name);
+                    if (! result.succeeded)
+                        return std::make_pair(false, result.error);
+                    return std::make_pair(true, (existing != nullptr ? "Replaced '" : "Installed '") + result.preset_name +
+                        "' for future projects. The source project was not changed." +
+                        (result.backup_file.empty() ? std::string() : " Backup: " + result.backup_file));
+                };
+            } else if (! inspection.visible || ! inspection.compatible || ! inspection.broken_parent.empty()) {
+                entry.action_label = inspection.compatible ? "Create Standalone Copy"
+                                                           : "Create Copy for Current Presets";
+                const PresetRecoveryCopyOptions options {
+                    inspection.compatible ? std::string() : active_printer.preset.name,
+                    inspection.compatible ? std::string() : active_print.preset.name
+                };
+                entry.action = [collection_ptr = &collection, preset_name = preset.name, options]() {
+                    const Preset *preset_ptr = collection_ptr->find_preset(preset_name, false, true);
+                    if (preset_ptr == nullptr)
+                        return std::make_pair(false, std::string("This preset no longer exists in this session — it may "
+                                                                  "have been renamed, replaced, or removed by an earlier "
+                                                                  "action in this dialog."));
+                    const PresetRecoveryActionResult result =
+                        create_standalone_recovery_copy(*collection_ptr, *preset_ptr, options);
+                    if (! result.succeeded)
+                        return std::make_pair(false, result.error);
+                    return std::make_pair(true, "Created '" + result.preset_name +
+                        "'. The original preset was not changed.");
+                };
+            }
+            if (! initial_index_found && collection.type() == focus_type && preset.name == focus_name) {
+                initial_index = reports.size();
+                initial_index_found = true;
+            }
+            reports.push_back(std::move(entry));
+        }
+        for (const PresetLoadIssue &issue : collection.load_issues()) {
+            PresetInspectorDialog::Entry entry {
+                std::string(category) + ": " + issue.preset_name + " (could not load)",
+                [issue]() { return format_preset_load_issue(issue); }, {}, {}
+            };
+            const std::string missing_parent = missing_parent_from_load_issue(issue);
+            const std::vector<std::string> candidates =
+                recovery_parent_candidates(collection, missing_parent);
+            const std::vector<std::string> library_vendors = missing_parent.empty()
+                ? std::vector<std::string>()
+                : PresetBundle::find_preset_vendors(missing_parent, collection.type());
+            std::string preferred_library_vendor;
+            if (! library_vendors.empty()) {
+                try {
+                    DynamicPrintConfig source_config;
+                    std::map<std::string, std::string> headers;
+                    std::string reason;
+                    source_config.load_from_json(issue.file, ForwardCompatibilitySubstitutionRule::Disable,
+                                                 headers, reason);
+                    const auto *model = source_config.option<ConfigOptionString>("printer_model");
+                    const std::string evidence = (model == nullptr ? std::string() : model->value) + " " + issue.preset_name;
+                    for (const std::string &vendor : library_vendors)
+                        if (boost::algorithm::icontains(evidence, vendor)) {
+                            preferred_library_vendor = vendor;
+                            break;
+                        }
+                } catch (const std::exception &) {
+                    // The report still offers every exact library match for explicit selection.
+                }
+            }
+            if (! missing_parent.empty()) {
+                entry.current_path = { "[Missing] " + missing_parent, issue.preset_name + " (could not load)" };
+                if (! candidates.empty()) {
+                    entry.suggested_parents = candidates;
+                    entry.parent_action = [collection_ptr = &collection, issue](const std::string &parent_name) {
+                        const PresetRecoveryActionResult result = reparent_rejected_preset(
+                            *collection_ptr, issue, parent_name);
+                        if (! result.succeeded)
+                            return std::make_pair(false, result.error);
+                        return std::make_pair(true, "Repaired '" + result.preset_name +
+                            "' in place. Its settings and version were retained. Backup: " + result.backup_file);
+                    };
+                }
+                if (! library_vendors.empty()) {
+                    entry.action_label = "Install Exact Base Library";
+                    entry.action_hint = "The exact missing base is included with OrcaSlicer but its vendor library is not installed in this profile.";
+                    entry.action_before_label = "Bundled library available: " + missing_parent;
+                    entry.action_after_label = "Install its vendor library, then restart OrcaSlicer";
+                    entry.action = [this, library_vendors, preferred_library_vendor, missing_parent]() -> std::pair<bool, std::string> {
+                        std::string selected_vendor;
+                        if (library_vendors.size() == 1) {
+                            selected_vendor = library_vendors.front();
+                        } else {
+                            wxArrayString choices;
+                            for (const std::string &vendor : library_vendors)
+                                choices.Add(from_u8(vendor));
+                            wxSingleChoiceDialog chooser(
+                                this,
+                                wxString::Format(_L("The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."),
+                                                 from_u8(missing_parent)),
+                                _L("Choose Preset Library"), choices);
+                            const auto preferred = std::find(library_vendors.begin(), library_vendors.end(), preferred_library_vendor);
+                            if (preferred != library_vendors.end())
+                                chooser.SetSelection(static_cast<int>(std::distance(library_vendors.begin(), preferred)));
+                            if (chooser.ShowModal() != wxID_OK)
+                                return std::make_pair(false, std::string());
+                            selected_vendor = library_vendors[chooser.GetSelection()];
+                        }
+                        MessageDialog confirmation(
+                            this,
+                            wxString::Format(_L("Install the '%s' preset library to restore the exact base '%s'?\n\n"
+                                                "This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."),
+                                             from_u8(selected_vendor), from_u8(missing_parent)),
+                            _L("Install Preset Library"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+                        if (confirmation.ShowModal() != wxID_YES)
+                            return std::make_pair(false, std::string());
+                        if (! install_vendor_bundles_from_resources({ selected_vendor }))
+                            return std::make_pair(false, "OrcaSlicer could not install the '" + selected_vendor + "' preset library.");
+                        return std::make_pair(true, "Installed the '" + selected_vendor +
+                            "' preset library containing '" + missing_parent + "'. Restart OrcaSlicer to load it and reconnect the preset automatically.");
+                    };
+                }
+            } else {
+                entry.current_path = { issue.preset_name + " (could not load)" };
+            }
+            if (! initial_index_found && collection.type() == focus_type && issue.preset_name == focus_name) {
+                initial_index = reports.size();
+                initial_index_found = true;
+            }
+            reports.push_back(std::move(entry));
+        }
+    };
+
+    add_collection("Printer", bundle->printers);
+    if (bundle->printers.get_edited_preset().printer_technology() == ptSLA) {
+        add_collection("Resin process", bundle->sla_prints);
+        add_collection("Resin material", bundle->sla_materials);
+    } else {
+        add_collection("Process", bundle->prints);
+        add_collection("Filament", bundle->filaments);
+    }
+
+    if (reports.empty())
+        reports.push_back({ "No presets need attention", []() {
+            return std::string("OrcaSlicer did not find hidden, incompatible, broken, or rejected personal presets.\n");
+        }, {}, {}, { "No presets need attention" }, {}, {} });
+
+    PresetInspectorDialog dialog(this, reports, initial_index);
+    const int result = dialog.ShowModal();
+    if (result == wxID_OK)
+        update_side_preset_ui();
+    else if (result == wxID_OPEN)
+        load_config_file();
+    else if (result == wxID_MORE)
+        load_config_folder();
+    else
+        update_preset_recovery_state();
+}
+
+void MainFrame::update_preset_recovery_state()
+{
+#ifndef __APPLE__
+    if (m_topbar == nullptr || wxGetApp().preset_bundle == nullptr)
+        return;
+    PresetBundle &bundle = *wxGetApp().preset_bundle;
+    size_t issue_count = 0;
+    auto count_collection = [&issue_count](const PresetCollection &collection) {
+        issue_count += collection.load_issues().size();
+        for (const Preset &preset : collection.get_presets())
+            if (preset_needs_recovery(collection, preset))
+                ++ issue_count;
+    };
+    count_collection(bundle.printers);
+    if (bundle.printers.get_edited_preset().printer_technology() == ptSLA) {
+        count_collection(bundle.sla_prints);
+        count_collection(bundle.sla_materials);
+    } else {
+        count_collection(bundle.prints);
+        count_collection(bundle.filaments);
+    }
+    m_topbar->SetPresetRecoveryWarning(issue_count);
+#endif
+}
+
 void MainFrame::update_side_preset_ui()
 {
     // select last preset
@@ -4301,6 +4774,7 @@ void MainFrame::update_side_preset_ui()
 
     //take off multi machine
     if(m_multi_machine){m_multi_machine->clear_page();}
+    update_preset_recovery_state();
 }
 
 void MainFrame::on_select_default_preset(SimpleEvent& evt)

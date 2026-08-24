@@ -3643,14 +3643,16 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 //   storage.support.generated = true;
 }
 
-static void recover_pending_branch_roofs(
+static size_t recover_pending_branch_roofs(
     InterfacePlacer        &interface_placer,
     const std::vector<const SupportElement*> &branch_path,
     const LayerIndex        layer_begin,
     std::vector<Polygons>  &slices)
 {
     if (! interface_placer.support_parameters.has_top_contacts)
-        return;
+        return 0;
+
+    size_t recovered_slices = 0;
 
     for (auto it = branch_path.rbegin(); it != branch_path.rend(); ++ it) {
         const SupportElement &el = **it;
@@ -3666,7 +3668,9 @@ static void recover_pending_branch_roofs(
             continue;
 
         interface_placer.add_roof(std::move(slices[size_t(slice_idx)]), el.state.layer_idx, el.state.roof_recovery_dtt);
+        ++ recovered_slices;
     }
+    return recovered_slices;
 }
 
 // Organic specific: Smooth branches and produce one cumulative mesh to be sliced.
@@ -3687,6 +3691,17 @@ void organic_draw_branches(
 
     std::function<void()>            throw_on_cancel)
 {
+    TreeSupportGenerationDiagnostics diagnostics;
+    for (const SupportElements &elements : move_bounds)
+        for (const SupportElement &element : elements) {
+            diagnostics.pending_roof_recovery_tips +=
+                element.state.distance_to_top == 0 && element.state.has_pending_roof_recovery() ? 1 : 0;
+#ifdef TREE_SUPPORTS_TRACK_LOST
+            diagnostics.lost_branch_nodes      += element.state.lost ? 1 : 0;
+            diagnostics.very_lost_branch_nodes += element.state.verylost ? 1 : 0;
+#endif
+        }
+
     // All SupportElements are put into a layer independent storage to improve parallelization.
     std::vector<std::pair<SupportElement*, int>> elements_with_link_down;
     std::vector<size_t>                          linear_data_layers;
@@ -3761,6 +3776,8 @@ void organic_draw_branches(
 
         std::vector<Slice>   slices;
         LayerIndex           first_layer_id{ -1 };
+        size_t               recovered_roof_slices{ 0 };
+        size_t               discarded_branch_meshes{ 0 };
     };
 
     std::vector<Tree>        trees;
@@ -3880,8 +3897,10 @@ void organic_draw_branches(
                     std::vector<Polygons> slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
 
                     // ORCA: guard against empty slices from meshing.
-                    if (slices.empty())
+                    if (slices.empty()) {
+                        ++ tree.discarded_branch_meshes;
                         continue;
+                    }
 
                     bottom_contacts.clear();
                     // ORCA: trim tiny fragments to reduce degenerate polygon booleans.
@@ -3902,8 +3921,10 @@ void organic_draw_branches(
                     }
 
                     // ORCA: trim leading empty slices to keep layer indices aligned.
-                    if (num_empty >= slices.size())
+                    if (num_empty >= slices.size()) {
+                        ++ tree.discarded_branch_meshes;
                         continue;
+                    }
 
                     if (num_empty > 0) {
                         slices.erase(slices.begin(), slices.begin() + num_empty);
@@ -4030,7 +4051,7 @@ void organic_draw_branches(
                     }
                     // ORCA: bottom contacts provide the footprint; interface layers are built later.
 
-                    recover_pending_branch_roofs(interface_placer, branch.path, layer_begin, slices);
+                    tree.recovered_roof_slices += recover_pending_branch_roofs(interface_placer, branch.path, layer_begin, slices);
 
                     while (! slices.empty() && slices.back().empty()) {
                         slices.pop_back();
@@ -4100,6 +4121,12 @@ void organic_draw_branches(
             throw_on_cancel();
         }
     }, tbb::simple_partitioner());
+
+    for (const Tree &tree : trees) {
+        diagnostics.recovered_roof_slices   += tree.recovered_roof_slices;
+        diagnostics.discarded_branch_meshes += tree.discarded_branch_meshes;
+    }
+    print_object.set_tree_support_diagnostics(diagnostics);
 
     size_t num_layers = 0;
     for (Tree &tree : trees)

@@ -160,6 +160,7 @@ public:
 
     // ORCA: utility function to find the vendor for a given preset name
     static std::string find_preset_vendor(const std::string& preset_name, Preset::Type type);
+    static std::vector<std::string> find_preset_vendors(const std::string& preset_name, Preset::Type type);
 
     PresetBundle();
     PresetBundle(const PresetBundle &rhs);
