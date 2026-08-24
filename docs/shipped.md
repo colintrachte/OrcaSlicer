@@ -163,3 +163,18 @@
       them on the baseline). Not yet verified end-to-end in the GUI (slice preview / real print).
 
   **Context:** `src/libslic3r/GCodeWriter.cpp`
+
+- [x] **Score 5 🥇 · Class 3 — Multimaterial (IFS) broken on Flashforge Adventurer 5X — owned hardware (#10783)**
+      — DONE verification (2026-08-24, per TRIAGE_POLICY.md's re-entry rule): the referenced
+      community PR was found, read, and is **already merged into this fork's HEAD** —
+      OrcaSlicer/OrcaSlicer#12991 (marianomd, merged upstream 2026-05-27) landed here as commit
+      `f118b6b337` ("Add Flashforge Adventurer 5 series local send workflow with IFS mapping"),
+      confirmed an ancestor of current HEAD via `git merge-base --is-ancestor`. It adds local
+      AD5X discovery, an IFS slot-selection send dialog
+      (`FlashforgeSlotDialog`/`FlashforgeMaterialMapWidget` in `PrintHostDialogs.cpp`), material-
+      station slot reporting (`Flashforge::fetch_material_slots`), and switches uploads to 3MF
+      packaging matching the AD5X's expected workflow — directly addresses the issue's root cause
+      (Orca not telling the printer which IFS slot to use, causing false runout errors). No code
+      change needed; closing as already shipped rather than re-implementing.
+
+  **Context:** `src/slic3r/Utils/Flashforge.cpp` · `src/slic3r/Utils/Flashforge.hpp`

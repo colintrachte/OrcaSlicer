@@ -349,18 +349,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context Load:** 453
   **Chars:** ~452,515 text total (largest: src/libslic3r/GCode.cpp ~452,515) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 3 — Multimaterial (IFS) broken on Flashforge Adventurer 5X — owned hardware (#10783)**
-      — Directly affects this fork's own Flashforge AD5X. Orca doesn't tell the printer which
-      IFS slot to use, so the printer expects pre-loaded filament and throws false runout
-      errors — blocks multimaterial printing on this exact printer. An open community PR
-      (author marianomd) already implements a fix — read that diff first per the Cherry-pick
-      tier before implementing from scratch.
-
-  **Context:** `src/slic3r/Utils/Flashforge.cpp` · `src/slic3r/Utils/Flashforge.hpp`
-  **Route:** claude
-  **Context Load:** 58
-  **Chars:** ~29,202 text total (largest: src/slic3r/Utils/Flashforge.cpp ~25,680) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2 — Cannot connect to Elegoo Centauri Carbon 2 (#13550)**
       — Real Elegoo Link protocol handshake failure, not Bambu-exclusive — fits the
       print-host-support hardware scope. Open PR **#13212** already addresses this — read that
