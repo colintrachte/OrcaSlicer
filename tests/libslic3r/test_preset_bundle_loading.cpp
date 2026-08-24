@@ -21,6 +21,22 @@ namespace {
 
 namespace fs = boost::filesystem;
 
+struct TempPresetDir {
+    fs::path path;
+
+    TempPresetDir()
+    {
+        path = fs::temp_directory_path() / fs::unique_path("orcaslicer-preset-%%%%-%%%%-%%%%");
+        fs::create_directories(path);
+    }
+
+    ~TempPresetDir()
+    {
+        boost::system::error_code ec;
+        fs::remove_all(path, ec);
+    }
+};
+
 void write_print_preset(const DynamicPrintConfig &default_config, const fs::path &file, const std::string &name, const std::string &inherits = {})
 {
     DynamicPrintConfig config(default_config);

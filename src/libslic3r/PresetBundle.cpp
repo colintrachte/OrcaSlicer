@@ -327,7 +327,7 @@ std::vector<std::string> PresetBundle::find_preset_vendors(const std::string &pr
             if (VendorCacheFile::carries_preset((system_dir / (vendor_name + ".opc")).string(), vendor_name, type, preset_name)) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Found preset " << preset_name
                                         << " in vendor cache " << vendor_name;
-                return vendor_name;
+                matches.push_back(vendor_name);
             }
             continue;
         }
@@ -5490,160 +5490,6 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             reason = std::string("json parse error") + err.what();
             return reason;
         }
-
-        // Report configuration fields, which are misplaced into a wrong group.
-        std::string incorrect_keys = Preset::remove_invalid_keys(config, *default_config);
-        if (!incorrect_keys.empty()) {
-            ++m_errors;
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": The config " << subfile << " contains incorrect keys: " << incorrect_keys
-                                     << ", which were removed";
-        }
-
-        if (presets_collection->type() == Preset::TYPE_PRINTER) {
-            // Filter out printer presets, which are not mentioned in the vendor profile.
-            // These presets are considered not installed.
-            auto printer_model   = config.opt_string("printer_model");
-            if (printer_model.empty()) {
-                ++m_errors;
-                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                    preset_name << "\" defines no printer model, it will be ignored.";
-                reason = std::string("can not find printer_model");
-                return reason;
-            }
-            auto printer_variant = config.opt_string("printer_variant");
-            if (printer_variant.empty()) {
-                ++m_errors;
-                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                    preset_name << "\" defines no printer variant, it will be ignored.";
-                reason = std::string("can not find printer_variant");
-                return reason;
-            }
-            auto it_model = std::find_if(current_vendor_profile->models.cbegin(), current_vendor_profile->models.cend(),
-                [&](const VendorProfile::PrinterModel &m) { return m.id == printer_model; }
-            );
-            if (it_model == current_vendor_profile->models.end()) {
-                ++m_errors;
-                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                    preset_name << "\" defines invalid printer model \"" << printer_model << "\", it will be ignored.";
-                reason = std::string("can not find printer model in vendor profile");
-                return reason;
-            }
-            auto it_variant = it_model->variant(printer_variant);
-            if (it_variant == nullptr) {
-                ++m_errors;
-                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                    preset_name << "\" defines invalid printer variant \"" << printer_variant << "\", it will be ignored.";
-                reason = std::string("can not find printer_variant in vendor profile");
-                return reason;
-            }
-            // An instantiation printer profile's nozzle_diameter must match the numeric (diameter)
-            // prefix of its printer_variant: "0.4" -> {0.4}, "0.8HF" -> {0.8} (a trailing
-            // non-numeric suffix such as "HF"/"HS" distinguishes a hardware sub-variant and is
-            // ignored here), and for multi-nozzle printers "0.4+0.6" -> {0.4, 0.6}.
-            // Note: a variant may legitimately repeat across presets of the same model (e.g. speed
-            // modes, IDEX copy/mirror, or different control boards), so only the diameter is
-            // validated, not variant uniqueness. Validation-only so the app keeps loading existing
-            // profiles unchanged.
-            // Orca: nozzle_diameter is an FFF-only concept (SLA printers have no nozzle, so
-            // SLAPrinterConfig doesn't even define the option) - skip for SLA printer_variant
-            // strings like "default", which aren't meant to encode a diameter.
-            if (validation_mode && instantiation == "true" && Slic3r::Preset::printer_technology(config) == ptFFF) {
-                const auto *nd = config.option<ConfigOptionFloats>("nozzle_diameter");
-                std::set<double> nozzles, variant_nozzles;
-                if (nd != nullptr)
-                    nozzles.insert(nd->values.begin(), nd->values.end());
-                std::vector<std::string> variant_tokens;
-                boost::algorithm::split(variant_tokens, printer_variant, boost::algorithm::is_any_of("+"));
-                bool variant_ok = true; // printer_variant is already guaranteed non-empty above
-                for (const std::string &tok : variant_tokens) {
-                    size_t consumed = 0;
-                    double d = string_to_double_decimal_point(tok, &consumed);
-                    // Require a leading numeric diameter; a trailing suffix (e.g. "HF") is allowed.
-                    if (consumed == 0) { variant_ok = false; break; }
-                    variant_nozzles.insert(d);
-                }
-                if (!variant_ok || variant_nozzles != nozzles) {
-                    ++m_errors;
-                    BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                        preset_name << "\" has printer_variant \"" << printer_variant <<
-                        "\" that does not match its nozzle_diameter \"" << (nd ? nd->serialize() : std::string()) << "\". "
-                        "printer_variant must begin with the nozzle diameter, optionally followed by a non-numeric suffix "
-                        "(e.g. \"0.4\", \"0.8HF\"); for multi-nozzle printers, join the per-nozzle diameters with \"+\" in "
-                        "nozzle order (e.g. \"0.4+0.6\").";
-                }
-            }
-        }
-        const Preset *preset_existing = presets_collection->find_preset(preset_name, false);
-        if (preset_existing != nullptr) {
-            ++m_errors;
-            BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                preset_name << "\" has already been loaded from another Config Bundle.";
-            reason = std::string("duplicated defines");
-            return reason;
-        }
-
-        auto file_path = (boost::filesystem::path(data_dir())  /PRESET_SYSTEM_DIR/ vendor_name / subfile_iter.second).make_preferred();
-        if(validation_mode)
-            file_path = (boost::filesystem::path(data_dir()) / vendor_name / subfile_iter.second).make_preferred();
-
-        // Load the preset into the list of presets, save it to disk.
-        Preset &loaded = presets_collection->load_preset(file_path.string(), preset_name, std::move(config), false);
-        if (flags.has(LoadConfigBundleAttribute::LoadSystem)) {
-            loaded.is_system = true;
-            loaded.vendor = current_vendor_profile;
-            loaded.version = current_vendor_profile->config_version;
-            loaded.description = description;
-            loaded.setting_id = setting_id;
-            // Derive the preset setting_id on the fly when a profile ships without one,
-            // matching scripts/assign_vendor_setting_ids.py. Only instantiated presets
-            // carry an id; non-instantiated base profiles return earlier above. This never
-            // touches the per-user cloud-sync setting_id written into user .info files.
-            if (loaded.setting_id.empty() && instantiation == "true")
-                loaded.setting_id = generate_preset_setting_id(
-                    vendor_name, Preset::get_type_string(presets_collection->type()), preset_name);
-            loaded.filament_id = filament_id;
-            loaded.m_from_orca_filament_lib = is_from_lib;
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << __LINE__ << ", " << loaded.name << " load filament_id: " << filament_id;
-            if (presets_collection->type() == Preset::TYPE_FILAMENT) {
-                if (filament_id.empty() && "Template" != vendor_name) {
-                    ++m_errors;
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": can not find filament_id for " << preset_name;
-                    //throw ConfigurationError(format("can not find inherits %1% for %2%", inherits, preset_name));
-                    reason = "Can not find filament_id for " + preset_name;
-                    return reason;
-                }
-                else {
-                    filament_id_maps.emplace(preset_name, filament_id);
-                }
-            }
-        }
-
-        // Derive the profile logical name aka alias from the preset name if the alias was not stated explicitely.
-        if (alias_name.empty()) {
-            size_t end_pos = preset_name.find_first_of("@");
-            if (end_pos != std::string::npos) {
-                alias_name = preset_name.substr(0, end_pos);
-                if (renamed_from.empty())
-                    // Add the preset name with the '@' character removed into the "renamed_from" list.
-                    renamed_from.emplace_back(alias_name + preset_name.substr(end_pos + 1));
-                boost::trim_right(alias_name);
-            }
-        }
-        if (alias_name.empty())
-            loaded.alias = preset_name;
-        else {
-            loaded.alias = std::move(alias_name);
-            filaments.set_printer_hold_alias(loaded.alias, loaded);
-        }
-        loaded.renamed_from = std::move(renamed_from);
-        if (! substitution_context.empty())
-            substitutions.push_back({
-                preset_name, presets_collection->type(), PresetConfigSubstitutions::Source::ConfigBundle,
-                std::string(), std::move(substitution_context.substitutions) });
-        config_maps.emplace(preset_name, loaded.config);
-        ++count;
-        //BBS: add config related logs
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", got preset %1%, from %2%")%loaded.name %subfile;
         return reason;
     };
 
@@ -5719,35 +5565,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 
     //3.4) paste the sla process (Orca: parallel to 3.1 above, routed to sla_prints instead of prints)
     presets = &this->sla_prints;
-    configs.clear();
-    filament_id_maps.clear();
-    for (auto& subfile : sla_process_subfiles)
-    {
-        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets, presets_loaded);
-        if (!reason.empty()) {
-            ++m_errors;
-            //parse error
-            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse sla print setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
-        }
-    }
+    std::vector<CachedPreset> uncached_sla_entries;
+    load_subfiles(sla_process_subfiles, uncached_sla_entries, "sla print");
 
     //3.5) paste the sla materials (Orca: parallel to 3.2 above, routed to sla_materials instead of filaments)
     presets = &this->sla_materials;
-    configs.clear();
-    filament_id_maps.clear();
-    for (auto& subfile : sla_material_subfiles)
-    {
-        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets, presets_loaded);
-        if (!reason.empty()) {
-            ++m_errors;
-            //parse error
-            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse sla material setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
-        }
-    }
+    uncached_sla_entries.clear();
+    load_subfiles(sla_material_subfiles, uncached_sla_entries, "sla material");
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", finished, presets_loaded %1%")%presets_loaded;

@@ -4758,7 +4758,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             // no same-category substitution. The extruder is guaranteed to be in the
             // toolchange sequence by insert_wipe_tower_extruder().
             if (m_wipe_tower_filament > 0)
-                return wall_filament_id;
+                return wall_filament;
 
             int candidate_id = -1;
             for (size_t idx = 0; idx < layer.tool_changes.size(); ++idx) {
