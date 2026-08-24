@@ -92,6 +92,60 @@ SCENARIO("z_hop lifts the nozzle when a lift is requested", "[GCodeWriter]") {
     }
 }
 
+// Regression coverage for the spiral-lift bed-bounds check (#13634): a spiral lift traces a
+// full circle of radius `z_hop / (2*PI*tan(travel_slope))` around the current XY position.
+// With a shallow travel_slope that radius can be tens of millimeters - large enough that the
+// arc leaves a small bed and the nozzle strikes the frame. GCodeWriter must fall back to a
+// straight lift whenever that circle would exit the bed area, and must still use the spiral
+// when the bed is large enough to contain it.
+SCENARIO("Spiral lift falls back to a straight lift when its circle would exit the bed", "[GCodeWriter]") {
+    // z_hop=5, travel_slope=1 degree -> circle radius ~= 5 / (2*PI*tan(1 deg)) ~= 45.6mm.
+    // Note: Extruder keeps a raw GCodeConfig* back into its owning GCodeWriter, set at
+    // set_extruders() time - populate the writer in place rather than returning it by value,
+    // or that pointer dangles if the compiler doesn't elide the copy/move.
+    auto setup_writer = [](GCodeWriter &writer, const std::vector<Vec2d> &bed, const Vec3d &position) {
+        PrintConfig print_config; // default-constructed with defaults for every option
+        print_config.printable_area.values = bed;
+
+        writer.apply_print_config(print_config);
+        writer.set_extruders({ 0 });
+        writer.set_extruder(0);
+        writer.config.z_hop.values = { 5.0 };
+        writer.config.travel_slope.values = { 1.0 };
+        writer.config.retract_lift_above.values = { 0.0 };
+        writer.config.retract_lift_below.values = { 0.0 };
+        writer.set_position(position);
+        writer.set_current_position_clear(true);
+    };
+
+    GIVEN("A small bed with the writer positioned at its center") {
+        GCodeWriter writer;
+        setup_writer(writer, { Vec2d(0, 0), Vec2d(20, 0), Vec2d(20, 20), Vec2d(0, 20) }, Vec3d(10, 10, 0.2));
+        REQUIRE(writer.filament() != nullptr);
+        WHEN("a spiral lift is requested") {
+            // _travel_to_z (the straight-lift fallback) emits a single Z-only "G1 Z.. F.."
+            // line; _spiral_travel_to_z (arc fitting is off by default) emits several
+            // "G1 X.. Y.. Z.." segments tracing the circle - "G1 X" only appears in the latter.
+            std::string gcode = writer.eager_lift(LiftType::SpiralLift);
+            THEN("it falls back to a straight lift instead of an arc that would leave the bed") {
+                REQUIRE_THAT(gcode, !Catch::Matchers::ContainsSubstring("G1 X"));
+                REQUIRE_THAT(gcode, Catch::Matchers::ContainsSubstring("Z5.2"));
+            }
+        }
+    }
+
+    GIVEN("A large bed with the writer positioned at its center") {
+        GCodeWriter writer;
+        setup_writer(writer, { Vec2d(0, 0), Vec2d(400, 0), Vec2d(400, 400), Vec2d(0, 400) }, Vec3d(200, 200, 0.2));
+        WHEN("a spiral lift is requested") {
+            std::string gcode = writer.eager_lift(LiftType::SpiralLift);
+            THEN("the spiral lift is used, since its circle stays within the bed") {
+                REQUIRE_THAT(gcode, Catch::Matchers::ContainsSubstring("G1 X"));
+            }
+        }
+    }
+}
+
 SCENARIO("Origin manipulation", "[GCodeWriter]") {
 	Slic3r::GCode gcodegen;
 	WHEN("set_origin to (10,0)") {

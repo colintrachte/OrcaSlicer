@@ -2,6 +2,7 @@
 #include "CustomGCode.hpp"
 #include "I18N.hpp"
 #include "PrintConfig.hpp"
+#include "Polygon.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -53,6 +54,8 @@ bool GCodeWriter::supports_separate_travel_acceleration(GCodeFlavor flavor)
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
+    // Orca: bed shape, used to keep a spiral lift's arc within the bed area (see is_spiral_lift_within_bed).
+    m_bed_shape = get_bed_shape(print_config);
 
     // Some machine limits are stride-2 (normal, silent) pairs, here we extract the value that will be used,
     // which is always normal mode at the moment
@@ -721,6 +724,25 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase)
     return "";
 }
 
+// Orca: a spiral lift traces a full circle (see _spiral_travel_to_z's `delta = 2*PI`), so its
+// XY bounding extent is exactly [center-radius, center+radius] on both axes - sample points
+// around that circle and require every one to land inside the bed polygon.
+bool GCodeWriter::is_spiral_lift_within_bed(const Vec2d &center, double radius) const
+{
+    if (m_bed_shape.empty())
+        return true; // unknown bed shape: don't block the optimization
+
+    Polygon bed_poly(m_bed_shape);
+    static constexpr int spiral_bed_check_samples = 32;
+    for (int i = 0; i < spiral_bed_check_samples; ++i) {
+        double a = 2.0 * PI * i / spiral_bed_check_samples;
+        Point p = Point::new_scale(center.x() + radius * std::cos(a), center.y() + radius * std::sin(a));
+        if (!bed_poly.contains(p))
+            return false;
+    }
+    return true;
+}
+
 // BBS: immediately execute an undelayed lift move with a spiral lift pattern
 // designed specifically for subsequent gcode injection (e.g. timelapse)
 std::string GCodeWriter::eager_lift(const LiftType type) {
@@ -737,14 +759,17 @@ std::string GCodeWriter::eager_lift(const LiftType type) {
     }
 
     // BBS: spiral lift only safe with known position
-    // TODO: check the arc will move within bed area
     if (type == LiftType::SpiralLift && this->is_current_position_clear()) {
         double radius = target_lift / (2 * PI * atan(filament()->travel_slope()));
         // static spiral alignment when no move in x,y plane.
         // spiral centra is a radius distance to the right (y=0)
         Vec2d ij_offset = { radius, 0 };
         if (target_lift > 0) {
-            lift_move = this->_spiral_travel_to_z(m_pos(2) + target_lift, ij_offset, "spiral lift Z");
+            // Orca: fall back to a straight lift if the spiral's circle would exit the bed area.
+            Vec2d center = Vec2d(m_pos(0) - m_x_offset, m_pos(1) - m_y_offset) + ij_offset;
+            lift_move = is_spiral_lift_within_bed(center, radius)
+                ? this->_spiral_travel_to_z(m_pos(2) + target_lift, ij_offset, "spiral lift Z")
+                : this->_travel_to_z(m_pos(2) + target_lift, "normal lift Z");
         }
     }
     //BBS: if position is unknown use normal lift
@@ -795,11 +820,14 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         if (delta(2) > 0 && delta_no_z.norm() != 0.0f)    {
             //BBS: SpiralLift
             if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
-                //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
                 double radius = delta(2) / (2 * PI * atan(this->filament()->travel_slope()));
                 Vec2d ij_offset = radius * delta_no_z.normalized();
                 ij_offset = { -ij_offset(1), ij_offset(0) };
-                slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+                // Orca: fall back to a straight lift if the spiral's circle would exit the bed area.
+                Vec2d center = Vec2d(source(0), source(1)) + ij_offset;
+                slop_move = is_spiral_lift_within_bed(center, radius)
+                    ? this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z")
+                    : this->_travel_to_z(target.z(), "normal lift Z");
             }
             //BBS: SlopeLift
             else if (m_to_lift_type == LiftType::SlopeLift &&

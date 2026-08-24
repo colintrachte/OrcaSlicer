@@ -146,3 +146,20 @@
   **Route:** claude
   **Effort:** 4834
   **Chars:** ~805,692 total (largest: src/libslic3r/PrintConfig.cpp ~567,848) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
+- [x] **Score 5 🥇 · Class 3 — Ensure spiral lift stays inside print area, avoid nozzle collision (#13634)**
+      — Root cause: `eager_lift`/`travel_to_xyz`'s `LiftType::SpiralLift` path always traced a
+      full circle (`_spiral_travel_to_z`, radius = `z_hop / (2*PI*tan(travel_slope))`) with two
+      `// TODO: check the arc will move within bed area` markers left unaddressed - a shallow
+      `travel_slope` can put that radius at tens of mm, large enough to swing outside a small bed
+      and strike the frame. Fix: `GCodeWriter` now caches the bed polygon (`m_bed_shape`, from
+      `apply_print_config`'s `get_bed_shape`) and `is_spiral_lift_within_bed()` samples 32 points
+      around the would-be circle against it; either spiral call site falls back to a straight lift
+      (`_travel_to_z`) instead of the arc when any sample would land outside the bed. Build-
+      verified (`libslic3r` target, RelWithDebInfo) with new regression coverage in
+      `tests/fff_print/test_gcodewriter.cpp` (small bed forces the fallback, large bed still uses
+      the spiral); full `fff_print_tests` suite run clean relative to the pre-fix baseline (same
+      3 pre-existing `wall_loops` incremental-slicing failures, confirmed unrelated by reproducing
+      them on the baseline). Not yet verified end-to-end in the GUI (slice preview / real print).
+
+  **Context:** `src/libslic3r/GCodeWriter.cpp`

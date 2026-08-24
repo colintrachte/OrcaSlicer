@@ -1176,15 +1176,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 2303
   **Chars:** ~767,736 text total (largest: src/libslic3r/GCode.cpp ~452,515) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 3 — Ensure spiral lift stays inside print area, avoid nozzle collision (#13634)**
-      — Prevents the nozzle striking the printed part or frame during a spiral lift move.
-      Clean single-file diff, real failure-prevention value.
-
-  **Context:** `src/libslic3r/GCodeWriter.cpp`
-  **Route:** claude
-  **Context Load:** 53
-  **Chars:** ~52,959 text total (largest: src/libslic3r/GCodeWriter.cpp ~52,959) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 5 🥇 · Class 2 — Fix Moonraker "Happy Hare" AMS sync (#13372)** — fixes a crash
       (missing color metadata post-sync) plus a sync-path bug, directly relevant to this fork's
       owned Klipper-family hardware.

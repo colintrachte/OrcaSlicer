@@ -175,6 +175,10 @@ public:
     // Orca: slicing resolution in mm
     double          m_resolution = 0.01;
 
+    // Orca: bed shape (scaled points), used to keep a spiral lift's arc within the bed area.
+    // Empty when unknown (e.g. no print_config applied yet) - the bed check is then skipped.
+    Points          m_bed_shape;
+
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
 
@@ -192,6 +196,10 @@ public:
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
     std::string set_acceleration_internal(Acceleration type, unsigned int acceleration);
+    // Orca: true if the full circle a spiral lift would trace (center/radius, plate-local mm)
+    // stays within the bed area, or the bed shape is unknown. False means the caller should
+    // fall back to a non-spiral lift to avoid the nozzle striking the frame/part.
+    bool        is_spiral_lift_within_bed(const Vec2d &center, double radius) const;
 
 };
 
