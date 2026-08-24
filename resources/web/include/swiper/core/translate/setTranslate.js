@@ -1,6 +1,12 @@
 export default function setTranslate(translate, byController) {
   const swiper = this;
-  const { rtlTranslate: rtl, params, $wrapperEl, wrapperEl, progress } = swiper;
+  const {
+    rtlTranslate: rtl,
+    params,
+    $wrapperEl,
+    wrapperEl,
+    progress
+  } = swiper;
   let x = 0;
   let y = 0;
   const z = 0;
@@ -17,8 +23,7 @@ export default function setTranslate(translate, byController) {
   }
 
   if (params.cssMode) {
-    wrapperEl[swiper.isHorizontal() ? "scrollLeft" : "scrollTop"] =
-      swiper.isHorizontal() ? -x : -y;
+    wrapperEl[swiper.isHorizontal() ? 'scrollLeft' : 'scrollTop'] = swiper.isHorizontal() ? -x : -y;
   } else if (!params.virtualTranslate) {
     $wrapperEl.transform(`translate3d(${x}px, ${y}px, ${z}px)`);
   }
@@ -39,5 +44,5 @@ export default function setTranslate(translate, byController) {
     swiper.updateProgress(translate);
   }
 
-  swiper.emit("setTranslate", swiper.translate, byController);
+  swiper.emit('setTranslate', swiper.translate, byController);
 }

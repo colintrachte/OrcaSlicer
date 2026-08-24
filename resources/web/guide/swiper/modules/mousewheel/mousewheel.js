@@ -1,8 +1,13 @@
 /* eslint-disable consistent-return */
-import { getWindow } from "ssr-window";
-import $ from "../../shared/dom.js";
-import { now, nextTick } from "../../shared/utils.js";
-export default function Mousewheel({ swiper, extendParams, on, emit }) {
+import { getWindow } from 'ssr-window';
+import $ from '../../shared/dom.js';
+import { now, nextTick } from '../../shared/utils.js';
+export default function Mousewheel({
+  swiper,
+  extendParams,
+  on,
+  emit
+}) {
   const window = getWindow();
   extendParams({
     mousewheel: {
@@ -11,13 +16,13 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
       invert: false,
       forceToAxis: false,
       sensitivity: 1,
-      eventsTarget: "container",
+      eventsTarget: 'container',
       thresholdDelta: null,
-      thresholdTime: null,
-    },
+      thresholdTime: null
+    }
   });
   swiper.mousewheel = {
-    enabled: false,
+    enabled: false
   };
   let timeout;
   let lastScrollTime = now();
@@ -36,23 +41,24 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
     let pY = 0; // pixelX, pixelY
     // Legacy
 
-    if ("detail" in e) {
+    if ('detail' in e) {
       sY = e.detail;
     }
 
-    if ("wheelDelta" in e) {
+    if ('wheelDelta' in e) {
       sY = -e.wheelDelta / 120;
     }
 
-    if ("wheelDeltaY" in e) {
+    if ('wheelDeltaY' in e) {
       sY = -e.wheelDeltaY / 120;
     }
 
-    if ("wheelDeltaX" in e) {
+    if ('wheelDeltaX' in e) {
       sX = -e.wheelDeltaX / 120;
     } // side scrolling on FF with DOMMouseScroll
 
-    if ("axis" in e && e.axis === e.HORIZONTAL_AXIS) {
+
+    if ('axis' in e && e.axis === e.HORIZONTAL_AXIS) {
       sX = sY;
       sY = 0;
     }
@@ -60,11 +66,11 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
     pX = sX * PIXEL_STEP;
     pY = sY * PIXEL_STEP;
 
-    if ("deltaY" in e) {
+    if ('deltaY' in e) {
       pY = e.deltaY;
     }
 
-    if ("deltaX" in e) {
+    if ('deltaX' in e) {
       pX = e.deltaX;
     }
 
@@ -86,6 +92,7 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
       }
     } // Fall-back if spin cannot be determined
 
+
     if (pX && !sX) {
       sX = pX < 1 ? -1 : 1;
     }
@@ -98,7 +105,7 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
       spinX: sX,
       spinY: sY,
       pixelX: pX,
-      pixelY: pY,
+      pixelY: pY
     };
   }
 
@@ -113,23 +120,18 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
   }
 
   function animateSlider(newEvent) {
-    if (
-      swiper.params.mousewheel.thresholdDelta &&
-      newEvent.delta < swiper.params.mousewheel.thresholdDelta
-    ) {
+    if (swiper.params.mousewheel.thresholdDelta && newEvent.delta < swiper.params.mousewheel.thresholdDelta) {
       // Prevent if delta of wheel scroll delta is below configured threshold
       return false;
     }
 
-    if (
-      swiper.params.mousewheel.thresholdTime &&
-      now() - lastScrollTime < swiper.params.mousewheel.thresholdTime
-    ) {
+    if (swiper.params.mousewheel.thresholdTime && now() - lastScrollTime < swiper.params.mousewheel.thresholdTime) {
       // Prevent if time between scrolls is below configured threshold
       return false;
     } // If the movement is NOT big enough and
     // if the last time the user scrolled was too close to the current one (avoid continuously triggering the slider):
     //   Don't go any further (avoid insignificant scroll movement).
+
 
     if (newEvent.delta >= 6 && now() - lastScrollTime < 60) {
       // Return false as a default
@@ -147,18 +149,17 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
     //   Go to prev slide and
     //   emit a scroll event.
 
+
     if (newEvent.direction < 0) {
       if ((!swiper.isEnd || swiper.params.loop) && !swiper.animating) {
         swiper.slideNext();
-        emit("scroll", newEvent.raw);
+        emit('scroll', newEvent.raw);
       }
-    } else if (
-      (!swiper.isBeginning || swiper.params.loop) &&
-      !swiper.animating
-    ) {
+    } else if ((!swiper.isBeginning || swiper.params.loop) && !swiper.animating) {
       swiper.slidePrev();
-      emit("scroll", newEvent.raw);
+      emit('scroll', newEvent.raw);
     } // If you got here is because an animation has been triggered so store the current time
+
 
     lastScrollTime = new window.Date().getTime(); // Return false as a default
 
@@ -173,11 +174,7 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
         // Return true to animate scroll on edges
         return true;
       }
-    } else if (
-      swiper.isBeginning &&
-      !swiper.params.loop &&
-      params.releaseOnEdges
-    ) {
+    } else if (swiper.isBeginning && !swiper.params.loop && params.releaseOnEdges) {
       // Return true to animate scroll on edges
       return true;
     }
@@ -197,16 +194,11 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
 
     let target = swiper.$el;
 
-    if (swiper.params.mousewheel.eventsTarget !== "container") {
+    if (swiper.params.mousewheel.eventsTarget !== 'container') {
       target = $(swiper.params.mousewheel.eventsTarget);
     }
 
-    if (
-      !swiper.mouseEntered &&
-      !target[0].contains(e.target) &&
-      !params.releaseOnEdges
-    )
-      return true;
+    if (!swiper.mouseEntered && !target[0].contains(e.target) && !params.releaseOnEdges) return true;
     if (e.originalEvent) e = e.originalEvent; // jquery fix
 
     let delta = 0;
@@ -215,17 +207,10 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
 
     if (params.forceToAxis) {
       if (swiper.isHorizontal()) {
-        if (Math.abs(data.pixelX) > Math.abs(data.pixelY))
-          delta = -data.pixelX * rtlFactor;
-        else return true;
-      } else if (Math.abs(data.pixelY) > Math.abs(data.pixelX))
-        delta = -data.pixelY;
-      else return true;
+        if (Math.abs(data.pixelX) > Math.abs(data.pixelY)) delta = -data.pixelX * rtlFactor;else return true;
+      } else if (Math.abs(data.pixelY) > Math.abs(data.pixelX)) delta = -data.pixelY;else return true;
     } else {
-      delta =
-        Math.abs(data.pixelX) > Math.abs(data.pixelY)
-          ? -data.pixelX * rtlFactor
-          : -data.pixelY;
+      delta = Math.abs(data.pixelX) > Math.abs(data.pixelY) ? -data.pixelX * rtlFactor : -data.pixelY;
     }
 
     if (delta === 0) return true;
@@ -241,12 +226,7 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
     //     if the scroll on edge positions,
     //     then the disableParentSwiper will be false.
 
-    disableParentSwiper = swiper.params.loop
-      ? true
-      : !(
-          positions === swiper.minTranslate() ||
-          positions === swiper.maxTranslate()
-        );
+    disableParentSwiper = swiper.params.loop ? true : !(positions === swiper.minTranslate() || positions === swiper.maxTranslate());
     if (disableParentSwiper && swiper.params.nested) e.stopPropagation();
 
     if (!swiper.params.freeMode || !swiper.params.freeMode.enabled) {
@@ -255,16 +235,14 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
         time: now(),
         delta: Math.abs(delta),
         direction: Math.sign(delta),
-        raw: event,
+        raw: event
       }; // Keep the most recent events
 
       if (recentWheelEvents.length >= 2) {
         recentWheelEvents.shift(); // only store the last N events
       }
 
-      const prevEvent = recentWheelEvents.length
-        ? recentWheelEvents[recentWheelEvents.length - 1]
-        : undefined;
+      const prevEvent = recentWheelEvents.length ? recentWheelEvents[recentWheelEvents.length - 1] : undefined;
       recentWheelEvents.push(newEvent); // If there is at least one previous recorded event:
       //   If direction has changed or
       //   if the scroll is quicker than the previous one:
@@ -273,17 +251,14 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
       //     Animate the slider.
 
       if (prevEvent) {
-        if (
-          newEvent.direction !== prevEvent.direction ||
-          newEvent.delta > prevEvent.delta ||
-          newEvent.time > prevEvent.time + 150
-        ) {
+        if (newEvent.direction !== prevEvent.direction || newEvent.delta > prevEvent.delta || newEvent.time > prevEvent.time + 150) {
           animateSlider(newEvent);
         }
       } else {
         animateSlider(newEvent);
       } // If it's time to release the scroll:
       //   Return now so you don't hit the preventDefault.
+
 
       if (releaseScroll(newEvent)) {
         return true;
@@ -297,13 +272,9 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
       const newEvent = {
         time: now(),
         delta: Math.abs(delta),
-        direction: Math.sign(delta),
+        direction: Math.sign(delta)
       };
-      const ignoreWheelEvents =
-        lastEventBeforeSnap &&
-        newEvent.time < lastEventBeforeSnap.time + 500 &&
-        newEvent.delta <= lastEventBeforeSnap.delta &&
-        newEvent.direction === lastEventBeforeSnap.direction;
+      const ignoreWheelEvents = lastEventBeforeSnap && newEvent.time < lastEventBeforeSnap.time + 500 && newEvent.delta <= lastEventBeforeSnap.delta && newEvent.direction === lastEventBeforeSnap.direction;
 
       if (!ignoreWheelEvents) {
         lastEventBeforeSnap = undefined;
@@ -323,10 +294,7 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
         swiper.updateActiveIndex();
         swiper.updateSlidesClasses();
 
-        if (
-          (!wasBeginning && swiper.isBeginning) ||
-          (!wasEnd && swiper.isEnd)
-        ) {
+        if (!wasBeginning && swiper.isBeginning || !wasEnd && swiper.isEnd) {
           swiper.updateSlidesClasses();
         }
 
@@ -349,25 +317,14 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
             recentWheelEvents.shift(); // only store the last N events
           }
 
-          const prevEvent = recentWheelEvents.length
-            ? recentWheelEvents[recentWheelEvents.length - 1]
-            : undefined;
+          const prevEvent = recentWheelEvents.length ? recentWheelEvents[recentWheelEvents.length - 1] : undefined;
           const firstEvent = recentWheelEvents[0];
           recentWheelEvents.push(newEvent);
 
-          if (
-            prevEvent &&
-            (newEvent.delta > prevEvent.delta ||
-              newEvent.direction !== prevEvent.direction)
-          ) {
+          if (prevEvent && (newEvent.delta > prevEvent.delta || newEvent.direction !== prevEvent.direction)) {
             // Increasing or reverse-sign delta means the user started scrolling again. Clear the wheel event log.
             recentWheelEvents.splice(0);
-          } else if (
-            recentWheelEvents.length >= 15 &&
-            newEvent.time - firstEvent.time < 500 &&
-            firstEvent.delta - newEvent.delta >= 1 &&
-            newEvent.delta <= 6
-          ) {
+          } else if (recentWheelEvents.length >= 15 && newEvent.time - firstEvent.time < 500 && firstEvent.delta - newEvent.delta >= 1 && newEvent.delta <= 6) {
             // We're at the end of the deceleration of a momentum scroll, so there's no need
             // to wait for more events. Snap ASAP on the next tick.
             // Also, because there's some remaining momentum we'll bias the snap in the
@@ -378,12 +335,7 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
             lastEventBeforeSnap = newEvent;
             recentWheelEvents.splice(0);
             timeout = nextTick(() => {
-              swiper.slideToClosest(
-                swiper.params.speed,
-                true,
-                undefined,
-                snapToThreshold,
-              );
+              swiper.slideToClosest(swiper.params.speed, true, undefined, snapToThreshold);
             }, 0); // no delay; move on next tick
           }
 
@@ -395,57 +347,44 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
               const snapToThreshold = 0.5;
               lastEventBeforeSnap = newEvent;
               recentWheelEvents.splice(0);
-              swiper.slideToClosest(
-                swiper.params.speed,
-                true,
-                undefined,
-                snapToThreshold,
-              );
+              swiper.slideToClosest(swiper.params.speed, true, undefined, snapToThreshold);
             }, 500);
           }
         } // Emit event
 
-        if (!ignoreWheelEvents) emit("scroll", e); // Stop autoplay
 
-        if (
-          swiper.params.autoplay &&
-          swiper.params.autoplayDisableOnInteraction
-        )
-          swiper.autoplay.stop(); // Return page scroll on edge positions
+        if (!ignoreWheelEvents) emit('scroll', e); // Stop autoplay
 
-        if (
-          position === swiper.minTranslate() ||
-          position === swiper.maxTranslate()
-        )
-          return true;
+        if (swiper.params.autoplay && swiper.params.autoplayDisableOnInteraction) swiper.autoplay.stop(); // Return page scroll on edge positions
+
+        if (position === swiper.minTranslate() || position === swiper.maxTranslate()) return true;
       }
     }
 
-    if (e.preventDefault) e.preventDefault();
-    else e.returnValue = false;
+    if (e.preventDefault) e.preventDefault();else e.returnValue = false;
     return false;
   }
 
   function events(method) {
     let target = swiper.$el;
 
-    if (swiper.params.mousewheel.eventsTarget !== "container") {
+    if (swiper.params.mousewheel.eventsTarget !== 'container') {
       target = $(swiper.params.mousewheel.eventsTarget);
     }
 
-    target[method]("mouseenter", handleMouseEnter);
-    target[method]("mouseleave", handleMouseLeave);
-    target[method]("wheel", handle);
+    target[method]('mouseenter', handleMouseEnter);
+    target[method]('mouseleave', handleMouseLeave);
+    target[method]('wheel', handle);
   }
 
   function enable() {
     if (swiper.params.cssMode) {
-      swiper.wrapperEl.removeEventListener("wheel", handle);
+      swiper.wrapperEl.removeEventListener('wheel', handle);
       return true;
     }
 
     if (swiper.mousewheel.enabled) return false;
-    events("on");
+    events('on');
     swiper.mousewheel.enabled = true;
     return true;
   }
@@ -457,19 +396,19 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
     }
 
     if (!swiper.mousewheel.enabled) return false;
-    events("off");
+    events('off');
     swiper.mousewheel.enabled = false;
     return true;
   }
 
-  on("init", () => {
+  on('init', () => {
     if (!swiper.params.mousewheel.enabled && swiper.params.cssMode) {
       disable();
     }
 
     if (swiper.params.mousewheel.enabled) enable();
   });
-  on("destroy", () => {
+  on('destroy', () => {
     if (swiper.params.cssMode) {
       enable();
     }
@@ -478,6 +417,6 @@ export default function Mousewheel({ swiper, extendParams, on, emit }) {
   });
   Object.assign(swiper.mousewheel, {
     enable,
-    disable,
+    disable
   });
 }

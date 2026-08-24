@@ -1,13 +1,6 @@
-import { getWindow } from "ssr-window";
-import $ from "../../shared/dom.js";
-export default function loadImage(
-  imageEl,
-  src,
-  srcset,
-  sizes,
-  checkForComplete,
-  callback,
-) {
+import { getWindow } from 'ssr-window';
+import $ from '../../shared/dom.js';
+export default function loadImage(imageEl, src, srcset, sizes, checkForComplete, callback) {
   const window = getWindow();
   let image;
 
@@ -15,7 +8,7 @@ export default function loadImage(
     if (callback) callback();
   }
 
-  const isPicture = $(imageEl).parent("picture")[0];
+  const isPicture = $(imageEl).parent('picture')[0];
 
   if (!isPicture && (!imageEl.complete || !checkForComplete)) {
     if (src) {

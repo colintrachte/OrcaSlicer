@@ -1,6 +1,10 @@
 export default function prependSlide(slides) {
   const swiper = this;
-  const { params, $wrapperEl, activeIndex } = swiper;
+  const {
+    params,
+    $wrapperEl,
+    activeIndex
+  } = swiper;
 
   if (params.loop) {
     swiper.loopDestroy();
@@ -8,7 +12,7 @@ export default function prependSlide(slides) {
 
   let newActiveIndex = activeIndex + 1;
 
-  if (typeof slides === "object" && "length" in slides) {
+  if (typeof slides === 'object' && 'length' in slides) {
     for (let i = 0; i < slides.length; i += 1) {
       if (slides[i]) $wrapperEl.prepend(slides[i]);
     }

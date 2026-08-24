@@ -1,5 +1,10 @@
-import { now } from "../../shared/utils.js";
-export default function freeMode({ swiper, extendParams, emit, once }) {
+import { now } from '../../shared/utils.js';
+export default function freeMode({
+  swiper,
+  extendParams,
+  emit,
+  once
+}) {
   extendParams({
     freeMode: {
       enabled: false,
@@ -9,33 +14,38 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
       momentumBounceRatio: 1,
       momentumVelocityRatio: 1,
       sticky: false,
-      minimumVelocity: 0.02,
-    },
+      minimumVelocity: 0.02
+    }
   });
 
   function onTouchMove() {
-    const { touchEventsData: data, touches } = swiper; // Velocity
+    const {
+      touchEventsData: data,
+      touches
+    } = swiper; // Velocity
 
     if (data.velocities.length === 0) {
       data.velocities.push({
-        position: touches[swiper.isHorizontal() ? "startX" : "startY"],
-        time: data.touchStartTime,
+        position: touches[swiper.isHorizontal() ? 'startX' : 'startY'],
+        time: data.touchStartTime
       });
     }
 
     data.velocities.push({
-      position: touches[swiper.isHorizontal() ? "currentX" : "currentY"],
-      time: now(),
+      position: touches[swiper.isHorizontal() ? 'currentX' : 'currentY'],
+      time: now()
     });
   }
 
-  function onTouchEnd({ currentPos }) {
+  function onTouchEnd({
+    currentPos
+  }) {
     const {
       params,
       $wrapperEl,
       rtlTranslate: rtl,
       snapGrid,
-      touchEventsData: data,
+      touchEventsData: data
     } = swiper; // Time diff
 
     const touchEndTime = now();
@@ -70,6 +80,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
         } // this implies that the user stopped moving a finger then released.
         // There would be no events with distance zero, so the last event is stale.
 
+
         if (time > 150 || now() - lastMoveEvent.time > 300) {
           swiper.velocity = 0;
         }
@@ -85,8 +96,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
       if (rtl) newPosition = -newPosition;
       let doBounce = false;
       let afterBouncePosition;
-      const bounceAmount =
-        Math.abs(swiper.velocity) * 20 * params.freeMode.momentumBounceRatio;
+      const bounceAmount = Math.abs(swiper.velocity) * 20 * params.freeMode.momentumBounceRatio;
       let needsLoopFix;
 
       if (newPosition < swiper.maxTranslate()) {
@@ -127,11 +137,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
           }
         }
 
-        if (
-          Math.abs(snapGrid[nextSlide] - newPosition) <
-            Math.abs(snapGrid[nextSlide - 1] - newPosition) ||
-          swiper.swipeDirection === "next"
-        ) {
+        if (Math.abs(snapGrid[nextSlide] - newPosition) < Math.abs(snapGrid[nextSlide - 1] - newPosition) || swiper.swipeDirection === 'next') {
           newPosition = snapGrid[nextSlide];
         } else {
           newPosition = snapGrid[nextSlide - 1];
@@ -141,20 +147,17 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
       }
 
       if (needsLoopFix) {
-        once("transitionEnd", () => {
+        once('transitionEnd', () => {
           swiper.loopFix();
         });
       } // Fix duration
 
+
       if (swiper.velocity !== 0) {
         if (rtl) {
-          momentumDuration = Math.abs(
-            (-newPosition - swiper.translate) / swiper.velocity,
-          );
+          momentumDuration = Math.abs((-newPosition - swiper.translate) / swiper.velocity);
         } else {
-          momentumDuration = Math.abs(
-            (newPosition - swiper.translate) / swiper.velocity,
-          );
+          momentumDuration = Math.abs((newPosition - swiper.translate) / swiper.velocity);
         }
 
         if (params.freeMode.sticky) {
@@ -165,9 +168,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
           // nice side effect of matching slide speed if the user stopped moving before
           // lifting finger or mouse vs. moving slowly before lifting the finger/mouse.
           // For faster swipes, also apply limits (albeit higher ones).
-          const moveDistance = Math.abs(
-            (rtl ? -newPosition : newPosition) - swiper.translate,
-          );
+          const moveDistance = Math.abs((rtl ? -newPosition : newPosition) - swiper.translate);
           const currentSlideSize = swiper.slidesSizesGrid[swiper.activeIndex];
 
           if (moveDistance < currentSlideSize) {
@@ -191,7 +192,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
         swiper.animating = true;
         $wrapperEl.transitionEnd(() => {
           if (!swiper || swiper.destroyed || !data.allowMomentumBounce) return;
-          emit("momentumBounce");
+          emit('momentumBounce');
           swiper.setTransition(params.speed);
           setTimeout(() => {
             swiper.setTranslate(afterBouncePosition);
@@ -202,7 +203,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
           }, 0);
         });
       } else if (swiper.velocity) {
-        emit("_freeModeNoMomentumRelease");
+        emit('_freeModeNoMomentumRelease');
         swiper.updateProgress(newPosition);
         swiper.setTransition(momentumDuration);
         swiper.setTranslate(newPosition);
@@ -225,7 +226,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
       swiper.slideToClosest();
       return;
     } else if (params.freeMode) {
-      emit("_freeModeNoMomentumRelease");
+      emit('_freeModeNoMomentumRelease');
     }
 
     if (!params.freeMode.momentum || timeDiff >= params.longSwipesMs) {
@@ -238,7 +239,7 @@ export default function freeMode({ swiper, extendParams, emit, once }) {
   Object.assign(swiper, {
     freeMode: {
       onTouchMove,
-      onTouchEnd,
-    },
+      onTouchEnd
+    }
   });
 }

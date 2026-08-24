@@ -1,9 +1,4 @@
-export default function slideToLoop(
-  index = 0,
-  speed = this.params.speed,
-  runCallbacks = true,
-  internal,
-) {
+export default function slideToLoop(index = 0, speed = this.params.speed, runCallbacks = true, internal) {
   const swiper = this;
   let newIndex = index;
 
