@@ -421,7 +421,7 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
         if (properties_shown) {
             float label_w = 0.0f;
             float value_w = 0.0f;
-            properties_rows.reserve(13);
+            properties_rows.reserve(14);
             auto add_row = [&properties_rows, &label_w, &value_w](std::string label, std::string value) {
                  label_w = std::max(label_w, ImGui::CalcTextSize(label.c_str()).x);
                  value_w = std::max(value_w, ImGui::CalcTextSize(value.c_str()).x);
@@ -434,6 +434,27 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
             add_row(_u8L("Width"), buff);
             if (is_extrusion) sprintf(buff, ("%.3f " + _u8L("mm")).c_str(), vertex.height); else strcpy(buff, NA_CSTR);
             add_row(_u8L("Height"), buff);
+            // ORCA: Length of the move ending at the current vertex. Arc moves (G2/G3) are discretized
+            // into several vertices sharing the same gcode line id, so accumulate the whole run to report
+            // the arc length instead of the length of a single chord.
+            if (vertex_id > 0 && (is_extrusion || vertex.is_travel() || vertex.is_wipe())) {
+                const size_t vertices_count = viewer->get_vertices_count();
+                size_t first_id = vertex_id;
+                while (first_id > 0 && viewer->get_vertex_at(first_id - 1).gcode_id == vertex.gcode_id)
+                    --first_id;
+                size_t last_id = vertex_id;
+                while (last_id + 1 < vertices_count && viewer->get_vertex_at(last_id + 1).gcode_id == vertex.gcode_id)
+                    ++last_id;
+                float length = 0.0f;
+                for (size_t i = std::max<size_t>(first_id, 1); i <= last_id; ++i) {
+                    length += (libvgcode::convert(viewer->get_vertex_at(i).position) -
+                               libvgcode::convert(viewer->get_vertex_at(i - 1).position)).norm();
+                }
+                sprintf(buff, ("%.3f " + _u8L("mm")).c_str(), length);
+            }
+            else
+                strcpy(buff, NA_CSTR);
+            add_row(_u8L("Length"), buff);
             sprintf(buff, "%d", vertex.layer_id + 1);
             add_row(_u8L("Layer"), buff);
             sprintf(buff, ("%.1f " + _u8L("mm/s")).c_str(), vertex.feedrate);
@@ -446,7 +467,7 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
             add_row(_u8L("Flow rate"), buff);
             sprintf(buff, "%.0f %%", vertex.fan_speed);
             add_row(_u8L("Fan speed"), buff);
-            sprintf(buff, ("%.0f " + _u8L("°C")).c_str(), vertex.temperature);
+            sprintf(buff, ("%.0f " + _u8L("\u2103" /* °C */)).c_str(), vertex.temperature);
             add_row(_u8L("Temperature"), buff);
             sprintf(buff, "%.4f", vertex.pressure_advance);
             add_row(_u8L("Pressure Advance"), buff);
@@ -490,7 +511,7 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
         const float main_row_h     = 2.0f * text_h + item_spacing_y; // Two lines of text (position and detail) + spacing between them
         const float properties_h   = static_cast<float>(properties_rows.size()) * (text_h + 2.0f * cell_pad_y) +  2.0f * cell_pad_y + 1.0f + item_spacing_y // table rows
                                     + item_spacing_y + show_button_h                    // Spacing() + Show/Hide button row
-                                    + item_spacing_y + 1.0f + style.FramePadding.y;     // Spacing() + Separator() + Dummy()
+                                    + item_spacing_y + 1.0f + style.WindowPadding.y;    // Spacing() + Separator() + Dummy()
         const float folded_window_h   = std::ceil(window_pad_h + main_row_h);           // Height of the window when properties are hidden, with padding, rounded up for better look
         const float unfolded_window_h = std::ceil(folded_window_h + properties_h);      // Height of the window when properties are shown, with padding, rounded up for better look
         const float window_h = properties_shown ? unfolded_window_h : folded_window_h;  // Final window height depending on whether properties are shown or not
@@ -616,8 +637,11 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
 
             ImGui::Spacing();
             ImGui::Separator();
-            ImGui::Dummy({0, style.FramePadding.y});
+            ImGui::Dummy({0, style.WindowPadding.y});
         }
+
+        float draw_area_height = ImGui::GetTextLineHeight() * 2.f + style.ItemSpacing.y;
+        ImGui::Dummy({10.f, draw_area_height}); // reserve area
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding  , 3.f * m_scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding   , ImVec2(2.f, 2.f) * m_scale);
@@ -626,6 +650,10 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
         ImGui::PushStyleColor(ImGuiCol_ButtonActive      , ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
          
         const float main_wnd_height = ImGui::GetWindowHeight();
+        const float draw_start_y = main_wnd_height - draw_area_height - style.WindowPadding.y;
+
+        ImGui::SetCursorPos(ImVec2(style.WindowPadding.x, draw_start_y));
+
         // ORCA use glyph based button for fixing button sizes changing depends on used font size on platform
         const wchar_t foldIcon = properties_shown ? ImGui::UnfoldButtonIcon : ImGui::FoldButtonIcon;
         if (imgui.glyph_button(foldIcon, ImVec2(16.f, 16.f) * m_scale)) {
@@ -641,10 +669,7 @@ void GCodeViewer::SequentialView::Marker::render_position_window(const libvgcode
         ImGui::PopStyleColor(3);
         ImGui::PopStyleVar(2);
 
-        ImGui::SameLine();
-
-        if(!properties_shown)
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() - style.FramePadding.y); // aligns button with next group
+        ImGui::SetCursorPos(ImVec2(style.WindowPadding.x + style.ItemSpacing.x + 24.f * m_scale, draw_start_y - 1.f * m_scale));
 
         ImGui::BeginGroup(); // group contents to make information area more compact
 
@@ -1130,6 +1155,10 @@ void GCodeViewer::load_as_gcode(const GCodeProcessorResult& gcode_result, const 
     const bool required_top_layer_only = get_app_config()->get_bool("seq_top_layer_only");
     if (current_top_layer_only != required_top_layer_only)
         m_viewer.toggle_top_layer_only_view_range();
+
+    // ORCA: darken the layers the preview layer slider is not scrubbed to
+    m_viewer.set_dim_previous_layers(get_app_config()->get_bool("preview_dim_previous_layers"));
+    m_viewer.set_dim_previous_layers_brightness(0.01f * std::stoi(get_app_config()->get("preview_dim_previous_layers_brightness")));
 
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id && wxGetApp().is_editor()) {
@@ -2912,8 +2941,11 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
 
     float delta_weight_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight;
     float delta_weight_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
-    int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count;
-    int   delta_change_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
+    // The displayed "hand changes" delta uses the per-nozzle flush_filament_change_count.
+    // For single-nozzle-per-extruder printers it equals the per-extruder filament_change_count,
+    // so the shown value is unchanged.
+    int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.flush_filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.flush_filament_change_count;
+    int   delta_change_to_best = stats_by_extruder.stats_by_multi_extruder_curr.flush_filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.flush_filament_change_count;
 
     bool any_less_to_single_ext = delta_weight_to_single_ext > EPSILON || delta_change_to_single_ext > 0;
     bool any_more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
@@ -3705,7 +3737,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         break;
     }
     case libvgcode::EViewType::FanSpeed:       { imgui.title(_u8L("Fan speed (%)")); break; }
-    case libvgcode::EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
+    case libvgcode::EViewType::Temperature:    { imgui.title(_u8L("Temperature (℃)")); break; }
 // ORCA: Add Pressure Advance visualization support
     case libvgcode::EViewType::PressureAdvance:{ imgui.title(_u8L("Pressure Advance")); break; }
     case libvgcode::EViewType::VolumetricFlowRate:
@@ -4259,7 +4291,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         };
 
         auto append_print = [&imgui, imperial_units](const ColorRGBA& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
-            imgui.text(_u8L("Print"));
+            imgui.text(_u8L_CONTEXT("Print", "Noun"));
             ImGui::SameLine();
 
             float icon_size = ImGui::GetTextLineHeight();
@@ -4293,7 +4325,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             for (const PartialTime& item : partial_times) {
                 switch (item.type)
                 {
-                case PartialTime::EType::Print:       { labels.push_back(_u8L("Print")); break; }
+                case PartialTime::EType::Print:       { labels.push_back(_u8L_CONTEXT("Print", "Noun")); break; }
                 case PartialTime::EType::Pause:       { labels.push_back(_u8L("Pause")); break; }
                 case PartialTime::EType::ColorChange: { labels.push_back(_u8L("Color change")); break; }
                 }

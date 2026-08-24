@@ -69,3 +69,4 @@ compile_commands.json
 # Local Windows build-driver output.
 /logs/
 /build.ps1 - Shortcut.lnk
+*.opc
