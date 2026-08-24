@@ -149,20 +149,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context Load:** 2698
   **Chars:** ~674,482 text total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 3 — Bridges sliced as overhang walls instead of using bridge flow/density (#2231)**
-      — Bridge perimeters not getting bridge flow and density applied; sliced as overhang.
-      Regressed from upstream. 67 comments — long-standing. Two open PRs target this directly:
-      #14216 ("Fix bridging perimeters") and #12470 ("Improve thick bridges spacing") — review
-      those first per `TRIAGE_POLICY.md`'s Cherry-pick tier before implementing from scratch.
-      Affects emitted G-code (extrusion flow/density), so Class 3 even though `Fill/` isn't one
-      of the five subsystems named by title in `TRIAGE_POLICY.md` — it fits the tie-breaker
-      ("does it change a slicer calculation that ends up in emitted G-code values?").
-
-  **Implement:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
-  **Route:** claude
-  **Context Load:** 384
-  **Chars:** ~192,221 text total (largest: src/libslic3r/Fill/FillBase.cpp ~139,550) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2 — Previously working filaments now show as "incompatible" after profile changes (#12314)**
       — Compatibility filtering regression; valid filament/printer combos incorrectly
       rejected. 48 comments. Settings/profile logic, not G-code emission.

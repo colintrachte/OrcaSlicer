@@ -178,3 +178,44 @@
       change needed; closing as already shipped rather than re-implementing.
 
   **Context:** `src/slic3r/Utils/Flashforge.cpp` · `src/slic3r/Utils/Flashforge.hpp`
+
+- [x] **Score 5 🥇 · Class 3 — Bridges sliced as overhang walls instead of using bridge flow/density (#2231)**
+      — Cherry-picked (2026-08-24, per `TRIAGE_POLICY.md`'s Cherry-pick tier) from
+      OrcaSlicer/OrcaSlicer#14216 (stefansjs, "Fix bridge perimeter extrusion roles", open,
+      mergeable, not a draft). Root cause: bridge perimeters (the wall segments spanning an
+      unsupported void) were tagged `erOverhangPerimeter`, the same role as ordinary overhangs,
+      so they got overhang speed/flow/fan instead of the user's dedicated bridge settings. Fix
+      adds a new `erBridgePerimeter` extrusion role, assigned from the existing overhang-split
+      geometry in `PerimeterGenerator` for the first bridge layer, plus a new post-pass
+      (`PrintObject::tag_extra_bridge_perimeters` / `split_perimeter_over_void`) that walks down
+      to the nearest non-bridge layer to correctly tag perimeters on *stacked* extra bridge
+      layers, which `PerimeterGenerator` can't see (they look "supported" by the bridge layer
+      directly below). The new role is threaded through flow/speed/fan/PA G-code emission,
+      `FanMover`, `PressureEqualizer`, support-material bridging detection, and the G-code
+      viewer's role coloring.
+      **Excluded from the cherry-pick:** the PR's one-line `MeshBoolean.cpp` hunk (an unrelated
+      CGAL `triangulate_hole` API call-signature change with zero relation to bridging — a bundle
+      antipattern per `TRIAGE_POLICY.md`) was deliberately left out; that file is untouched.
+      **Conflict resolved:** one 3-way merge conflict in `GCode.cpp` (this fork had already
+      renamed `get_nozzle_config_index(...)` to `cur_extruder_index()`) — resolved by keeping the
+      fork's helper name and adding the PR's new `erBridgePerimeter` check alongside it.
+      **Verified:** `fff_print_tests` builds clean; all 24 new test cases from the PR
+      (`test_bridge.cpp`, `test_bridge_params.cpp`, `test_bridge_perimeter_fan.cpp`,
+      `test_extra_bridge_fan.cpp`, plus `test_bridge_helpers.hpp` and two new bridge test
+      meshes) pass (101 assertions); full suite (89 cases) shows the same 3 pre-existing
+      `wall_loops` incremental-slicing failures as the pre-fix baseline (unrelated, see #13634's
+      shipped entry for how that was confirmed) — zero regressions from this change.
+      **Not included:** #12470 ("Improve thick bridges spacing") is a separate, still-open
+      sub-issue (a different root cause — the `BRIDGE_EXTRA_SPACING` constant in `Flow.cpp`
+      governing thick-bridge line spacing) - not part of this cherry-pick; revisit separately if
+      thick-bridge spacing is still a live complaint.
+
+  **Implement:** `src/libslic3r/ExtrusionEntity.cpp` · `src/libslic3r/ExtrusionEntity.hpp` ·
+  `src/libslic3r/GCode.cpp` · `src/libslic3r/GCode/FanMover.cpp` ·
+  `src/libslic3r/GCode/GCodeProcessor.cpp` · `src/libslic3r/GCode/PressureEqualizer.cpp` ·
+  `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/Print.hpp` ·
+  `src/libslic3r/PrintObject.cpp` · `src/libslic3r/Support/SupportMaterial.cpp` ·
+  `src/libslic3r/Support/SupportSpotsGenerator.cpp` · `src/libslic3r/VariableWidth.cpp` ·
+  `src/libvgcode/include/Types.hpp` · `src/libvgcode/src/Settings.hpp` ·
+  `src/libvgcode/src/ViewerImpl.cpp` · `src/slic3r/GUI/GCodeViewer.cpp` ·
+  `src/slic3r/GUI/LibVGCode/LibVGCodeWrapper.cpp`
