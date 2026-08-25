@@ -472,6 +472,16 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 - [ ] **Score 3 🥈 · Class 3 — Variable line width on overhangs (#12029)**
       — Wider line width on overhang perimeters measurably improves printability of otherwise
       impossible overhangs. Touches wall generation (Arachne-adjacent).
+      **Checked at pickup (2026-08-24) — Monitor tier per `TRIAGE_POLICY.md`, not cherry-picked:**
+      the only linked implementation is OrcaSlicer/OrcaSlicer#12051 ("Port CrealityPrint Overhang
+      Optimization"), which is **`isDraft: true`** and `mergeable: CONFLICTING`. The author's own
+      PR description admits an open bug ("There is also currently a bug that causes it to apply
+      to non-overhang layers, see screenshots") and that some logic ended up misplaced
+      (`OverhangOptimization` class exists but "some of the logic is done in `Slicing.cpp`"
+      instead). 972 additions across 24 files. Also needs a CrealityPrint license check before
+      adoption (not yet verified, unlike the SuperSlicer ports elsewhere in this file which are
+      confirmed AGPLv3-compatible) per the competitor-port antipattern. Revisit once the draft is
+      lifted and the acknowledged bug is fixed - not before.
 
   **Context:** `src/libslic3r/Arachne/WallToolPaths.cpp`
   **Route:** claude
