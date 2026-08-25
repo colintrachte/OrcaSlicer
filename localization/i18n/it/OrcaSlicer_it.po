@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -477,6 +477,18 @@ msgstr "Angolo di riempimento intelligente"
 msgid "Gap area"
 msgstr "Area spazio vuoto"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Tasto sinistro mouse"
 
@@ -509,6 +521,15 @@ msgstr "Riempi"
 
 msgid "Gap Fill"
 msgstr "Riempi spazio vuoto"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Verticale"
@@ -3751,10 +3772,6 @@ msgstr "Filtra selezionati"
 msgid "Filter nonSelected"
 msgstr "Filtra non selezionati"
 
-# AI Translated
-msgid "Simple settings"
-msgstr "Impostazioni semplici"
-
 msgid "Advanced settings"
 msgstr "Impostazioni avanzate"
 
@@ -4519,6 +4536,15 @@ msgstr "File"
 msgid "Calibration"
 msgstr "Calibrazione"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Impossibile scaricare il modulo. Controllare le impostazioni del firewall e della VPN e riprovare."
 
@@ -4876,6 +4902,15 @@ msgstr ""
 "Modificare automaticamente queste impostazioni?\n"
 "Sì - Abilita generatore di pareti Arachne\n"
 "No - Disabilita generatore di pareti Arachne e imposta la modalità [Spostamento] della Superficie ruvida"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5507,6 +5542,9 @@ msgstr "Transizione di supporto"
 msgid "Mixed"
 msgstr "Misto"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Altezza: "
 
@@ -6005,7 +6043,7 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Dimensione:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Sono stati trovati conflitti di percorsi nel G-code sullo strato %d, Z = %.2lfmm. Si prega di separare gli oggetti in conflitto (%s <-> %s)."
 
@@ -6337,6 +6375,12 @@ msgstr "Importa configurazioni"
 msgid "Load configs"
 msgstr "Carica configurazioni"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "Importa"
 
@@ -6639,6 +6683,12 @@ msgstr "Seleziona profilo da caricare:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "File di configurazione (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6652,14 +6702,80 @@ msgstr ""
 "\n"
 "Suggerimento: assicurati di aver aggiunto la stampante corrispondente prima di importare le configurazioni."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Risultato dell'importazione"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "File mancante"
 
 msgid "The project is no longer available."
 msgstr "Il progetto non è più disponibile."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Orca Cloud?\n"
@@ -7814,6 +7930,24 @@ msgstr "Visibilità impostazioni"
 msgid "Compare presets"
 msgstr "Confronta i profili"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Visualizza tutte le impostazioni dell'oggetto"
 
@@ -7948,6 +8082,18 @@ msgstr "Connessione"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizza le informazioni dell'ugello e il numero di AMS"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Clicca per modificare il profilo"
 
@@ -7973,8 +8119,23 @@ msgstr "Rimuovi ultimo filamento"
 msgid "Synchronize filament list from AMS"
 msgstr "Sincronizza l'elenco filamenti dall'AMS"
 
-msgid "Set filaments to use"
-msgstr "Imposta filamenti da usare"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Cerca piatto, oggetto e parte."
@@ -8044,6 +8205,28 @@ msgstr "Riduci barra laterale"
 # AI Translated
 msgid "Tab"
 msgstr "Tab"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9539,6 +9722,16 @@ msgstr "Le impostazioni di debug sono state salvate correttamente!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Ambiente cloud cambiato; effettua nuovamente l'accesso!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "System presets"
 msgstr "Profili di sistema"
 
@@ -9594,18 +9787,6 @@ msgstr "Profili non supportati"
 
 msgid "Unsupported"
 msgstr "Non supportato"
-
-msgid "Add/Remove filament"
-msgstr "Aggiungi/rimuovi filamento"
-
-msgid "Add/Remove materials"
-msgstr "Aggiungi/rimuovi materiali"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Seleziona/Rimuovi stampanti (profili di sistema)"
-
-msgid "Create printer"
-msgstr "Crea una stampante"
 
 msgid "Incompatible"
 msgstr "Non compatibile"
@@ -10386,8 +10567,14 @@ msgstr "Disconnessione non riuscita."
 msgid "Save current %s"
 msgstr "Salva le %s attuali"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Elimina questo profilo"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Cerca nel profilo"
@@ -10568,6 +10755,9 @@ msgstr "Ponti"
 
 msgid "Walls"
 msgstr "Pareti"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Gusci superiori/inferiori"
@@ -10941,6 +11131,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Modalità Retrazione del Firmware"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Il passaggio a una stampante con tipi o numeri di estrusori diversi scarterà o ripristinerà le modifiche ai parametri relativi all'estrusore o al multi-ugello."
 
@@ -10982,6 +11197,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Sei sicuro di voler %1% il preset selezionato?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "Seleziona stampanti"
@@ -11062,6 +11286,63 @@ msgstr "Fai clic per ripristinare il valore corrente e associarlo al valore glob
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Fai clic per eliminare le modifiche correnti e ripristinare il valore salvato."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr "Dipendenze profilo"
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "Impostazioni processo"
@@ -12256,6 +12537,12 @@ msgstr "convalida non riuscita"
 
 msgid "write callback failed"
 msgstr "ripristino della scrittura non riuscita"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15508,6 +15795,18 @@ msgid ""
 msgstr ""
 "Altezza minima dello strato sull'asse Z.\n"
 "Controlla anche il piano per l'elaborazione."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Questo G-code viene inserito a ogni nuovo strato dopo il sollevamento sull'asse Z."
@@ -19541,6 +19840,33 @@ msgstr ""
 "Rinomineremo i profili come \"Produttore Tipo Seriale @stampante selezionata\".\n"
 "Per aggiungere il profilo per più stampanti, vai alla selezione della stampante"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Crea stampante/ugello"
 
@@ -20067,17 +20393,14 @@ msgstr "Mostra/Nascondi le informazioni di sistema"
 msgid "Copy system information to clipboard"
 msgstr "Copia le informazioni di sistema negli appunti"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Abbiamo bisogno di informazioni per diagnosticare l'origine del problema. Consulta la pagina wiki per una guida dettagliata."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "Il pulsante Comprimi raccoglie il file di progetto e i log della sessione corrente in un file zip."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "Eventuali esempi visivi aggiuntivi come immagini o registrazioni dello schermo possono essere utili durante la segnalazione del problema."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -20119,6 +20442,15 @@ msgstr "Cartella delle configurazioni"
 msgid "Opens configurations folder."
 msgstr "Apre la cartella delle configurazioni."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "Livello di log"
@@ -20134,6 +20466,15 @@ msgstr "Comprime tutti i log memorizzati in un file zip."
 # AI Translated
 msgid "Profiles"
 msgstr "Profili"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -20186,6 +20527,33 @@ msgstr "Scegli dove salvare il file ZIP esportato"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "Il file esiste già. Sovrascrivere?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -21733,6 +22101,37 @@ msgstr ""
 "Evita le deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni come l'ABS, aumentare in modo appropriato la temperatura del piano riscaldato può ridurre la probabilità di deformazione?"
 
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "Impostazioni semplici"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Imposta filamenti da usare"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Aggiungi/rimuovi filamento"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Aggiungi/rimuovi materiali"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Seleziona/Rimuovi stampanti (profili di sistema)"
+
+#~ msgid "Create printer"
+#~ msgstr "Crea una stampante"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Abbiamo bisogno di informazioni per diagnosticare l'origine del problema. Consulta la pagina wiki per una guida dettagliata."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "Il pulsante Comprimi raccoglie il file di progetto e i log della sessione corrente in un file zip."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "Eventuali esempi visivi aggiuntivi come immagini o registrazioni dello schermo possono essere utili durante la segnalazione del problema."
+
 #~ msgid ""
 #~ "Layer height is too small.\n"
 #~ "It will set to min_layer_height\n"
@@ -23079,9 +23478,6 @@ msgstr ""
 
 #~ msgid "Ramming settings"
 #~ msgstr "Impostazioni modellazione del filamento"
-
-#~ msgid "Profile dependencies"
-#~ msgstr "Dipendenze profilo"
 
 #~ msgid "the Configuration package is incompatible with the current APP."
 #~ msgstr "il pacchetto di configurazione non è compatibile con l'applicazione corrente."

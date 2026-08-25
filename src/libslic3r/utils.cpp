@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include "Diagnostics.hpp"
 #include "I18N.hpp"
 
 #include <atomic>
@@ -56,6 +57,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/log/attributes/constant.hpp>
 #include <boost/log/sinks/async_frontend.hpp>
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
@@ -151,15 +153,14 @@ void set_logging_file(const std::string &file)
 
 unsigned int level_string_to_boost(std::string level)
 {
-    std::map<std::string, int> Control_Param;
-    Control_Param["fatal"] = 0;
-    Control_Param["error"] = 1;
-    Control_Param["warning"] = 2;
-    Control_Param["info"] = 3;
-    Control_Param["debug"] = 4;
-    Control_Param["trace"] = 5;
-
-    return Control_Param[level];
+    boost::algorithm::to_lower(level);
+    static const std::map<std::string, unsigned int> levels = {
+        {"fatal", 0}, {"error", 1}, {"warning", 2}, {"info", 3}, {"debug", 4}, {"trace", 5}
+    };
+    const auto found = levels.find(level);
+    // Unknown or corrupt preferences should keep useful error logging enabled, not silently
+    // select the fatal-only level through std::map::operator[].
+    return found == levels.end() ? 1 : found->second;
 }
 
 std::string get_string_logging_level(unsigned level)
@@ -400,8 +401,9 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 			expr::stream
 			<< "[" << expr::attr< logging::trivial::severity_level >("Severity") << "]\t"
 			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-			<< ":" << expr::smessage
+			<< " [Process " << expr::attr<attrs::current_process_id::value_type>("ProcessID") << "]"
+			<< " [Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
+			<< " [Session " << expr::attr<std::string>("SessionID") << "]: " << expr::smessage
 		),
 		keywords::auto_flush = true
 	);
@@ -418,13 +420,15 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 		expr::stream
 		<< "[" << expr::attr< logging::trivial::severity_level >("Severity") << "]\t"
 		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") << " "
-		<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-		<< ": " << expr::smessage
+		<< "[Process " << expr::attr<attrs::current_process_id::value_type>("ProcessID") << "]"
+		<< " [Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
+		<< " [Session " << expr::attr<std::string>("SessionID") << "]: " << expr::smessage
 	);
 	boost::log::core::get()->add_sink(g_console_log_sink);
 #endif
 
 	logging::add_common_attributes();
+	logging::core::get()->add_global_attribute("SessionID", attrs::constant<std::string>(diagnostic_session_id()));
 
 	set_logging_level(level);
 

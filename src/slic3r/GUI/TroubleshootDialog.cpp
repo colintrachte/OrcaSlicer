@@ -10,6 +10,7 @@
 #include "wx/clipbrd.h"
 
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/Diagnostics.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -225,9 +226,9 @@ TroubleshootDialog::TroubleshootDialog()
         return info;
     };
 
-    auto info_desc_1 = create_info_line(_L("We need information for diagnosing source of the issue. Check wiki page for detailed guide."));
-    auto info_desc_2 = create_info_line(_L("Pack button collects project file and logs of current session onto a zip file."));
-    auto info_desc_3 = create_info_line(_L("Any additional visual examples like images or screen recordings might be helpful while reporting the issue."));
+    auto info_desc_1 = create_info_line(_L("Use the session ID to match an on-screen error with its log entry."));
+    auto info_desc_2 = create_info_line(_L("Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."));
+    auto info_desc_3 = create_info_line(_L("Support bundles can contain personal data. Review the ZIP file before sharing it."));
     wxBoxSizer *info_desc_sizer = new wxBoxSizer(wxVERTICAL);
     info_desc_sizer->Add(info_desc_1, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
     info_desc_sizer->Add(info_desc_2, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
@@ -289,6 +290,17 @@ TroubleshootDialog::TroubleshootDialog()
     });
     cfg_folder_szr->Add(cfg_folder_btn, 0, wxALIGN_CENTER_VERTICAL);
 
+    auto session_szr = create_label(_L("Diagnostic session"), _L("Identifies all diagnostic messages from this application session."));
+    auto session_btn = create_btn(_L("Copy"), _L("Copy the diagnostic session ID to the clipboard."));
+    session_btn->SetToolTip(wxString::FromUTF8(diagnostic_session_id()));
+    session_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent&) {
+        wxClipboardLocker lock;
+        if (!lock)
+            return;
+        wxTheClipboard->SetData(new wxTextDataObject(wxString::FromUTF8(diagnostic_session_id())));
+    });
+    session_szr->Add(session_btn, 0, wxALIGN_CENTER_VERTICAL);
+
     auto log_level_szr = create_label(_L("Log level"), "");
     log_level_szr->Add(create_item_log_level_combo(), 0, wxALIGN_CENTER_VERTICAL);
 
@@ -344,7 +356,8 @@ TroubleshootDialog::TroubleshootDialog()
     right_sizer->Add(profiles_loaded                , 0, wxEXPAND | wxTOP, FromDIP(5));
     
     right_sizer->Add(create_title(_L("More"))       , 0, wxEXPAND | wxTOP, FromDIP(12));
-    right_sizer->Add(cfg_folder_szr                 , 0, wxEXPAND | wxTOP, FromDIP(8));
+    right_sizer->Add(session_szr                    , 0, wxEXPAND | wxTOP, FromDIP(8));
+    right_sizer->Add(cfg_folder_szr                 , 0, wxEXPAND | wxTOP, FromDIP(5));
     right_sizer->Add(log_level_szr                  , 0, wxEXPAND | wxTOP, FromDIP(5));
     right_sizer->Add(log_pack_szr                   , 0, wxEXPAND | wxTOP, FromDIP(5));
     right_sizer->Add(log_clear_szr                  , 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -907,7 +920,8 @@ void TroubleshootDialog::PackAll()
     //auto data_dir   = boost::filesystem::path(Slic3r::data_dir());
     //include_zip.emplace_back(wxString((data_dir / "log").string()));
 
-    // Collect logs for current session. does not includes debug_network_...
+    // Collect logs for the current session. Flush first so the bundle includes the latest event.
+    flush_logs();
     boost::filesystem::path current_log = get_log_file_name();
     if (!current_log.empty()){
         boost::filesystem::path base = current_log.parent_path() / current_log.stem(); // removes ".0"
@@ -919,6 +933,13 @@ void TroubleshootDialog::PackAll()
             include_zip.emplace_back(wxString(candidate.string()));
         }
     }
+
+    include_zip.emplace_back("TxtData:diagnostics.json|" + wxString::FromUTF8(diagnostics_report_json()));
+    include_zip.emplace_back("TxtData:system-info.txt|" + GetSysInfoAll());
+    include_zip.emplace_back("TxtData:README.txt|" +
+        _L("This support bundle contains diagnostic information from OrcaSlicer.") + "\n" +
+        _L("Review the project and log files for personal data before sharing this bundle.") + "\n" +
+        _L("Diagnostic session:") + " " + wxString::FromUTF8(diagnostic_session_id()));
 
     auto project_name = wxGetApp().plater()->get_project_filename(".3mf");
     if(!project_name.IsEmpty()){
@@ -1253,15 +1274,23 @@ bool TroubleshootDialog::ExportAsZip(const std::vector<wxString>& sources, const
         if (msg.ShowModal() != wxID_YES)
             return false;
     }
-    if (!SaveAsZip(sources, zipPath)) {
-        MessageDialog(this, _L("Export failed\nPlease check write permissions or file in use by another application"),
+    wxString failure_reason;
+    if (!SaveAsZip(sources, zipPath, &failure_reason)) {
+        const std::string diagnostic_id = record_diagnostic(
+            DiagnosticSeverity::error, "SUPPORT-BUNDLE-001", "troubleshoot", "Support bundle export failed",
+            failure_reason.ToStdString(), "Choose a writable folder, close applications using the destination file, and retry.",
+            {{"destination", zipPath.ToStdString()}});
+        MessageDialog(this, _L("Export failed.") + "\n" + failure_reason + "\n\n" +
+                _L("Diagnostic ID:") + " " + wxString::FromUTF8(diagnostic_id),
              wxString(SLIC3R_APP_FULL_NAME), wxICON_WARNING | wxOK
         ).ShowModal();
         return false;
-    } 
-    else {
-        MessageDialog(this, _L("Export successful"), wxString(SLIC3R_APP_FULL_NAME), wxICON_INFORMATION | wxOK).ShowModal();
     }
+
+    record_diagnostic(DiagnosticSeverity::info, "SUPPORT-BUNDLE-002", "troubleshoot", "Support bundle exported",
+                      {}, {}, {{"destination", zipPath.ToStdString()}, {"source_count", std::to_string(sources.size())}});
+    MessageDialog(this, _L("Export successful") + "\n" + _L("Saved to:") + "\n" + zipPath,
+                  wxString(SLIC3R_APP_FULL_NAME), wxICON_INFORMATION | wxOK).ShowModal();
     return true;
 }
 
@@ -1329,15 +1358,20 @@ bool TroubleshootDialog::AddToZip(wxZipOutputStream& zip, const wxString& fullPa
     return true;
 }
 
-bool TroubleshootDialog::SaveAsZip(const std::vector<wxString>& sourcePaths, const wxString& zipFullPath)
+bool TroubleshootDialog::SaveAsZip(const std::vector<wxString>& sourcePaths, const wxString& zipFullPath, wxString* error)
 {
+    auto fail = [error](const wxString& message) {
+        if (error)
+            *error = message;
+        return false;
+    };
     wxFileOutputStream out(zipFullPath);
     if (!out.IsOk())
-        return false;
+        return fail(_L("The destination file could not be opened. Check folder permissions and whether the file is already in use."));
     wxZipOutputStream zip(out);
     if (!zip.IsOk()) {
         out.Close();
-        return false;
+        return fail(_L("The ZIP archive could not be initialized."));
     }
     bool success = true;
     for (const auto& sourcePath : sourcePaths) {
@@ -1350,6 +1384,8 @@ bool TroubleshootDialog::SaveAsZip(const std::vector<wxString>& sourcePaths, con
             continue;
         }
         if (!wxDirExists(sourcePath) && !wxFileExists(sourcePath)) {
+            if (error)
+                *error = _L("A source file disappeared while the support bundle was being created:") + "\n" + sourcePath;
             success = false;
             break;
         }
@@ -1357,12 +1393,22 @@ bool TroubleshootDialog::SaveAsZip(const std::vector<wxString>& sourcePaths, con
         if (!wxEndsWithPathSeparator(rootDir))
             rootDir += wxFileName::GetPathSeparator();
         if (!AddToZip(zip, sourcePath, rootDir)) {
+            if (error)
+                *error = _L("A source file could not be read while the support bundle was being created:") + "\n" + sourcePath;
             success = false;
             break;
         }
     }
-    if (!zip.Close()) success = false;
-    if (!out.Close()) success = false;
+    if (!zip.Close()) {
+        if (error && error->IsEmpty())
+            *error = _L("The ZIP archive could not be finalized.");
+        success = false;
+    }
+    if (!out.Close()) {
+        if (error && error->IsEmpty())
+            *error = _L("The completed ZIP archive could not be written to disk.");
+        success = false;
+    }
     if (!success)
         wxRemoveFile(zipFullPath);
     return success;

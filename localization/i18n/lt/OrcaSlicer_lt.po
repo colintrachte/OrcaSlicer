@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -506,6 +506,18 @@ msgstr "Išmanaus užpildymo kampas"
 msgid "Gap area"
 msgstr "Plyšio vieta"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Kairysis pelės mygtukas"
 
@@ -538,6 +550,15 @@ msgstr "Užpildymas"
 
 msgid "Gap Fill"
 msgstr "Plyšių užpildymas"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Vertikaliai"
@@ -3732,9 +3753,6 @@ msgstr "Filtruoti pasirinktus"
 msgid "Filter nonSelected"
 msgstr "Filtruoti nepasirinktus"
 
-msgid "Simple settings"
-msgstr "Paprasti nustatymai"
-
 msgid "Advanced settings"
 msgstr "Sudėtingesni parametrai"
 
@@ -4504,6 +4522,16 @@ msgstr "Failas"
 msgid "Calibration"
 msgstr "Kalibravimas"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Nepavyko atsisiųsti papildinio. Patikrinkite savo užkardos nustatymus ir VPN programinę įrangą, ir bandykite dar kartą."
 
@@ -4863,6 +4891,15 @@ msgstr ""
 "Automatiškai pakeisti šiuos nustatymus?\n"
 "Taip – įjungti „Arachne“ sienelių generatorių\n"
 "Ne – išjungti „Arachne“ sienelių generatorių ir nustatyti „Šiurkštaus paviršius“ režimą [Slinktis]"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5494,6 +5531,9 @@ msgstr "Atramų perėjimas"
 msgid "Mixed"
 msgstr "Mišrus"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Aukštis: "
 
@@ -5993,7 +6033,7 @@ msgstr "Tūris:"
 msgid "Size:"
 msgstr "Dydis:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Rasta G-kodo trajektorijų konfliktų %d sluoksnyje, Z = %.2lfmm. Prašome labiau atskirti konfliktuojančius objektus (%s <-> %s)."
 
@@ -6323,6 +6363,12 @@ msgstr "Importuoti konfigūracijas"
 msgid "Load configs"
 msgstr "Įkelti konfigūracijas"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "Importuoti"
 
@@ -6621,6 +6667,12 @@ msgstr "Pasirinkite įkeliamą profilį:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "Konfigūracijos failai (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6635,14 +6687,80 @@ msgstr ""
 "\n"
 "Patarimas: prieš importuodami profilius įsitikinkite, kad pridėjote atitinkamą spausdintuvą."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Importavimo rezultatas"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "Trūksta failo"
 
 msgid "The project is no longer available."
 msgstr "Projektas nebepasiekiamas."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Orca Cloud?\n"
@@ -7798,6 +7916,24 @@ msgstr "Ciklo nustatymų matomumas"
 msgid "Compare presets"
 msgstr "Palyginti profilius"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Matyti visus objekto nustatymus"
 
@@ -7940,6 +8076,18 @@ msgstr "Ryšys"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sinchronizuoti purkštuko informaciją ir AMS skaičių"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Spustelėkite, norėdami redaguoti profilį"
 
@@ -7965,8 +8113,23 @@ msgstr "Pašalinti paskutinę giją"
 msgid "Synchronize filament list from AMS"
 msgstr "Sinchronizuoti gijų sąrašą iš AMS"
 
-msgid "Set filaments to use"
-msgstr "Nustatyti gijas naudojimui"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Plokštės, objekto ir dalies paieška."
@@ -8035,6 +8198,28 @@ msgstr "Sutraukti šoninę juostą"
 
 msgid "Tab"
 msgstr "Tab"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9481,6 +9666,17 @@ msgstr "Testavimo nuostatos sėkmingai išsaugotos!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Pakeista debesų aplinka, prašome prisijungti iš naujo!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 msgid "System presets"
 msgstr "Sistemos profiliai"
 
@@ -9535,18 +9731,6 @@ msgstr "Nepalaikomi profiliai"
 
 msgid "Unsupported"
 msgstr "Nepalaikoma"
-
-msgid "Add/Remove filament"
-msgstr "Pridėti / pašalinti gijas"
-
-msgid "Add/Remove materials"
-msgstr "Pridėti / pašalinti medžiagas"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Pasirinkti / pašalinti spausdintuvus (sistemos profiliai)"
-
-msgid "Create printer"
-msgstr "Sukurti spausdintuvą"
 
 msgid "Incompatible"
 msgstr "Nesuderinama"
@@ -10325,8 +10509,14 @@ msgstr "Nepavyko atsijungti."
 msgid "Save current %s"
 msgstr "Išsaugoti dabartinį %s"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Ištrinti šį profilį"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Ieškoti profilyje"
@@ -10506,6 +10696,9 @@ msgstr "Tiltai"
 
 msgid "Walls"
 msgstr "Sienos"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Viršutiniai/apatiniai paviršiai"
@@ -10877,6 +11070,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Programinės aparatinės įrangos įtraukimas"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Perjungus spausdintuvą su kitokio tipo ar skaičiaus ekstruderiais, bus atmesti arba nustatyti iš naujo ekstruderio arba su keliais purkštukais susiję parametrai."
 
@@ -10921,6 +11139,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Ar tikrai norite %1% pasirinkto išankstinio nustatymo?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "Pasirinkite spausdintuvus"
@@ -10997,6 +11224,63 @@ msgstr "Spustelėkite , jei norite iš naujo nustatyti dabartinę reikšmę ir p
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Spustelėkite, jei norite atsisakyti dabartinio pakeitimo ir atstatyti išsaugotą reikšmę."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "Apdorojimo nustatymai"
@@ -12177,6 +12461,12 @@ msgstr "patvirtinimas nepavyko"
 
 msgid "write callback failed"
 msgstr "nepavyko vykdyti įrašymo atgalinio iškvietimo (write callback)"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15374,6 +15664,18 @@ msgid ""
 msgstr ""
 "Minimalus Z-sluoksnio aukštis.\n"
 "Taip pat valdo pjaustymo plokštumą."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Šis G-kodas įterpiamas atliekant kiekvieną sluoksnio pakeitimą po Z-ašies pakėlimo."
@@ -19379,6 +19681,33 @@ msgstr ""
 "Profiliai bus pervadinti pagal šabloną „PrekėsŽenklas Tipas Serija @pasirinktas_spausdintuvas“.\n"
 "Norėdami pridėti profilį daugiau spausdintuvų, eikite į spausdintuvų pasirinkimą."
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Sukurti spausdintuvą / purkštuką"
 
@@ -19888,14 +20217,14 @@ msgstr "Rodyti/slėpti sistemos informaciją"
 msgid "Copy system information to clipboard"
 msgstr "Kopijuoti sistemos informaciją į iškarpinę"
 
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Mums reikia informacijos problemos šaltiniui diagnozuoti. Išsamų vadovą rasite „Wiki“ puslapyje."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "Mygtukas „Supakuoti“ (Pack) surenka projekto failą ir dabartinės sesijos žurnalus į ZIP failą."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "Papildomi vaizdiniai pavyzdžiai, tokie kaip nuotraukos ar ekrano įrašai, gali būti naudingi pranešant apie šią problemą."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 msgid "Report issue"
 msgstr "Pranešti apie problemą"
@@ -19927,6 +20256,15 @@ msgstr "Konfigūracijų aplankas"
 msgid "Opens configurations folder."
 msgstr "Atidaro konfigūracijų aplanką"
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 msgid "Log level"
 msgstr "Žurnalo lygis"
 
@@ -19938,6 +20276,15 @@ msgstr "Supakuoja visus saugomus žurnalus į ZIP failą."
 
 msgid "Profiles"
 msgstr "Profiliai"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 msgid "Select NO to close dialog and review project."
 msgstr "Pasirinkite „NE“, norėdami uždaryti dialogo langą ir peržiūrėti projektą."
@@ -19978,6 +20325,33 @@ msgstr "Pasirinkite, kur saugoti eksportuotą ZIP failą"
 
 msgid "File already exists. Overwrite?"
 msgstr "Failas jau egzistuoja, ar norite jį pakeisti?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 msgid "3DPrinterOS Cloud upload options"
 msgstr "„3DPrinterOS“ debesijos įkėlimo parinktys"
@@ -21435,6 +21809,33 @@ msgid ""
 msgstr ""
 "Venkite deformacijų (warping)\n"
 "Ar žinojote, kad spausdinant medžiagas, kurios yra linkusios trauktis ir riestis (pvz., ABS), tinkamas kaitinamojo pagrindo temperatūros padidinimas gali sumažinti deformacijų (warping) tikimybę?"
+
+#~ msgid "Simple settings"
+#~ msgstr "Paprasti nustatymai"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Nustatyti gijas naudojimui"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Pridėti / pašalinti gijas"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Pridėti / pašalinti medžiagas"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Pasirinkti / pašalinti spausdintuvus (sistemos profiliai)"
+
+#~ msgid "Create printer"
+#~ msgstr "Sukurti spausdintuvą"
+
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Mums reikia informacijos problemos šaltiniui diagnozuoti. Išsamų vadovą rasite „Wiki“ puslapyje."
+
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "Mygtukas „Supakuoti“ (Pack) surenka projekto failą ir dabartinės sesijos žurnalus į ZIP failą."
+
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "Papildomi vaizdiniai pavyzdžiai, tokie kaip nuotraukos ar ekrano įrašai, gali būti naudingi pranešant apie šią problemą."
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

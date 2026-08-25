@@ -83,6 +83,7 @@
 #include <openssl/evp.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Diagnostics.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -2838,6 +2839,11 @@ void GUI_App::init_app_config()
 #endif // _WIN32
     }
     set_logging_level(Slic3r::level_string_to_boost(app_config->get("log_severity_level")));
+    record_diagnostic(DiagnosticSeverity::info, "APP-START-001", "application", "OrcaSlicer session started",
+                      {}, {}, {{"version", SoftFever_VERSION},
+                               {"build", GIT_COMMIT_HASH},
+                               {"log_file", get_log_file_name().string()},
+                               {"log_level", app_config->get("log_severity_level")}});
 
 }
 

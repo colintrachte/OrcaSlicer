@@ -60,3 +60,10 @@ TEST_CASE("versioned data directory names are safe and version-specific", "[util
     REQUIRE(versioned_data_dir_name("") == "unknown");
     REQUIRE(versioned_data_dir_name("2.3.1") != versioned_data_dir_name("2.5.0-dev"));
 }
+
+TEST_CASE("log level parsing is case insensitive and fails safely", "[utils]") {
+    CHECK(level_string_to_boost("debug") == 4);
+    CHECK(level_string_to_boost("TRACE") == 5);
+    CHECK(level_string_to_boost("not-a-level") == 1);
+    CHECK(level_string_to_boost("") == 1);
+}

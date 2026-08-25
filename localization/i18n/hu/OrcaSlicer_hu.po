@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -474,6 +474,18 @@ msgstr "Okos kitöltési szög"
 msgid "Gap area"
 msgstr "Rés területe"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Bal egérgomb"
 
@@ -506,6 +518,15 @@ msgstr "Kitöltés"
 
 msgid "Gap Fill"
 msgstr "Hézagok kitöltése"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Függőleges"
@@ -3748,10 +3769,6 @@ msgstr "Kijelöltek szűrése"
 msgid "Filter nonSelected"
 msgstr "Nem kijelöltek szűrése"
 
-# AI Translated
-msgid "Simple settings"
-msgstr "Egyszerű beállítások"
-
 msgid "Advanced settings"
 msgstr "Előrehaladott beállítások"
 
@@ -4517,6 +4534,15 @@ msgstr "Fájl"
 msgid "Calibration"
 msgstr "Kalibrálás"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Nem sikerült letölteni a bővítményt. Kérlek, ellenőrizd a tűzfal beállításait és a VPN-szoftvert, majd próbáld újra."
 
@@ -4874,6 +4900,15 @@ msgstr ""
 "Automatikusan módosítsuk ezeket a beállításokat?\n"
 "Igen - Engedélyezd az Arachne falgenerátort\n"
 "Nem - Tiltsd le az Arachne falgenerátort, majd állítsd a barázdált felületet [Eltolás] módra"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5506,6 +5541,9 @@ msgstr "Támasz átmenet"
 msgid "Mixed"
 msgstr "Vegyes"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Magasság: "
 
@@ -6003,7 +6041,7 @@ msgstr "Térfogat:"
 msgid "Size:"
 msgstr "Méret:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "G-kód útvonalütközés található a(z) %d. rétegen, Z = %.2lfmm. Helyezd távolabb egymástól az ütköző objektumokat (%s <-> %s)."
 
@@ -6335,6 +6373,12 @@ msgstr "Konfigurációk importálása"
 msgid "Load configs"
 msgstr "Konfigurációk betöltése"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "Importálás"
 
@@ -6632,6 +6676,12 @@ msgstr "Válaszd ki a betölteni kívánt profilt:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "Konfigurációs fájlok (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6645,14 +6695,80 @@ msgstr ""
 "\n"
 "Tipp: ellenőrizd, hogy a megfelelő nyomtató hozzá van adva a konfigurációk importálása előtt."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Importálás eredménye"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "Hiányzik a fájl"
 
 msgid "The project is no longer available."
 msgstr "A projekt már nem elérhető."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Orca Cloud?\n"
@@ -7810,6 +7926,24 @@ msgstr "Ciklusbeállítások láthatósága"
 msgid "Compare presets"
 msgstr "Beállítások összehasonlítása"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Az összes objektum beállításainak megtekintése"
 
@@ -7944,6 +8078,18 @@ msgstr "Kapcsolat"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Fúvóka-információk és AMS darabszám szinkronizálása"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Kattints a beállítás szerkesztéséhez"
 
@@ -7969,8 +8115,23 @@ msgstr "Az utolsó filament eltávolítása"
 msgid "Synchronize filament list from AMS"
 msgstr "Filamentlista szinkronizálása az AMS-ből"
 
-msgid "Set filaments to use"
-msgstr "Használni kívánt filament beállítása"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
@@ -8040,6 +8201,28 @@ msgstr "&Az oldalsáv összecsukása"
 # AI Translated
 msgid "Tab"
 msgstr "Tab"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9518,6 +9701,16 @@ msgstr "DEBUG beállítások sikeresen elmentve!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Felhőkörnyezet megváltozott, kérlek, jelentkezz be újra!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "System presets"
 msgstr "Rendszer beállítások"
 
@@ -9573,18 +9766,6 @@ msgstr "Nem támogatott beállítások"
 
 msgid "Unsupported"
 msgstr "Nem támogatott"
-
-msgid "Add/Remove filament"
-msgstr "Filament hozzáadása/eltávolítása"
-
-msgid "Add/Remove materials"
-msgstr "Anyagok hozzáadása/eltávolítása"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Nyomtatók kiválasztása/eltávolítása (rendszerbeállítások)"
-
-msgid "Create printer"
-msgstr "Nyomtató létrehozása"
 
 msgid "Incompatible"
 msgstr "Nem kompatibilis"
@@ -10370,8 +10551,14 @@ msgstr "Sikertelen kijelentkezés."
 msgid "Save current %s"
 msgstr "Jelenlegi %s mentése"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Ezen beállítás törlése"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Keresés a beállításokban"
@@ -10552,6 +10739,9 @@ msgstr "Hídnyomtatás"
 
 msgid "Walls"
 msgstr "Falak"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Felső/alsó héjak"
@@ -10927,6 +11117,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Firmware-ben megadott visszahúzás"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Más extrudertípussal vagy eltérő extruderszámmal rendelkező nyomtatóra váltáskor az extruderhez vagy többfúvókás működéshez kapcsolódó paramétermódosítások elvesznek vagy visszaállnak."
 
@@ -10968,6 +11183,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Biztos, hogy %1% a kiválasztott beállítást?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "Nyomtatók kiválasztása"
@@ -11048,6 +11272,63 @@ msgstr "Kattints ide az érték visszaállításához és a globális érték ha
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Kattints a gombra az aktuális módosítás elvetéséhez és a mentett értékre való visszaállításhoz."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "Folyamatbeállítások"
@@ -12235,6 +12516,12 @@ msgstr "sikertelen érvényesítés"
 
 msgid "write callback failed"
 msgstr "írás callback sikertelen"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15487,6 +15774,18 @@ msgid ""
 msgstr ""
 "Minimális Z-réteg magasság.\n"
 "Vezérli a szeletelő síkot is."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Ez a G-kód minden rétegváltásnál beillesztésre kerül a Z tengely megemelése után."
@@ -19522,6 +19821,33 @@ msgstr ""
 "A beállításokat a következő formára nevezzük át: \"Gyártó Típus Sorozat @a kiválasztott nyomtató\".\n"
 "Ha több nyomtatóhoz szeretnél beállítást hozzáadni, menj a nyomtató kiválasztásához."
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Nyomtató/fúvóka létrehozása"
 
@@ -20049,17 +20375,14 @@ msgstr "Rendszerinformációk megjelenítése/elrejtése"
 msgid "Copy system information to clipboard"
 msgstr "Rendszerinformációk másolása a vágólapra"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Információra van szükségünk a probléma forrásának feltárásához. A részletes útmutatót a wiki oldalon találod."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "A Csomagolás gomb egy zip fájlba gyűjti a projektfájlt és az aktuális munkamenet naplóit."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "A hiba bejelentésekor bármilyen további vizuális példa, például kép vagy képernyőfelvétel, hasznos lehet."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -20101,6 +20424,15 @@ msgstr "Konfigurációs mappa"
 msgid "Opens configurations folder."
 msgstr "Megnyitja a konfigurációs mappát."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "Naplózási szint"
@@ -20116,6 +20448,15 @@ msgstr "Az összes tárolt naplót egy zip fájlba csomagolja."
 # AI Translated
 msgid "Profiles"
 msgstr "Profilok"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -20168,6 +20509,33 @@ msgstr "Válaszd ki, hova mentsük az exportált ZIP fájlt"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "A fájl már létezik. Felülírod?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -21708,6 +22076,37 @@ msgid ""
 msgstr ""
 "Kunkorodás elkerülése\n"
 "Tudtad, hogy a kunkorodásra hajlamos anyagok (például ABS) nyomtatásakor az asztal hőmérsékletének növelése csökkentheti a kunkorodás valószínűségét?"
+
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "Egyszerű beállítások"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Használni kívánt filament beállítása"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Filament hozzáadása/eltávolítása"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Anyagok hozzáadása/eltávolítása"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Nyomtatók kiválasztása/eltávolítása (rendszerbeállítások)"
+
+#~ msgid "Create printer"
+#~ msgstr "Nyomtató létrehozása"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Információra van szükségünk a probléma forrásának feltárásához. A részletes útmutatót a wiki oldalon találod."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "A Csomagolás gomb egy zip fájlba gyűjti a projektfájlt és az aktuális munkamenet naplóit."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "A hiba bejelentésekor bármilyen további vizuális példa, például kép vagy képernyőfelvétel, hasznos lehet."
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

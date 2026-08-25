@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -498,6 +498,18 @@ msgstr "Smart fyllningsvinkel"
 msgid "Gap area"
 msgstr "Gap område"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Vänster musknapp"
 
@@ -530,6 +542,15 @@ msgstr "Fyll"
 
 msgid "Gap Fill"
 msgstr "Gap Fyllning"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Vertikal"
@@ -4144,10 +4165,6 @@ msgid "Filter nonSelected"
 msgstr "Filtrera ej valda"
 
 # AI Translated
-msgid "Simple settings"
-msgstr "Enkla inställningar"
-
-# AI Translated
 msgid "Advanced settings"
 msgstr "Avancerade inställningar"
 
@@ -4975,6 +4992,15 @@ msgstr "Fil"
 msgid "Calibration"
 msgstr "Kalibrering"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Det gick inte att ladda ned plugin-programmet. Kontrollera dina brandväggsinställningar och vpn-programvara och försök igen."
 
@@ -5355,6 +5381,15 @@ msgstr ""
 "Vill du ändra dessa inställningar automatiskt?\n"
 "Ja – Aktivera Arachne-väggeneratorn\n"
 "Nej – Inaktivera Arachne-väggeneratorn och ställ in läget [Förskjutning] för ojämn yta"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -6085,6 +6120,9 @@ msgstr "Support övergång"
 msgid "Mixed"
 msgstr "Blandat"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Höjd: "
 
@@ -6628,7 +6666,7 @@ msgid "Size:"
 msgstr "Storlek:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Konflikter mellan G-code-banor hittades på lager %d, Z = %.2lfmm. Placera de objekt som krockar längre ifrån varandra (%s <-> %s)."
 
@@ -6984,6 +7022,12 @@ msgstr "Importera konfiguration"
 msgid "Load configs"
 msgstr "Ladda konfiguration"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "Importera"
 
@@ -7309,6 +7353,12 @@ msgstr "Välj den profil som ska laddas:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "Konfigurationsfiler (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -7323,14 +7373,80 @@ msgstr ""
 "\n"
 "Tips: Se till att du har lagt till motsvarande skrivare innan du importerar konfigurationerna."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Importera resultat"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "Filen saknas"
 
 msgid "The project is no longer available."
 msgstr "Detta projekt är inte tillgängligt."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -8596,6 +8712,24 @@ msgstr "Växla synlighet för inställningar"
 msgid "Compare presets"
 msgstr "Jämför inställningar"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Se alla objektens inställningar"
 
@@ -8758,6 +8892,18 @@ msgstr "Anslutning"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzelinformation och antalet AMS"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Tryck för att redigera inställningar"
 
@@ -8784,8 +8930,23 @@ msgstr "Ta bort senaste filamentet"
 msgid "Synchronize filament list from AMS"
 msgstr "Synkronisera filament listan från AMS"
 
-msgid "Set filaments to use"
-msgstr "Ställ in filament som ska användas"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
@@ -8865,6 +9026,28 @@ msgstr "Fäll ihop sidopanelen"
 # AI Translated
 msgid "Tab"
 msgstr "Tabb"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -10514,6 +10697,16 @@ msgstr "FELSÖKNINGS inställningarna har sparats!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Moln miljön har bytts ut; vänligen logga in igen!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "System presets"
 msgstr "Systemets förinställningar"
 
@@ -10576,18 +10769,6 @@ msgstr "Förinställningar som inte stöds"
 
 msgid "Unsupported"
 msgstr "Stöds inte"
-
-msgid "Add/Remove filament"
-msgstr "Lägg till/Ta bort filament"
-
-msgid "Add/Remove materials"
-msgstr "Lägg till/Ta bort material"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Välj/ta bort printer(systemet inställningar)"
-
-msgid "Create printer"
-msgstr "Skapa printer"
 
 msgid "Incompatible"
 msgstr "Inkompatibel"
@@ -11445,8 +11626,14 @@ msgstr "Utloggning misslyckades."
 msgid "Save current %s"
 msgstr "Spara nuvarande %s"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Radera denna förinställning"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Sök i inställning"
@@ -11662,6 +11849,9 @@ msgstr "Bridging"
 
 msgid "Walls"
 msgstr "Väggar"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Topp/botten skal"
@@ -12075,6 +12265,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Firmware Retraktion"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 # AI Translated
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Om du byter till en skrivare med andra extrudertyper eller ett annat antal extrudrar förkastas eller återställs ändringar av parametrar som rör extrudern eller flera nozzlar."
@@ -12119,6 +12334,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Är du säker på att du vill %1% den valda förinställningen?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 # AI Translated
 msgid "Select printers"
@@ -12208,6 +12432,63 @@ msgstr "Klicka för att återställa aktuellt värde och koppla till det övergr
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Klicka för att släppa aktuell modifiering och återställa till sparat värde."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "Processinställningar"
@@ -13520,6 +13801,12 @@ msgstr "validering misslyckad"
 
 msgid "write callback failed"
 msgstr "skriv återuppringning misslyckad"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -17205,6 +17492,18 @@ msgid ""
 msgstr ""
 "Minsta höjd för Z-lager.\n"
 "Styr även beredningsplanet."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Denna G-kod infogas vid varje lagerbyte efter lyft av Z axis"
@@ -21757,6 +22056,33 @@ msgstr ""
 "Vi byter namn på förinställningarna till \"Tillverkare Typ Serie @skrivare du valde\".\n"
 "Gå till skrivarvalet för att lägga till förinställningar för fler skrivare"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Skapa Printer/Nozzel"
 
@@ -22307,17 +22633,14 @@ msgstr "Visa/dölj systeminformation"
 msgid "Copy system information to clipboard"
 msgstr "Kopiera systeminformation till urklipp"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Vi behöver information för att diagnostisera orsaken till problemet. Se wiki-sidan för en detaljerad guide."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "Paketera-knappen samlar projektfilen och loggarna från den aktuella sessionen i en zip-fil."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "Ytterligare visuella exempel som bilder eller skärminspelningar kan vara till hjälp när du rapporterar problemet."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -22359,6 +22682,15 @@ msgstr "Konfigurationsmapp"
 msgid "Opens configurations folder."
 msgstr "Öppnar konfigurationsmappen."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "Loggnivå"
@@ -22374,6 +22706,15 @@ msgstr "Paketerar alla sparade loggar i en zip-fil."
 # AI Translated
 msgid "Profiles"
 msgstr "Profiler"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -22426,6 +22767,33 @@ msgstr "Välj var den exporterade ZIP-filen ska sparas"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "Filen finns redan. Vill du skriva över den?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -24170,6 +24538,37 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning?"
+
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "Enkla inställningar"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Ställ in filament som ska användas"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Lägg till/Ta bort filament"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Lägg till/Ta bort material"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Välj/ta bort printer(systemet inställningar)"
+
+#~ msgid "Create printer"
+#~ msgstr "Skapa printer"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Vi behöver information för att diagnostisera orsaken till problemet. Se wiki-sidan för en detaljerad guide."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "Paketera-knappen samlar projektfilen och loggarna från den aktuella sessionen i en zip-fil."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "Ytterligare visuella exempel som bilder eller skärminspelningar kan vara till hjälp när du rapporterar problemet."
 
 # AI Translated
 #~ msgid ""

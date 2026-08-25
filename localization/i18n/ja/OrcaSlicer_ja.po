@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -475,6 +475,18 @@ msgstr "自動充填角度"
 msgid "Gap area"
 msgstr "隙間領域"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "マウスの左ボタン"
 
@@ -507,6 +519,15 @@ msgstr "塗りつぶし"
 
 msgid "Gap Fill"
 msgstr "隙間充填"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "垂直"
@@ -3765,10 +3786,6 @@ msgstr "選択済みを絞り込み"
 msgid "Filter nonSelected"
 msgstr "未選択を絞り込み"
 
-# AI Translated
-msgid "Simple settings"
-msgstr "シンプル設定"
-
 msgid "Advanced settings"
 msgstr "詳細設定"
 
@@ -4525,6 +4542,14 @@ msgstr "ファイル"
 msgid "Calibration"
 msgstr "キャリブレーション"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "プラグインをダウンロードできませんでした。ファイアウォールやVPN設定をご確認ください。"
 
@@ -4889,6 +4914,15 @@ msgstr ""
 "これらの設定を自動的に変更しますか？\n"
 "はい - Arachneウォールジェネレーターを有効にする\n"
 "いいえ - Arachneウォールジェネレーターを無効にし、ファジースキンを[変位]モードに設定する"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5520,6 +5554,9 @@ msgstr "サポート変換層"
 msgid "Mixed"
 msgstr "混合"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "高度"
 
@@ -6020,7 +6057,7 @@ msgstr "ボリューム"
 msgid "Size:"
 msgstr "サイズ:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "レイヤー%d、Z = %.2lfmmでG-codeパスの衝突が検出されました。衝突するオブジェクトをもっと離してください（%s <-> %s）。"
 
@@ -6346,6 +6383,12 @@ msgstr "構成データ"
 msgid "Load configs"
 msgstr "構成を読み込む"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "インポート"
 
@@ -6649,6 +6692,12 @@ msgstr "プロファイルを選択"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "設定ファイル (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 # AI Translated
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
@@ -6662,14 +6711,80 @@ msgstr ""
 "\n"
 "ヒント: 設定をインポートする前に、対応するプリンターが追加されていることを確認してください。"
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "インポート結果"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "ﾌｧｲﾙが行方不明"
 
 msgid "The project is no longer available."
 msgstr "プロジェクトは使用できなくなりました。"
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -7822,6 +7937,24 @@ msgstr "設定の表示を切り替え"
 msgid "Compare presets"
 msgstr "プリセットを比較"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "全てのオブジェクトの設定"
 
@@ -7956,6 +8089,18 @@ msgstr "接続"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "ノズル情報とAMS数を同期"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "プリセットを編集"
 
@@ -7981,8 +8126,23 @@ msgstr "最後のフィラメントを削除"
 msgid "Synchronize filament list from AMS"
 msgstr "AMSと素材を同期"
 
-msgid "Set filaments to use"
-msgstr "フィラメントを選択"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "プレート、オブジェクト、パーツを検索。"
@@ -8052,6 +8212,28 @@ msgstr "サイドバーを折りたたむ"
 # AI Translated
 msgid "Tab"
 msgstr "Tab"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9560,6 +9742,15 @@ msgstr "デバッグ設定を保存しました！"
 msgid "Cloud environment switched; please login again!"
 msgstr "クラウド環境を切り替えました、再度サインインしてください。"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+
 msgid "System presets"
 msgstr "システム プリセット"
 
@@ -9616,18 +9807,6 @@ msgstr "サポートされていないプリセット"
 
 msgid "Unsupported"
 msgstr "サポートされていません"
-
-msgid "Add/Remove filament"
-msgstr "フィラメントを追加/削除"
-
-msgid "Add/Remove materials"
-msgstr "素材を追加/削除"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "プリンターの選択/削除（システムプリセット）"
-
-msgid "Create printer"
-msgstr "プリンターを作成"
 
 msgid "Incompatible"
 msgstr "互換性なし"
@@ -10409,8 +10588,14 @@ msgstr "サインアウトできませんでした"
 msgid "Save current %s"
 msgstr "現在の %s を保存"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "このプリセットを削除"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "検索"
@@ -10591,6 +10776,9 @@ msgstr "ブリッジング"
 
 msgid "Walls"
 msgstr "壁面"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "トップ面/底面"
@@ -10959,6 +11147,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "ファームウェアリトラクション"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "異なるエクストルーダータイプまたは数のプリンターに切り替えると、エクストルーダーまたはマルチノズル関連のパラメータの変更が破棄またはリセットされます。"
 
@@ -10999,6 +11212,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "選択したプリセットを %1% しますか?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "プリンターを選択"
@@ -11086,6 +11308,63 @@ msgstr "現在値をデフォルト値に戻します"
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "クリックして値をリセットします"
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr "プロファイルの依存関係"
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "プロセス設定"
@@ -12292,6 +12571,12 @@ msgstr "アカウントの認証に失敗しました"
 
 msgid "write callback failed"
 msgstr "書込みコールバック失敗"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15742,6 +16027,18 @@ msgid ""
 msgstr ""
 "Z層の最小高さです。\n"
 "スライス平面も制御します。"
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "積層が変わる直後に実行するG-codeです。"
@@ -20060,6 +20357,33 @@ msgstr ""
 "プリセットは「メーカー タイプ シリーズ @選択したプリンター」の形式に名前が変更されます。\n"
 "さらに多くのプリンター向けのプリセットを追加するには、プリンター選択に進んでください"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "プリンター/ノズルを作成"
 
@@ -20591,17 +20915,14 @@ msgstr "システム情報の表示/非表示"
 msgid "Copy system information to clipboard"
 msgstr "システム情報をクリップボードにコピー"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "問題の原因を特定するために情報が必要です。詳しい手順はWikiページをご覧ください。"
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "「パック」ボタンは、現在のセッションのプロジェクトファイルとログをzipファイルにまとめます。"
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "画像や画面録画などの視覚的な例があると、問題の報告に役立つ場合があります。"
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -20643,6 +20964,15 @@ msgstr "設定フォルダ"
 msgid "Opens configurations folder."
 msgstr "設定フォルダを開きます。"
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "ログレベル"
@@ -20658,6 +20988,15 @@ msgstr "保存されたすべてのログをzipファイルにまとめます。
 # AI Translated
 msgid "Profiles"
 msgstr "プロファイル"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -20710,6 +21049,33 @@ msgstr "エクスポートしたZIPファイルの保存先を選択してくだ
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "ファイルはすでに存在します。上書きしますか？"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -22296,6 +22662,37 @@ msgstr ""
 "反りを避ける\n"
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げることで、反りが発生する確率を下げることができることをご存知ですか？"
 
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "シンプル設定"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "フィラメントを選択"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "フィラメントを追加/削除"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "素材を追加/削除"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "プリンターの選択/削除（システムプリセット）"
+
+#~ msgid "Create printer"
+#~ msgstr "プリンターを作成"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "問題の原因を特定するために情報が必要です。詳しい手順はWikiページをご覧ください。"
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "「パック」ボタンは、現在のセッションのプロジェクトファイルとログをzipファイルにまとめます。"
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "画像や画面録画などの視覚的な例があると、問題の報告に役立つ場合があります。"
+
 #~ msgid ""
 #~ "Layer height is too small.\n"
 #~ "It will set to min_layer_height\n"
@@ -23188,9 +23585,6 @@ msgstr ""
 
 #~ msgid "Ramming settings"
 #~ msgstr "ラミング設定"
-
-#~ msgid "Profile dependencies"
-#~ msgstr "プロファイルの依存関係"
 
 #~ msgid "the Configuration package is incompatible with the current APP."
 #~ msgstr "構成パッケージは、このバージョンのOrca Slicerに適用できません"

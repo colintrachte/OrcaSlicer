@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: 2026-08-21 23:18+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -478,6 +478,18 @@ msgstr "Akıllı doldurma açısı"
 msgid "Gap area"
 msgstr "Boşluk alanı"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Sol fare tuşu"
 
@@ -510,6 +522,15 @@ msgstr "Doldur"
 
 msgid "Gap Fill"
 msgstr "Boşluk doldurma"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Dikey"
@@ -3772,10 +3793,6 @@ msgstr "Seçilenleri filtrele"
 msgid "Filter nonSelected"
 msgstr "Seçilmeyenleri filtrele"
 
-# AI Translated
-msgid "Simple settings"
-msgstr "Basit ayarlar"
-
 msgid "Advanced settings"
 msgstr "Gelişmiş ayarlar"
 
@@ -4557,6 +4574,15 @@ msgstr "Dosya"
 msgid "Calibration"
 msgstr "Kalibrasyon"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Eklenti indirilemedi. Lütfen güvenlik duvarı ayarlarınızı ve vpn yazılımınızı kontrol edin, kontrol edip yeniden deneyin."
 
@@ -4918,6 +4944,15 @@ msgstr ""
 "Bu ayarlar otomatik olarak değiştirilsin mi?\n"
 "Evet - Arachne Duvarı Oluşturucusunu Etkinleştir\n"
 "Hayır - Arachne Duvarı Oluşturucusunu Devre Dışı Bırak ve Pütürlü Yüzey [Yer Değiştirme] modunu ayarla"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5550,6 +5585,9 @@ msgstr "Destek geçişi"
 msgid "Mixed"
 msgstr "Karışık"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Yükseklik: "
 
@@ -6051,7 +6089,7 @@ msgstr "Hacim:"
 msgid "Size:"
 msgstr "Boyut:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "%d katmanında G-code yollarında çakışmalar bulundu, Z = %.2lfmm. Lütfen çakışan nesneleri daha uzağa ayırın (%s <-> %s)."
 
@@ -6382,6 +6420,12 @@ msgstr "Yapılandırmaları İçe Aktar"
 msgid "Load configs"
 msgstr "Yapılandırmaları yükle"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "İçe aktar"
 
@@ -6682,6 +6726,12 @@ msgstr "Yüklenecek profili seç:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "Yapılandırma dosyaları (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6695,14 +6745,80 @@ msgstr ""
 "\n"
 "İpucu: Yapılandırmaları içe aktarmadan önce ilgili yazıcıyı eklediğinizden emin olun."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Sonucu içe aktar"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "Dosya eksik"
 
 msgid "The project is no longer available."
 msgstr "Proje artık mevcut değil."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -7860,6 +7976,24 @@ msgstr "Ayar görünürlüğünü sırayla değiştir"
 msgid "Compare presets"
 msgstr "Ön ayarları karşılaştır"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Nesnenin tüm ayarları"
 
@@ -7994,6 +8128,18 @@ msgstr "Bağlantı"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Püskürtme ucu bilgilerini ve AMS sayısını senkronize edin"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Ön ayarı düzenlemek için tıklayın"
 
@@ -8019,8 +8165,23 @@ msgstr "Son filamenti kaldır"
 msgid "Synchronize filament list from AMS"
 msgstr "Filament listesini AMS'den senkronize edin"
 
-msgid "Set filaments to use"
-msgstr "Kullanılacak filamentleri ayarla"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Arama plakası, nesne ve parça."
@@ -8090,6 +8251,28 @@ msgstr "Kenar çubuğunu daralt"
 # AI Translated
 msgid "Tab"
 msgstr "Sekme"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9596,6 +9779,16 @@ msgstr "DEBUG ayarları başarıyla kaydedildi!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Bulut ortamı değiştirildi, lütfen tekrar giriş yapın!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "System presets"
 msgstr "Sistem ön ayarları"
 
@@ -9652,18 +9845,6 @@ msgstr "Desteklenmeyen ön ayarlar"
 
 msgid "Unsupported"
 msgstr "Desteklenmiyor"
-
-msgid "Add/Remove filament"
-msgstr "Filament Ekle/Kaldır"
-
-msgid "Add/Remove materials"
-msgstr "Materyal Ekle/Kaldır"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Yazıcıları Seç/Kaldır (sistem ön ayarları)"
-
-msgid "Create printer"
-msgstr "Yazıcı oluştur"
 
 msgid "Incompatible"
 msgstr "Uyumsuz"
@@ -10451,8 +10632,14 @@ msgstr "Oturum kapatılamadı."
 msgid "Save current %s"
 msgstr "Mevcut %s kaydet"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Bu ön ayarı sil"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Ön ayarda ara"
@@ -10636,6 +10823,9 @@ msgstr "Köprüleme"
 
 msgid "Walls"
 msgstr "Duvarlar"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Alt / Üst Katmanlar"
@@ -11018,6 +11208,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Yazılımsal Geri Çekme"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Farklı ekstruder türlerine veya numaralarına sahip bir yazıcıya geçiş yapmak, ekstruder veya çoklu nozulla ilgili parametrelerde yapılan değişiklikleri iptal edecek veya sıfırlayacaktır."
 
@@ -11059,6 +11274,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Seçilen ön ayarı %1% yaptığınızdan emin misiniz?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "Yazıcıları seçin"
@@ -11146,6 +11370,63 @@ msgstr "Geçerli değeri sıfırlamak ve genel değere eklemek için tıklayın.
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Geçerli değişikliği bırakmak ve kaydedilen değere sıfırlamak için tıklayın."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "İşlem Ayarları"
@@ -12351,6 +12632,12 @@ msgstr "doğrulama başarısız"
 
 msgid "write callback failed"
 msgstr "geri arama yazma başarısız oldu"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15645,6 +15932,18 @@ msgid ""
 msgstr ""
 "Minimum Z katman yüksekliği.\n"
 "Ayrıca dilimleme düzlemini de denetler."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Bu G-code kısmı, z kaldırma işleminden sonra her katman değişikliğinde eklenir."
@@ -19734,6 +20033,33 @@ msgstr ""
 "Ön ayarları şu şekilde yeniden adlandırırdık: \"Satıcı Türü Seçtiğiniz Seri @printer\".\n"
 "Daha fazla yazıcıya yönelik ön ayar eklemek için lütfen yazıcı seçimine gidin"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Yazıcı/Nozul Oluştur"
 
@@ -20255,17 +20581,14 @@ msgstr "Sistem bilgilerini göster/gizle"
 msgid "Copy system information to clipboard"
 msgstr "Sistem bilgilerini panoya kopyala"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Sorunun kaynağını teşhis etmek için bilgiye ihtiyacımız var. Ayrıntılı kılavuz için wiki sayfasına bakın."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "Paketle düğmesi, geçerli oturumun proje dosyasını ve günlüklerini bir zip dosyasında toplar."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "Sorunu bildirirken görüntü veya ekran kaydı gibi ek görsel örnekler yardımcı olabilir."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -20307,6 +20630,15 @@ msgstr "Yapılandırmalar klasörü"
 msgid "Opens configurations folder."
 msgstr "Yapılandırmalar klasörünü açar."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "Günlük düzeyi"
@@ -20322,6 +20654,15 @@ msgstr "Saklanan tüm günlükleri bir zip dosyasında paketler."
 # AI Translated
 msgid "Profiles"
 msgstr "Profiller"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -20372,6 +20713,33 @@ msgstr "Dışa aktarılan ZIP dosyasının nereye kaydedileceğini seçin"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "Dosya zaten var. Üzerine yazılsın mı?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -21829,7 +22197,8 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster by using the Adaptive Layer Height option? Check it out!"
@@ -21902,7 +22271,8 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When do you need to print with the printer door opened]
+#: resources/data/hints.ini: [hint:When do you need to print with the printer
+#: door opened]
 msgid ""
 "When do you need to print with the printer door opened?\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature? There is more info about this in the Wiki."
@@ -21917,6 +22287,37 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz?"
+
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "Basit ayarlar"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Kullanılacak filamentleri ayarla"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Filament Ekle/Kaldır"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Materyal Ekle/Kaldır"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Yazıcıları Seç/Kaldır (sistem ön ayarları)"
+
+#~ msgid "Create printer"
+#~ msgstr "Yazıcı oluştur"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Sorunun kaynağını teşhis etmek için bilgiye ihtiyacımız var. Ayrıntılı kılavuz için wiki sayfasına bakın."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "Paketle düğmesi, geçerli oturumun proje dosyasını ve günlüklerini bir zip dosyasında toplar."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "Sorunu bildirirken görüntü veya ekran kaydı gibi ek görsel örnekler yardımcı olabilir."
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

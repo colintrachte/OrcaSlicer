@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl\n"
 "Language-Team: \n"
@@ -483,6 +483,18 @@ msgstr "Úhel chytrého vyplnění"
 msgid "Gap area"
 msgstr "Oblast mezery"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Levé tlačítko myši"
 
@@ -515,6 +527,15 @@ msgstr "Výplň"
 
 msgid "Gap Fill"
 msgstr "Vyplnění mezery"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Vertikální"
@@ -3788,10 +3809,6 @@ msgid "Filter nonSelected"
 msgstr "Filtrovat nevybrané"
 
 # AI Translated
-msgid "Simple settings"
-msgstr "Jednoduchá nastavení"
-
-# AI Translated
 msgid "Advanced settings"
 msgstr "Pokročilá nastavení"
 
@@ -4558,6 +4575,16 @@ msgstr "Soubor"
 msgid "Calibration"
 msgstr "Kalibrace"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 # AI Translated
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Nepodařilo se stáhnout plug-in. Zkontrolujte prosím nastavení firewallu a software VPN a zkuste to znovu."
@@ -4922,6 +4949,15 @@ msgstr ""
 "Změnit tato nastavení automaticky?\n"
 "Ano – povolit Arachne Wall Generator\n"
 "Ne – zakázat Arachne Wall Generator a nastavit režim [Displacement] pro Fuzzy Skin"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5559,6 +5595,9 @@ msgstr "Přechod podpory"
 msgid "Mixed"
 msgstr "Smíšené"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Výška: "
 
@@ -6061,7 +6100,7 @@ msgstr "Objem:"
 msgid "Size:"
 msgstr "Velikost:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Byly nalezeny konflikty drah G-kódu ve vrstvě %d, Z = %.2lf mm. Oddělte prosím konfliktní objekty více od sebe (%s <-> %s)."
 
@@ -6392,6 +6431,12 @@ msgstr "Importovat konfigurace"
 msgid "Load configs"
 msgstr "Načíst konfigurace"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 # AI Translated
 msgid "Import"
 msgstr "Import"
@@ -6698,6 +6743,12 @@ msgstr "Vyberte profil k načtení:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "Konfigurační soubory (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6712,14 +6763,80 @@ msgstr ""
 "\n"
 "Tip: Před importem konfigurací se ujistěte, že jste přidali odpovídající tiskárnu."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Výsledek importu"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "soubor chybí."
 
 msgid "The project is no longer available."
 msgstr "Projekt již není dostupný."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Orca Cloud?\n"
@@ -7883,6 +8000,24 @@ msgstr "Přepínat viditelnost nastavení"
 msgid "Compare presets"
 msgstr "Porovnat předvolby"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Zobrazit nastavení všech objektů"
 
@@ -8021,6 +8156,18 @@ msgstr "Připojení"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizovat informace o trysce a počet AMS"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Klikněte pro úpravu předvolby"
 
@@ -8047,8 +8194,23 @@ msgstr "Odstranit poslední filament"
 msgid "Synchronize filament list from AMS"
 msgstr "Synchronizovat seznam filamentů z AMS"
 
-msgid "Set filaments to use"
-msgstr "Nastavit používané filamenty"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Hledat desku, objekt a díl."
@@ -8118,6 +8280,28 @@ msgstr "Sbalit postranní panel"
 # AI Translated
 msgid "Tab"
 msgstr "Tab"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9613,6 +9797,17 @@ msgstr "DEBUG nastavení byla úspěšně uložena!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Prostředí cloudu bylo změněno, přihlaste se prosím znovu!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 msgid "System presets"
 msgstr "Systémové předvolby"
 
@@ -9668,18 +9863,6 @@ msgstr "Nepodporované předvolby"
 
 msgid "Unsupported"
 msgstr "Nepodporováno"
-
-msgid "Add/Remove filament"
-msgstr "Přidat/Odebrat filamenty"
-
-msgid "Add/Remove materials"
-msgstr "Přidat/Odebrat materiály"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Vybrat/Odebrat tiskárny (systémové předvolby)"
-
-msgid "Create printer"
-msgstr "Vytvořit tiskárnu"
 
 msgid "Incompatible"
 msgstr "Nekompatibilní"
@@ -10463,8 +10646,14 @@ msgstr "Odhlášení se nezdařilo."
 msgid "Save current %s"
 msgstr "Uložit aktuální %s"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Smazat tuto předvolbu"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Hledat v předvolbě"
@@ -10645,6 +10834,9 @@ msgstr "Mostování"
 
 msgid "Walls"
 msgstr "Stěny"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Horní/dolní skořepiny"
@@ -11026,6 +11218,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Firmwarová retrakce"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Přepnutí na tiskárnu s jiným typem nebo počtem extruderů zahodí nebo obnoví změny parametrů souvisejících s extruderem nebo více tryskami."
 
@@ -11071,6 +11288,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Opravdu chcete %1% vybranou předvolbu?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "Vyberte tiskárny"
@@ -11151,6 +11377,63 @@ msgstr "Klikněte pro obnovení aktuální hodnoty a navázání na globální h
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Kliknutím zrušíte aktuální úpravu a obnovíte uloženou hodnotu."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "Nastavení procesu"
@@ -12399,6 +12682,12 @@ msgstr "ověření selhalo"
 
 msgid "write callback failed"
 msgstr "zápis callbacku selhal"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15667,6 +15956,18 @@ msgid ""
 msgstr ""
 "Minimální výška vrstvy Z.\n"
 "Zároveň určuje rovinu slicování."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Tento G-code je vložen při každé změně vrstvy po zdvihu v ose Z."
@@ -19721,6 +20022,33 @@ msgstr ""
 "Předvolby přejmenujeme na „Výrobce Typ Sériové číslo @tiskárna, kterou jste vybrali“.\n"
 "Pro přidání předvolby pro další tiskárny přejděte do výběru tiskárny."
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Vytvořit tiskárnu/trysku"
 
@@ -20245,17 +20573,14 @@ msgstr "Zobrazit/skrýt systémové informace"
 msgid "Copy system information to clipboard"
 msgstr "Zkopírovat systémové informace do schránky"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Pro diagnostiku zdroje problému potřebujeme informace. Podrobný návod najdete na stránce wiki."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "Tlačítko Zabalit shromáždí soubor projektu a protokoly aktuální relace do souboru zip."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "Při hlášení problému mohou pomoci i další vizuální příklady, jako jsou obrázky nebo nahrávky obrazovky."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -20297,6 +20622,15 @@ msgstr "Složka konfigurací"
 msgid "Opens configurations folder."
 msgstr "Otevře složku konfigurací."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "Úroveň protokolování"
@@ -20312,6 +20646,15 @@ msgstr "Zabalí všechny uložené protokoly do souboru zip."
 # AI Translated
 msgid "Profiles"
 msgstr "Profily"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -20364,6 +20707,33 @@ msgstr "Vyberte, kam uložit exportovaný soubor ZIP"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "Soubor již existuje. Přepsat?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -21974,6 +22344,37 @@ msgid ""
 msgstr ""
 "Zamezte kroucení\n"
 "Víte, že při tisku materiálů náchylných ke kroucení, jako je ABS, může vhodné zvýšení teploty vyhřívané desky snížit pravděpodobnost kroucení?"
+
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "Jednoduchá nastavení"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Nastavit používané filamenty"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Přidat/Odebrat filamenty"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Přidat/Odebrat materiály"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Vybrat/Odebrat tiskárny (systémové předvolby)"
+
+#~ msgid "Create printer"
+#~ msgstr "Vytvořit tiskárnu"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Pro diagnostiku zdroje problému potřebujeme informace. Podrobný návod najdete na stránce wiki."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "Tlačítko Zabalit shromáždí soubor projektu a protokoly aktuální relace do souboru zip."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "Při hlášení problému mohou pomoci i další vizuální příklady, jako jsou obrázky nebo nahrávky obrazovky."
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

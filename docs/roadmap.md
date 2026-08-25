@@ -137,18 +137,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 
 ## 2. High — broken functionality, major bugs
 
-- [ ] **Score 5 🥇 · Class 3 — Wipe tower extruder override not respected in multimaterial (#10971)**
-      — Setting a specific extruder for wipe tower walls has no effect; dissimilar materials
-      are placed directly on each other, causing layer adhesion failure. PrusaSlicer handles
-      this correctly (regression relative to upstream behavior this fork also relies on).
-      Touches the wipe tower — a Known Risky Subsystem (multi-tool sequencing).
-
-  **Implement:** `src/libslic3r/Print.cpp` · `src/libslic3r/GCode/WipeTower.cpp` · `src/libslic3r/GCode/WipeTower2.cpp`
-  **Context:** `src/libslic3r/GCode/ToolOrdering.cpp`
-  **Route:** claude
-  **Context Load:** 2698
-  **Chars:** ~674,482 text total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2 — Previously working filaments now show as "incompatible" after profile changes (#12314)**
       — Compatibility filtering regression; valid filament/printer combos incorrectly
       rejected. 48 comments. Settings/profile logic, not G-code emission.
@@ -234,9 +222,9 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   #13075 (Critical §1, printer profiles silently losing custom G-code/Motion Ability settings
   — a persistence-layer instance of this same opacity), #12314 immediately above (compatibility
   filtering regression — a direct symptom of this item's `is_visible`/compatibility root cause),
-  #14217 (§6 PR queue, preset-loading performance — may share root cause investigation with
-  slow tab-switching #997), #13573 (§6 PR queue, sibling filament presets hidden when a generic
-  is installed — an `is_visible` bug of the same family as #12193 above).
+  #14217 (`shipped.md`, preset-loading performance — may share root cause investigation with
+  slow tab-switching #997), #13573 (`shipped.md`, printer-specific library profiles no longer
+  disappear behind a generic sibling — an `is_visible` bug of the same family as #12193 above).
 
   **Comparison to PrusaSlicer / SuperSlicer (owner asked whether either solved this):** no
   evidence found of either project having actually solved it — same lineage, same diff-based
@@ -315,16 +303,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Chars:** ~151,019 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~151,019) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   pinned down, confirm at diff-read time)
 
-- [ ] **Score 3 🥈 · Class 2 — Window focus randomly steals between instances, can abort an active print (#9874)**
-      — Verified real consequence: a reporter's active 15-hour print was stopped because focus
-      silently stole to another instance mid-click. In-thread investigation traces the trigger
-      to `show_status()`/`MONITOR_DISCONNECTED` calling `Raise()`. No workaround.
-
-  **Context:** `src/slic3r/GUI/Widgets/SideTools.cpp`
-  **Route:** gemini
-  **Context Load:** 21
-  **Chars:** ~21,104 text total (largest: src/slic3r/GUI/Widgets/SideTools.cpp ~21,104) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Start G-code uses non-blocking M104 instead of M109, print starts before hotend at temp (#4337)**
       — Confirmed on Voxelab/Anycubic and other non-Bambu printers: generated start G-code
       doesn't wait for target hotend temp before extruding. A manual M109 workaround exists in
@@ -334,16 +312,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Route:** claude
   **Context Load:** 453
   **Chars:** ~452,515 text total (largest: src/libslic3r/GCode.cpp ~452,515) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 3 🥈 · Class 2 — Cannot connect to Elegoo Centauri Carbon 2 (#13550)**
-      — Real Elegoo Link protocol handshake failure, not Bambu-exclusive — fits the
-      print-host-support hardware scope. Open PR **#13212** already addresses this — read that
-      diff first per the Cherry-pick tier.
-
-  **Context:** `src/slic3r/Utils/ElegooLink.cpp` · `src/slic3r/Utils/ElegooLink.hpp`
-  **Route:** gemini
-  **Context Load:** 131
-  **Chars:** ~65,321 text total (largest: src/slic3r/Utils/ElegooLink.cpp ~61,151) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Color-change sections force fan to 100%, ignoring filament profile min/max (#3677)**
       — Confirmed by a second reporter: filament-profile fan-speed bounds are ignored
@@ -601,17 +569,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context Load:** 262
   **Chars:** ~262,262 text total (largest: src/libslic3r/Print.cpp ~262,262) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Tool changer: multiple nozzle sizes in a single print (#11424)**
-      — Directly relevant to future toolchanging hardware (Prusa INDX) this fork plans to add.
-      Distinct from the already-tracked #14145 (a nozzle-size _selector UI_ for non-BBL
-      printers) — this is the underlying multi-tool slicing capability itself. Touches
-      multi-tool sequencing (Known Risky Subsystem).
-
-  **Context:** `src/libslic3r/GCode/ToolOrdering.cpp` · `src/libslic3r/PrintConfig.cpp`
-  **Route:** claude
-  **Context Load:** 1309
-  **Chars:** ~654,477 text total (largest: src/libslic3r/PrintConfig.cpp ~567,844) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2/3 — Spoolman integration (#2955)** — owner-approved 2026-07-05,
       medium-low priority. Connect to a Spoolman instance to look up filament IDs, track spool
       weights, and update remaining filament after a print: new `spoolman_url` setting, HTTP
@@ -784,44 +741,6 @@ baseline without waiting for broad schema adoption.
   **Route:** claude
   **Context Load:** 15486
   **Chars:** ~2,212,292 text total (largest: src/libslic3r/PrintConfig.cpp ~567,844) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 5 🥇 · Class 2 — Export the normalized active configuration registry**
-      — Add a headless validator/debug output that deterministically records stable setting IDs,
-      types, defaults, bounds, enum encodings, CLI exposure, GUI metadata, and deprecation data.
-      This active-registry snapshot becomes the oracle for shadow-generated differential tests
-      and should also explain unknown or invalid profile keys.
-
-  **Implement:** `src/dev-utils/OrcaSlicer_profile_validator.cpp` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp`
-  **Context:** `research/configuration-contract.md` · `src/CMakeLists.txt`
-  **Write:** `tests/data/config_registry/`
-  **Route:** claude
-  **Context Load:** 4124
-  **Chars:** ~687,407 text total (largest: src/libslic3r/PrintConfig.cpp ~567,844) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 5 🥇 · Class 2 — Add focused configuration and preset compatibility fixtures**
-      — Cover representative setting types, defaults, enum serialization, feature-disabled
-      behavior, a system→user inheritance chain, unknown keys, and compatibility explanations.
-      Prefer normalized comparisons against the active implementation and real artifacts over
-      manually duplicating all 877 expected values.
-
-  **Implement:** `tests/libslic3r/test_config.cpp` · `tests/libslic3r/CMakeLists.txt`
-  **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/Preset.cpp` · `research/configuration-contract.md`
-  **Write:** `tests/data/config/` · `tests/data/presets/`
-  **Route:** claude
-  **Context Load:** 5606
-  **Chars:** ~800,800 text total (largest: src/libslic3r/PrintConfig.cpp ~567,844) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 5 🥇 · Class 2 — Add versioned 3MF migration and round-trip fixtures**
-      — Build a small legacy corpus covering detection on open, in-memory migration, explicit
-      save to the current format, and unchanged source files during reads. Record approved deltas
-      and require recoverable backup or atomic replacement for destructive migrations.
-
-  **Implement:** `tests/libslic3r/test_3mf.cpp` · `tests/libslic3r/CMakeLists.txt`
-  **Context:** `src/libslic3r/Format/3mf.cpp` · `src/libslic3r/Format/bbs_3mf.cpp`
-  **Write:** `tests/data/test_3mf/compatibility/`
-  **Route:** claude
-  **Context Load:** 3100
-  **Chars:** ~619,984 text total (largest: src/libslic3r/Format/bbs_3mf.cpp ~454,405) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Record architecture performance, build-time, and binary-size baselines**
       — On one documented stable configuration, record clean and representative incremental
@@ -1108,22 +1027,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 434
   **Chars:** ~434,202 text total (largest: src/slic3r/GUI/Tab.cpp ~434,202) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 1 🥉 · Class 3 — Top/bottom fill order control (Outward/Inward) (#14179)** —
-      changes fill order, which ends up in emitted G-code path order.
-
-  **Context:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
-  **Route:** claude
-  **Context Load:** 384
-  **Chars:** ~192,221 text total (largest: src/libslic3r/Fill/FillBase.cpp ~139,550) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 3 🥈 · Class 3 — Retract amount after wipe (#11015)** — touches retraction/wipe
-      transitions (Known Risky Subsystem, E-value accounting).
-
-  **Context:** `src/libslic3r/Extruder.cpp` · `src/libslic3r/GCodeWriter.cpp`
-  **Route:** claude
-  **Context Load:** 119
-  **Chars:** ~59,506 text total (largest: src/libslic3r/GCodeWriter.cpp ~52,959) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 1 🥉 · Class 3 — Add 'brim layers' setting (#13824)** — new brim-layer capability;
       affects extruded brim G-code, so Class 3 despite being a config addition.
 
@@ -1158,25 +1061,6 @@ diff-read time, not assumed from the title here.
   **Route:** kimi
   **Context Load:** 1846
   **Chars:** ~922,823 text total (largest: src/slic3r/GUI/Plater.cpp ~843,361) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 5 🥇 · Class 3 — "Ported Wipe Tower Features Fix" (#12742)** — touches
-      `WipeTower`/`WipeTower2` (multi-tool sequencing, Known Risky Subsystem), same area as the
-      already-tracked #10971. The PR's own description admits it bundles four distinct fixes
-      (skip points, pre-extrusion length, spiral-tower ironing, internal ribs) —
-      **decompose before taking any part**, per the bundle antipattern.
-
-  **Context:** `src/libslic3r/GCode/WipeTower.cpp` · `src/libslic3r/GCode/WipeTower2.cpp`
-  **Route:** claude
-  **Context Load:** 651
-  **Chars:** ~325,587 text total (largest: src/libslic3r/GCode/WipeTower.cpp ~203,606) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 5 🥇 · Class 3 — Floating final purge line fix (#14416)** — real correctness fix
-      (purge line ends up detached/floating) in the G-code exporter. Clean, small diff.
-
-  **Context:** `src/libslic3r/GCode.cpp` · `src/libslic3r/Print.cpp`
-  **Route:** claude
-  **Context Load:** 1430
-  **Chars:** ~714,777 text total (largest: src/libslic3r/GCode.cpp ~452,515) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — Z-pinning for inter-layer mechanical interlocking (#12771)**
       — Substantial engineered feature (cites an ORNL paper and ASTM validation data), touches
@@ -1255,14 +1139,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 151
   **Chars:** ~151,019 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~151,019) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 2 — Fix OrcaFilamentLibrary siblings hidden when generic installed (#13573)**
-      — small, high-confidence bug fix, excellent impact/effort ratio.
-
-  **Context:** `src/libslic3r/Preset.cpp`
-  **Route:** kimi
-  **Context Load:** 211
-  **Chars:** ~211,268 text total (largest: src/libslic3r/Preset.cpp ~211,268) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Add a slicing tolerance option (#9801)** — touches core
       mesh-slicing math; real, widely-wanted precision control.
 
@@ -1288,14 +1164,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 721
   **Chars:** ~360,305 text total (largest: src/libslic3r/PrintObject.cpp ~273,338) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Anisotropic surfaces + Separated Infills, remake (#11682)**
-      — re-submission of an infill-strength feature; touches Fill/ core.
-
-  **Context:** `src/libslic3r/Fill/Fill.cpp` · `src/libslic3r/Fill/FillBase.cpp`
-  **Route:** claude
-  **Context Load:** 458
-  **Chars:** ~229,034 text total (largest: src/libslic3r/Fill/FillBase.cpp ~139,550) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Port PrusaSlicer's "consistent-surface cooling logic" (#12151)**
       — PrusaSlicer is AGPLv3 (license-compatible per the competitor-port check); real
       fan-speed/cooling-quality improvement.
@@ -1320,15 +1188,6 @@ diff-read time, not assumed from the title here.
   **Route:** claude
   **Context Load:** 12
   **Chars:** ~12,162 text total (largest: src/libslic3r/Fill/Fill3DHoneycomb.cpp ~12,162) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
-- [ ] **Score 3 🥈 · Class 3 — Cyclic ordering toolpath strategy (#13578)** — new travel/ordering
-      strategy with actual unit test coverage (`test_ordering_strategies.cpp`); touches G-code
-      exporter ordering.
-
-  **Context:** `src/libslic3r/GCode/OrderingStrategies.cpp` · `src/libslic3r/GCode.cpp`
-  **Route:** claude
-  **Context Load:** 905
-  **Chars:** ~452,515 text total (largest: src/libslic3r/GCode.cpp ~452,515) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — No fuzzy skin on bridges (#13891)** — single-file, clean
       correctness fix; fuzzy skin is currently misapplied to bridge surfaces.
@@ -1417,16 +1276,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 1959
   **Chars:** ~979,428 text total (largest: src/slic3r/GUI/Plater.cpp ~843,361) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 2 — Cache system presets to eliminate startup/wizard load time (#14217)**
-      — real, self-contained performance win (cold start reported ~10-30s → milliseconds);
-      preset-loading logic only, no G-code path. Relevant to the already-tracked #997
-      (UI slow to respond) investigation — may share a root cause worth checking together.
-
-  **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
-  **Route:** kimi
-  **Context Load:** 1056
-  **Chars:** ~528,020 text total (largest: src/libslic3r/PresetBundle.cpp ~316,752) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2 — Fix bottom shell thickness + spiral vase interaction (#11496)**
       — tiny (1-line) real bug fix, excellent impact/effort ratio.
 
@@ -1505,9 +1354,11 @@ diff-read time, not assumed from the title here.
     both ask to port code from "preFlight" slicer; that project's license hasn't been
     checked and both issues are low-effort-specified ("copy and paste the code idk") — not
     actionable as-is regardless of license status.
-  - **WIP / dependency-antipattern PRs skipped**: #13437 (title says WIP) and #14530 ("Python
-    Plugins" — vendors a full pybind11/embedded-CPython dependency and is framed by its own
-    author as an RFC, not a mergeable change).
+  - **WIP / dependency-antipattern PRs skipped**: #13437 remains skipped because its title says
+    WIP. #14530 ("Python Plugins") is no longer a candidate: upstream merged it and the current
+    branch now contains `2717c37f63`. The earlier dependency-cost objection remains useful
+    architecture context, but any follow-up should be a concrete regression or maintenance item
+    rather than a request to merge that already-shipped PR.
 
 ## 5. Code-review findings — 2026-08-23, uncommitted Phase 6 working tree
 

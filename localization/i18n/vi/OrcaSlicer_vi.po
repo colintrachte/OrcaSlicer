@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -524,6 +524,18 @@ msgstr "Góc tô thông minh"
 msgid "Gap area"
 msgstr "Vùng khe"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "Chuột trái"
 
@@ -556,6 +568,15 @@ msgstr "Tô"
 
 msgid "Gap Fill"
 msgstr "Lấp khe"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Dọc"
@@ -3918,10 +3939,6 @@ msgid "Filter nonSelected"
 msgstr "Lọc mục chưa chọn"
 
 # AI Translated
-msgid "Simple settings"
-msgstr "Cài đặt đơn giản"
-
-# AI Translated
 msgid "Advanced settings"
 msgstr "Cài đặt nâng cao"
 
@@ -4747,6 +4764,14 @@ msgstr "File"
 msgid "Calibration"
 msgstr "Hiệu chỉnh"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "Tải plug-in thất bại. Vui lòng kiểm tra cài đặt firewall và phần mềm vpn , kiểm tra và thử lại."
 
@@ -5111,6 +5136,15 @@ msgstr ""
 "Thay đổi các cài đặt này tự động?\n"
 "Yes - Bật trình tạo wall Arachne\n"
 "No  - Tắt trình tạo wall Arachne và đặt chế độ [Displacement] của Fuzzy Skin"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5811,6 +5845,9 @@ msgstr "Chuyển tiếp support"
 msgid "Mixed"
 msgstr "Hỗn hợp"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "Chiều cao: "
 
@@ -6349,7 +6386,7 @@ msgstr "Thể tích:"
 msgid "Size:"
 msgstr "Kích thước:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Đã tìm thấy xung đột đường đi G-code tại lớp %d, Z = %.2lfmm. Vui lòng tách các vật thể xung đột ra xa hơn (%s <-> %s)."
 
@@ -6699,6 +6736,12 @@ msgstr "Nhập cấu hình"
 msgid "Load configs"
 msgstr "Tải cấu hình"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "Nhập"
 
@@ -7007,6 +7050,12 @@ msgstr "Chọn hồ sơ để tải:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "File cấu hình (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -7019,14 +7068,80 @@ msgstr ""
 "\n"
 "Gợi ý: Đảm bảo bạn đã thêm máy in tương ứng trước khi nhập các cấu hình."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "Kết quả nhập"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "File bị thiếu"
 
 msgid "The project is no longer available."
 msgstr "Dự án không còn khả dụng."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -8249,6 +8364,24 @@ msgstr "Chuyển vòng mức hiển thị cài đặt"
 msgid "Compare presets"
 msgstr "So sánh preset"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "Xem tất cả cài đặt của đối tượng"
 
@@ -8401,6 +8534,18 @@ msgstr "Kết nối"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Đồng bộ thông tin đầu phun và số lượng AMS"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Nhấp để chỉnh sửa preset"
 
@@ -8427,8 +8572,23 @@ msgstr "Xóa filament cuối cùng"
 msgid "Synchronize filament list from AMS"
 msgstr "Đồng bộ danh sách filament từ AMS"
 
-msgid "Set filaments to use"
-msgstr "Đặt filament để sử dụng"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Tìm kiếm bản, đối tượng và phần."
@@ -8503,6 +8663,28 @@ msgstr "Thu gọn thanh bên"
 # AI Translated
 msgid "Tab"
 msgstr "Tab"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -10105,6 +10287,15 @@ msgstr "Cài đặt GỠ LỖI đã được lưu thành công!"
 msgid "Cloud environment switched; please login again!"
 msgstr "Đã chuyển môi trường đám mây, vui lòng đăng nhập lại!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+
 msgid "System presets"
 msgstr "Preset hệ thống"
 
@@ -10167,18 +10358,6 @@ msgstr "Cài đặt sẵn không được hỗ trợ"
 # AI Translated
 msgid "Unsupported"
 msgstr "Không được hỗ trợ"
-
-msgid "Add/Remove filament"
-msgstr "Thêm/Xóa filament"
-
-msgid "Add/Remove materials"
-msgstr "Thêm/Xóa vật liệu"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "Chọn/Xóa máy in (preset hệ thống)"
-
-msgid "Create printer"
-msgstr "Tạo máy in"
 
 msgid "Incompatible"
 msgstr "Không tương thích"
@@ -11015,8 +11194,14 @@ msgstr "Đăng xuất thất bại."
 msgid "Save current %s"
 msgstr "Lưu %s hiện tại"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "Xóa preset này"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "Tìm kiếm trong preset"
@@ -11203,6 +11388,9 @@ msgstr "Bắc cầu"
 
 msgid "Walls"
 msgstr "Thành"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "Vỏ trên/dưới"
@@ -11582,6 +11770,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "Rút firmware"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 # AI Translated
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "Chuyển sang máy in có loại hoặc số lượng extruder khác sẽ loại bỏ hoặc đặt lại các thay đổi đối với tham số liên quan đến extruder hoặc nhiều đầu phun."
@@ -11623,6 +11836,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Bạn có chắc chắn %1% preset đã chọn?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "Chọn máy in"
@@ -11710,6 +11932,63 @@ msgstr "Nhấp để đặt lại giá trị hiện tại và đính kèm với 
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "Nhấp để bỏ thay đổi hiện tại và đặt lại về giá trị đã lưu."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "Cài đặt quy trình"
@@ -12984,6 +13263,12 @@ msgstr "xác thực thất bại"
 
 msgid "write callback failed"
 msgstr "gọi lại ghi thất bại"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -16358,6 +16643,18 @@ msgid ""
 msgstr ""
 "Chiều cao tối thiểu của lớp Z.\n"
 "Cũng kiểm soát mặt phẳng cắt lớp."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "G-code này được chèn vào mỗi lần thay đổi lớp sau khi nâng Z."
@@ -20519,6 +20816,33 @@ msgstr ""
 "Chúng tôi sẽ đổi tên cài đặt sẵn thành \"Nhà cung cấp Loại Serial @máy in bạn đã chọn\".\n"
 "Để thêm cài đặt sẵn cho nhiều máy in hơn, vui lòng đến chọn máy in"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "Tạo máy in/đầu phun"
 
@@ -21052,17 +21376,14 @@ msgstr "Hiện/Ẩn thông tin hệ thống"
 msgid "Copy system information to clipboard"
 msgstr "Sao chép thông tin hệ thống vào bộ nhớ tạm"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "Chúng tôi cần thông tin để chẩn đoán nguồn gốc vấn đề. Hãy xem trang wiki để có hướng dẫn chi tiết."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "Nút Đóng gói thu thập file dự án và nhật ký của phiên hiện tại vào một file zip."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "Mọi ví dụ trực quan bổ sung như hình ảnh hoặc bản ghi màn hình đều có thể hữu ích khi báo cáo vấn đề."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -21104,6 +21425,15 @@ msgstr "Thư mục cấu hình"
 msgid "Opens configurations folder."
 msgstr "Mở thư mục cấu hình."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "Mức nhật ký"
@@ -21119,6 +21449,15 @@ msgstr "Đóng gói toàn bộ nhật ký đã lưu vào một file zip."
 # AI Translated
 msgid "Profiles"
 msgstr "Hồ sơ"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -21171,6 +21510,33 @@ msgstr "Chọn nơi lưu file ZIP được xuất"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "File đã tồn tại. Ghi đè?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -22803,6 +23169,37 @@ msgid ""
 msgstr ""
 "Tránh cong vênh\n"
 "Bạn có biết rằng khi in vật liệu dễ cong vênh như ABS, tăng nhiệt độ bàn nóng một cách thích hợp có thể giảm xác suất cong vênh không?"
+
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "Cài đặt đơn giản"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "Đặt filament để sử dụng"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "Thêm/Xóa filament"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Thêm/Xóa vật liệu"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "Chọn/Xóa máy in (preset hệ thống)"
+
+#~ msgid "Create printer"
+#~ msgstr "Tạo máy in"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "Chúng tôi cần thông tin để chẩn đoán nguồn gốc vấn đề. Hãy xem trang wiki để có hướng dẫn chi tiết."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "Nút Đóng gói thu thập file dự án và nhật ký của phiên hiện tại vào một file zip."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "Mọi ví dụ trực quan bổ sung như hình ảnh hoặc bản ghi màn hình đều có thể hữu ích khi báo cáo vấn đề."
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

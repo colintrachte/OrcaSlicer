@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -504,6 +504,18 @@ msgstr "มุมการเติมแบบอัจฉริยะ"
 msgid "Gap area"
 msgstr "พื้นที่ช่องว่าง"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "ปุ่มเมาส์ซ้าย"
 
@@ -536,6 +548,15 @@ msgstr "เติม"
 
 msgid "Gap Fill"
 msgstr "เติมช่องว่าง"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "แนวตั้ง"
@@ -3726,9 +3747,6 @@ msgstr "กรองรายการที่เลือก"
 msgid "Filter nonSelected"
 msgstr "กรองรายการที่ไม่ได้เลือก"
 
-msgid "Simple settings"
-msgstr "การตั้งค่าแบบง่าย"
-
 msgid "Advanced settings"
 msgstr "การตั้งค่าขั้นสูง"
 
@@ -4498,6 +4516,14 @@ msgstr "ไฟล์"
 msgid "Calibration"
 msgstr "การปรับเทียบ"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "ดาวน์โหลดปลั๊กอินไม่สำเร็จ โปรดตรวจสอบการตั้งค่าไฟร์วอลล์และซอฟต์แวร์ VPN แล้วลองอีกครั้ง"
 
@@ -4856,6 +4882,15 @@ msgstr ""
 "เปลี่ยนการตั้งค่าเหล่านี้โดยอัตโนมัติหรือไม่\n"
 "ใช่ - เปิดใช้งาน Arachne Wall Generator\n"
 "ไม่ - ปิดการใช้งาน Arachne Wall Generator และตั้งค่าโหมด [Displacement] ของ Fuzzy Skin"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5487,6 +5522,9 @@ msgstr "ช่วงเปลี่ยนส่วนรองรับ"
 msgid "Mixed"
 msgstr "ผสม"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "ความสูง: "
 
@@ -5984,7 +6022,7 @@ msgstr "ปริมาณ:"
 msgid "Size:"
 msgstr "ขนาด:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "พบความขัดแย้งของเส้นทางรหัส G ที่เลเยอร์ %d, Z = %.2lfmm โปรดแยกวัตถุที่ขัดแย้งกันให้ไกลออกไป (%s <-> %s)"
 
@@ -6314,6 +6352,12 @@ msgstr "นำเข้าการกำหนดค่า"
 msgid "Load configs"
 msgstr "โหลดการกำหนดค่า"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "นำเข้า"
 
@@ -6610,6 +6654,12 @@ msgstr "เลือกโปรไฟล์ที่จะโหลด:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "ไฟล์การกำหนดค่า (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6622,14 +6672,80 @@ msgstr ""
 "\n"
 "คำแนะนำ: ตรวจสอบให้แน่ใจว่าคุณได้เพิ่มเครื่องพิมพ์ที่เกี่ยวข้องก่อนที่จะนำเข้าการกำหนดค่า"
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "นำเข้าผลลัพธ์"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "ไฟล์หายไป"
 
 msgid "The project is no longer available."
 msgstr "โครงการนี้ไม่สามารถใช้ได้อีกต่อไป"
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Orca Cloud?\n"
@@ -7770,6 +7886,24 @@ msgstr "การมองเห็นการตั้งค่าวงจร
 msgid "Compare presets"
 msgstr "เปรียบเทียบค่าที่ตั้งล่วงหน้า"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "ดูการตั้งค่าของวัตถุทั้งหมด"
 
@@ -7904,6 +8038,18 @@ msgstr "การเชื่อมต่อ"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "ประสานข้อมูลหัวฉีดและจำนวน AMS"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "คลิกเพื่อแก้ไขค่าที่ตั้งล่วงหน้า"
 
@@ -7929,8 +8075,23 @@ msgstr "ลบเส้นพลาสติกสุดท้าย"
 msgid "Synchronize filament list from AMS"
 msgstr "ประสานรายการเส้นพลาสติกจาก AMS"
 
-msgid "Set filaments to use"
-msgstr "ตั้งค่าเส้นพลาสติกที่จะใช้"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "ค้นหาจาน วัตถุ และชิ้นส่วน"
@@ -7999,6 +8160,28 @@ msgstr "ยุบแถบด้านข้าง"
 
 msgid "Tab"
 msgstr "แท็บ"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9453,6 +9636,15 @@ msgstr "บันทึกการตั้งค่า DEBUG สำเร็�
 msgid "Cloud environment switched; please login again!"
 msgstr "สภาพแวดล้อมคลาวด์ถูกเปลี่ยน กรุณาเข้าสู่ระบบอีกครั้ง!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+
 msgid "System presets"
 msgstr "พรีเซ็ตระบบ"
 
@@ -9508,18 +9700,6 @@ msgstr "ค่าที่ตั้งล่วงหน้าที่ไม่
 
 msgid "Unsupported"
 msgstr "ไม่รองรับ"
-
-msgid "Add/Remove filament"
-msgstr "เพิ่ม/ลบเส้นพลาสติก"
-
-msgid "Add/Remove materials"
-msgstr "เพิ่ม/ลบวัสดุ"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "เลือก/ลบเครื่องพิมพ์ (ค่าที่ตั้งล่วงหน้าของระบบ)"
-
-msgid "Create printer"
-msgstr "สร้างเครื่องพิมพ์"
 
 msgid "Incompatible"
 msgstr "เข้ากันไม่ได้"
@@ -10298,8 +10478,14 @@ msgstr "ล้มเหลวในการออกจากระบบ"
 msgid "Save current %s"
 msgstr "บันทึก %s ปัจจุบัน"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "ลบค่าที่ตั้งล่วงหน้านี้"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "ค้นหาในที่ตั้งไว้ล่วงหน้า"
@@ -10481,6 +10667,9 @@ msgstr "การพิมพ์สะพาน"
 
 msgid "Walls"
 msgstr "ผนัง"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "เปลือกบน/ล่าง"
@@ -10848,6 +11037,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "การดึงกลับด้วยเฟิร์มแวร์ (Firmware Retraction)"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "การเปลี่ยนไปใช้เครื่องพิมพ์ที่มีประเภทหรือหมายเลขชุดดันเส้นที่แตกต่างกันจะยกเลิกหรือรีเซ็ตการเปลี่ยนแปลงในชุดดันเส้นหรือพารามิเตอร์ที่เกี่ยวข้องกับหัวฉีดหลายตัว"
 
@@ -10887,6 +11101,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการ %1% ค่าที่ตั้งไว้ล่วงหน้าที่เลือก?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "เลือกเครื่องพิมพ์"
@@ -10966,6 +11189,63 @@ msgstr "คลิกเพื่อรีเซ็ตค่าปัจจุบ
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "คลิกเพื่อลบการแก้ไขปัจจุบันและรีเซ็ตเป็นค่าที่บันทึกไว้"
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "การตั้งค่ากระบวนการ"
@@ -12146,6 +12426,12 @@ msgstr "การตรวจสอบล้มเหลว"
 
 msgid "write callback failed"
 msgstr "การเขียนการโทรกลับล้มเหลว"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15355,6 +15641,18 @@ msgid ""
 msgstr ""
 "ความสูงขั้นต่ำของชั้น Z\n"
 "ควบคุมระนาบการแบ่งส่วนด้วย"
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "G-code นี้จะถูกแทรกทุกครั้งที่เปลี่ยนเลเยอร์หลังจากการยก Z"
@@ -19368,6 +19666,33 @@ msgstr ""
 "เราจะเปลี่ยนชื่อค่าที่ตั้งล่วงหน้าเป็น \"Vendor Type Serial @printer ที่คุณเลือก\"\n"
 "หากต้องการเพิ่มพรีเซ็ตสำหรับเครื่องพิมพ์เพิ่มเติม โปรดไปที่การเลือกเครื่องพิมพ์"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "สร้างเครื่องพิมพ์/หัวฉีด"
 
@@ -19880,17 +20205,14 @@ msgstr "แสดง/ซ่อนข้อมูลระบบ"
 msgid "Copy system information to clipboard"
 msgstr "คัดลอกข้อมูลระบบไปยังคลิปบอร์ด"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "เราต้องการข้อมูลเพื่อวินิจฉัยแหล่งที่มาของปัญหา ตรวจสอบหน้า wiki สำหรับคำแนะนำโดยละเอียด"
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "ปุ่ม Pack จะรวบรวมไฟล์โปรเจกต์และบันทึกของเซสชันปัจจุบันลงในไฟล์ zip"
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "ตัวอย่างภาพเพิ่มเติม เช่น รูปภาพหรือการบันทึกหน้าจอ อาจเป็นประโยชน์ในการรายงานปัญหา"
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -19932,6 +20254,15 @@ msgstr "โฟลเดอร์การกำหนดค่า"
 msgid "Opens configurations folder."
 msgstr "เปิดโฟลเดอร์การกำหนดค่า"
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "ระดับบันทึก"
@@ -19947,6 +20278,15 @@ msgstr "รวมบันทึกที่จัดเก็บทั้งห
 # AI Translated
 msgid "Profiles"
 msgstr "โปรไฟล์"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -19999,6 +20339,33 @@ msgstr "เลือกตำแหน่งที่จะบันทึกไ
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "ไฟล์มีอยู่แล้ว เขียนทับหรือไม่?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 msgid "3DPrinterOS Cloud upload options"
 msgstr "ตัวเลือกอัปโหลดคลาวด์ 3DPrinterOS"
@@ -21462,6 +21829,36 @@ msgid ""
 msgstr ""
 "หลีกเลี่ยงการบิดเบี้ยว\n"
 "คุณรู้หรือไม่ว่าเมื่อพิมพ์วัสดุที่มีแนวโน้มที่จะเกิดการบิดเบี้ยว เช่น ABS การเพิ่มอุณหภูมิฐานพิมพ์อย่างเหมาะสมสามารถลดความน่าจะเป็นของการบิดเบี้ยวได้"
+
+#~ msgid "Simple settings"
+#~ msgstr "การตั้งค่าแบบง่าย"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "ตั้งค่าเส้นพลาสติกที่จะใช้"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "เพิ่ม/ลบเส้นพลาสติก"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "เพิ่ม/ลบวัสดุ"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "เลือก/ลบเครื่องพิมพ์ (ค่าที่ตั้งล่วงหน้าของระบบ)"
+
+#~ msgid "Create printer"
+#~ msgstr "สร้างเครื่องพิมพ์"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "เราต้องการข้อมูลเพื่อวินิจฉัยแหล่งที่มาของปัญหา ตรวจสอบหน้า wiki สำหรับคำแนะนำโดยละเอียด"
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "ปุ่ม Pack จะรวบรวมไฟล์โปรเจกต์และบันทึกของเซสชันปัจจุบันลงในไฟล์ zip"
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "ตัวอย่างภาพเพิ่มเติม เช่น รูปภาพหรือการบันทึกหน้าจอ อาจเป็นประโยชน์ในการรายงานปัญหา"
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

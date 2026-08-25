@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scope": "Windows x64 Release OrcaSlicer_app_gui; direct metrics require a single-worker GUI_App.hpp /showIncludes capture",
+  "headers": [
+    {
+      "header": "src/slic3r/gui/gui_app.hpp",
+      "max_transitive_consumers": 240,
+      "max_direct_includers": 175,
+      "max_direct_source_consumers": 160,
+      "baseline_measured_invalidation_minutes": 50.304
+    }
+  ]
+}

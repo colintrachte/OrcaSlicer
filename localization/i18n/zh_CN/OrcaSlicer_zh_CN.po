@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -432,6 +432,18 @@ msgstr "智能填充角度"
 msgid "Gap area"
 msgstr "间隙面积"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "鼠标左键"
 
@@ -464,6 +476,15 @@ msgstr "填充"
 
 msgid "Gap Fill"
 msgstr "缝隙填充"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "垂直"
@@ -3602,9 +3623,6 @@ msgstr "筛选已选项"
 msgid "Filter nonSelected"
 msgstr "筛选未选项"
 
-msgid "Simple settings"
-msgstr "简单设置"
-
 msgid "Advanced settings"
 msgstr "高级设置"
 
@@ -4352,6 +4370,14 @@ msgstr "文件"
 msgid "Calibration"
 msgstr "校准"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "插件下载失败。请检查您的防火墙设置和vpn软件,检查后重试。"
 
@@ -4712,6 +4738,15 @@ msgstr ""
 "是否自动更改这些设置？\n"
 "是 - 启用Arachne墙生成器\n"
 "否  - 禁用Arachne墙生成器并将绒毛表面设置为[位移]模式"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5343,6 +5378,9 @@ msgstr "支撑转换层"
 msgid "Mixed"
 msgstr "混合"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "层高: "
 
@@ -5839,7 +5877,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "发现G-code路径在层%d，高度为%.2lf mm处有冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
@@ -6169,6 +6207,12 @@ msgstr "导入预设"
 msgid "Load configs"
 msgstr "加载配置"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "导入"
 
@@ -6465,6 +6509,12 @@ msgstr "选择要加载的配置："
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "配置文件 (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6477,14 +6527,80 @@ msgstr ""
 "\n"
 "注意：请确保您在导入配置前，已经添加了相应的打印机。"
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "导入结果"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "文件丢失"
 
 msgid "The project is no longer available."
 msgstr "此项目不可用。"
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Orca Cloud?\n"
@@ -7601,6 +7717,24 @@ msgstr "循环切换设置可见性"
 msgid "Compare presets"
 msgstr "比较预设"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "查看所有对象的配置"
 
@@ -7735,6 +7869,18 @@ msgstr "连接"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和 AMS 数量"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
@@ -7760,8 +7906,23 @@ msgstr "删除最后一个材料"
 msgid "Synchronize filament list from AMS"
 msgstr "从AMS同步材料列表"
 
-msgid "Set filaments to use"
-msgstr "配置可选择的材料"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
@@ -7830,6 +7991,28 @@ msgstr "折叠边栏"
 
 msgid "Tab"
 msgstr "标签"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9275,6 +9458,15 @@ msgstr "DEBUG模式生效!"
 msgid "Cloud environment switched; please login again!"
 msgstr "切换云环境，请重新登录!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+
 msgid "System presets"
 msgstr "系统配置"
 
@@ -9329,18 +9521,6 @@ msgstr "不支持的预设"
 
 msgid "Unsupported"
 msgstr "不支持"
-
-msgid "Add/Remove filament"
-msgstr "添加/删除材料"
-
-msgid "Add/Remove materials"
-msgstr "添加/删除材料"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "选择/移除打印机（系统预设）"
-
-msgid "Create printer"
-msgstr "创建打印机"
 
 msgid "Incompatible"
 msgstr "不兼容的预设"
@@ -10087,8 +10267,14 @@ msgstr "登出失败。"
 msgid "Save current %s"
 msgstr "保存当前 %s"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "删除此预设"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "在预设中搜索"
@@ -10269,6 +10455,9 @@ msgstr "搭桥"
 
 msgid "Walls"
 msgstr "墙"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "顶部/底部外壳"
@@ -10637,6 +10826,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "固件回抽"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "切换到具有不同挤出机类型或编号的打印机将放弃或重置对挤出机或多喷嘴相关参数的更改。"
 
@@ -10676,6 +10890,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "确定要%1%所选预设吗？"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 msgid "Select printers"
 msgstr "选择打印机"
@@ -10756,6 +10979,63 @@ msgstr "点击该图标，恢复到全局的配置数值，并与全局配置同
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "点击该图标，丢弃当前的修改，恢复到上次保存的数值。"
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "工艺设置"
@@ -11944,6 +12224,12 @@ msgstr "验证失败"
 
 msgid "write callback failed"
 msgstr "写入回调失败"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15116,6 +15402,18 @@ msgid ""
 msgstr ""
 "最小 Z 层高。\n"
 "同时控制切片平面。"
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "在每次换层抬升Z高度之后插入这段G-code。"
@@ -19119,6 +19417,33 @@ msgstr ""
 "我们将会把预设重命名为“供应商类型名 @ 您选择的打印机”\n"
 "如果您希望为更多打印机添加预设，请前往打印机选择页面"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "创建打印机/喷嘴"
 
@@ -19630,17 +19955,14 @@ msgstr "显示/隐藏系统信息"
 msgid "Copy system information to clipboard"
 msgstr "将系统信息复制到剪贴板"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "我们需要相关信息来诊断问题的根源。请查看 wiki 页面获取详细指南。"
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "“打包”按钮会将当前会话的项目文件和日志收集到一个 zip 文件中。"
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "报告问题时，任何额外的可视示例（例如图片或屏幕录制）都可能会有帮助。"
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -19682,6 +20004,15 @@ msgstr "配置文件夹"
 msgid "Opens configurations folder."
 msgstr "打开配置文件夹。"
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "日志级别"
@@ -19697,6 +20028,15 @@ msgstr "将所有已存储的日志打包到一个 zip 文件中。"
 # AI Translated
 msgid "Profiles"
 msgstr "配置文件"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -19749,6 +20089,33 @@ msgstr "选择导出的 ZIP 文件的保存位置"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "文件已存在。是否覆盖？"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 msgid "3DPrinterOS Cloud upload options"
 msgstr "3DPrinterOS 云上传选项"
@@ -21210,6 +21577,36 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Simple settings"
+#~ msgstr "简单设置"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "配置可选择的材料"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "添加/删除材料"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "添加/删除材料"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "选择/移除打印机（系统预设）"
+
+#~ msgid "Create printer"
+#~ msgstr "创建打印机"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "我们需要相关信息来诊断问题的根源。请查看 wiki 页面获取详细指南。"
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "“打包”按钮会将当前会话的项目文件和日志收集到一个 zip 文件中。"
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "报告问题时，任何额外的可视示例（例如图片或屏幕录制）都可能会有帮助。"
 
 #~ msgid ""
 #~ "Layer height is too small.\n"

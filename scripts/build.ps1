@@ -336,9 +336,33 @@ function Add-ParallelHistory {
     ConvertTo-Json -InputObject $historyArray -Depth 4 | Set-Content -LiteralPath $Path -Encoding UTF8
 }
 
-function Test-CompilerMemoryFailure([string] $LogPath) {
+function Test-CompilerMemoryFailure([string] $LogPath, [long] $StartOffset = 0) {
     if (-not (Test-Path -LiteralPath $LogPath)) { return $false }
-    return [bool](Select-String -LiteralPath $LogPath -Pattern '(?i)(C1060|C1076|C3859|D8040|out of heap space|compiler.*out of memory|not enough memory|insufficient system resources)' | Select-Object -First 1)
+
+    $patterns = @(
+        '(?i)\b(C1060|C1076|C3859|D8040|LNK1102)\b',
+        '(?i)(out of (heap space|memory)|compiler.*out of memory|not enough memory|insufficient system resources)',
+        '(?i)(paging file is too small|commit limit|system returned code 1455|STATUS_NO_MEMORY|0xC0000017|0xC000012D)',
+        '(?i)(std::bad_alloc|bad allocation)'
+    )
+
+    # Retries append to the same phase log. Only inspect output from this attempt;
+    # otherwise a memory error from attempt one can misclassify an unrelated error
+    # from a later attempt and trigger progressively smaller, misleading retries.
+    $stream = [System.IO.File]::Open($LogPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+    $reader = $null
+    try {
+        [void]$stream.Seek([math]::Min([math]::Max(0, $StartOffset), $stream.Length), [System.IO.SeekOrigin]::Begin)
+        $reader = New-Object System.IO.StreamReader($stream, [System.Text.Encoding]::UTF8, $true, 4096, $true)
+        while (-not $reader.EndOfStream) {
+            if ($reader.ReadLine() -match ($patterns -join '|')) { return $true }
+        }
+        return $false
+    }
+    finally {
+        if ($reader) { $reader.Dispose() }
+        $stream.Dispose()
+    }
 }
 
 function Invoke-BoundedBuild {
@@ -357,7 +381,9 @@ function Invoke-BoundedBuild {
     )
 
     $ceiling = $CompilerCeiling
-    for ($attempt = 1; $attempt -le 2; $attempt++) {
+    $attempt = 0
+    while ($true) {
+        $attempt++
         $attemptPhase = if ($attempt -eq 1) { $Phase } else { "$Phase retry" }
         $arguments = @($BaseArguments)
         if ($UsesMSBuild) {
@@ -374,8 +400,9 @@ function Invoke-BoundedBuild {
         if ($DiagnoseRebuild -and $UsesMSBuild) {
             Write-Host "MSBuild diagnostic output is being captured in $LogPath"
         }
+        $attemptLogOffset = if (Test-Path -LiteralPath $LogPath) { (Get-Item -LiteralPath $LogPath).Length } else { 0 }
         $code = Invoke-LoggedCommand $attemptPhase $CMakePath $arguments $LogPath $WorkingDirectory ($DiagnoseRebuild -and $UsesMSBuild)
-        $memoryFailure = ($code -ne 0) -and (Test-CompilerMemoryFailure $LogPath)
+        $memoryFailure = ($code -ne 0) -and (Test-CompilerMemoryFailure $LogPath $attemptLogOffset)
         $script:BuildAttempts += [pscustomobject][ordered]@{
             phase = $Phase
             attempt = $attempt
@@ -388,12 +415,11 @@ function Invoke-BoundedBuild {
         Add-ParallelHistory $HistoryPath $HistoryKey $ceiling ($code -eq 0) $memoryFailure $TargetName
 
         if ($code -eq 0) { return 0 }
-        if (-not $memoryFailure -or $attempt -eq 2 -or $ceiling -le 1) { return $code }
+        if (-not $memoryFailure -or $ceiling -le 1) { return $code }
 
         $ceiling = [math]::Max(1, [math]::Floor($ceiling / 2))
-        Write-Warning "$Phase exhausted compiler memory; retrying once with compiler parallelism $ceiling."
+        Write-Warning "$Phase exhausted compiler memory; retrying with compiler parallelism $ceiling."
     }
-    return 1
 }
 
 function Export-RebuildSummary([string] $LogPath, [string] $SummaryPath) {

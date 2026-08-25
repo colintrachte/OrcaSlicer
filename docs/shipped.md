@@ -219,3 +219,116 @@
   `src/libvgcode/include/Types.hpp` · `src/libvgcode/src/Settings.hpp` ·
   `src/libvgcode/src/ViewerImpl.cpp` · `src/slic3r/GUI/GCodeViewer.cpp` ·
   `src/slic3r/GUI/LibVGCode/LibVGCodeWrapper.cpp`
+
+- [x] **Score 5 🥇 · Class 3 — Wipe tower extruder override respected in multimaterial (#10971)**
+      — Shipped by upstream fix #12108 (`ed3f0e2898`): the configured tower filament is included
+      in tool ordering and honored by both wipe-tower implementations. The later upstream tower
+      sync was reconciled in this fork, including the classic-tower wall-selection repair in
+      `1f03ce36bd`. The full application builds and the focused wipe-tower tests pass.
+
+  **Implement:** `src/libslic3r/Print.cpp` · `src/libslic3r/GCode/ToolOrdering.cpp` ·
+  `src/libslic3r/GCode/WipeTower.cpp` · `src/libslic3r/GCode/WipeTower2.cpp`
+
+- [x] **Score 3 🥈 · Class 2 — Stop OrcaSlicer instances from stealing window focus (#9874)**
+      — Upstream fix #10374 (`eb92a2ddde`) removed the deactivation-time
+      `RequestUserAttention` calls that randomly reactivated dialogs in another instance.
+
+  **Implement:** `src/slic3r/GUI/ReleaseNote.cpp`
+
+- [x] **Score 3 🥈 · Class 2 — Connect to Elegoo Centauri Carbon 2 (#13550)**
+      — The roadmap's identified implementation PR #13212 (`427d0f7a9f`) is in the current
+      history. It adds CC2 file upload and device-details support; current profiles and the
+      Elegoo G-code helper also recognize the Centauri Carbon 2 family.
+
+  **Implement:** `src/slic3r/Utils/ElegooLink.cpp` · `src/slic3r/Utils/ElegooLink.hpp`
+
+- [x] **Score 3 🥈 · Class 3 — Tool changer supports multiple nozzle sizes in one print (#11424)**
+      — Shipped through upstream #12824 (`afc3756843`), including a real Snapmaker U1
+      0.4+0.6-mm mixed-nozzle profile and toolchanger-aware material/nozzle handling. The
+      separate non-BBL nozzle-selector UI request (#14145) remains open.
+
+  **Context:** `src/libslic3r/GCode/ToolOrdering.cpp` · `src/libslic3r/PrintConfig.cpp` ·
+  `resources/profiles/Snapmaker/`
+
+- [x] **Score 5 🥇 · Class 2 — Export the normalized active configuration registry**
+      — `ConfigRegistry` now emits deterministic, nonlocalized JSON for the active registry,
+      including keys, types, defaults, bounds, enum encodings, CLI exposure, aliases, modes,
+      nullability, serialization ordinals, ratio bases, and printer technology. Golden-style
+      tests pin both the option count and content hash; the merged registry currently contains
+      827 options and passed the complete core test suite.
+
+  **Implement:** `src/libslic3r/ConfigRegistry.cpp` · `src/libslic3r/ConfigRegistry.hpp`
+  **Verify:** `tests/libslic3r/test_config_registry.cpp`
+
+- [x] **Score 5 🥇 · Class 2 — Add focused configuration and preset compatibility fixtures**
+      — Added deterministic registry-contract checks plus preset fixtures covering
+      system-to-user inheritance, renamed parents and compatibility lists, unknown/dangling
+      references, explicit compatibility explanations, SLA compatibility routing, and library
+      profile masking. These cases pass in the complete core suite.
+
+  **Verify:** `tests/libslic3r/test_config_registry.cpp` ·
+  `tests/libslic3r/test_preset_bundle_loading.cpp`
+
+- [x] **Score 5 🥇 · Class 2 — Add versioned 3MF migration and round-trip fixtures**
+      — The compatibility fixture creates a legacy project using the former
+      `enable_wipe_tower` key, verifies migration occurs only in memory, proves the source bytes
+      remain unchanged, explicitly saves the current representation, and reloads it to verify
+      the approved round trip. It passes in the complete core suite.
+
+  **Verify:** `tests/libslic3r/test_3mf.cpp`
+
+- [x] **Score 1 🥉 · Class 3 — Top/bottom fill order control (Outward/Inward) (#14179)**
+      — Merged upstream as `c84d5c7943`, adding selectable path order for Concentric,
+      Archimedean Chords, and Octagram Spiral top/bottom surfaces.
+
+  **Implement:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Retract amount after wipe (#11015)**
+      — Merged upstream as `50768e0716`, adding the filament retract-after-wipe configuration
+      and threading it through the retraction/G-code writer path.
+
+  **Implement:** `src/libslic3r/Extruder.cpp` · `src/libslic3r/GCodeWriter.cpp`
+
+- [x] **Score 5 🥇 · Class 3 — Ported wipe-tower feature fixes (#12742)**
+      — Superseded by separately integrated upstream work and the later full BambuStudio tower
+      sync (`7a378d2fc4`). Skip-point gap walls, interface pre-extrusion, tower ironing, and rib
+      walls are all present in both the active configuration and tower code. The merged tower
+      builds and its focused tests pass; the bundled PR itself was not cherry-picked wholesale.
+
+  **Implement:** `src/libslic3r/GCode/WipeTower.cpp` · `src/libslic3r/GCode/WipeTower2.cpp`
+
+- [x] **Score 5 🥇 · Class 3 — Floating final purge line fix (#14416)**
+      — Merged upstream as `b2a7197a07`, keeping the final purge line attached to the intended
+      wipe-tower geometry.
+
+  **Implement:** `src/libslic3r/GCode.cpp` · `src/libslic3r/Print.cpp`
+
+- [x] **Score 3 🥈 · Class 2 — Keep OrcaFilamentLibrary printer-specific siblings visible (#13573)**
+      — Superseded by upstream #15101 (`74c4a7e450`). Printer-specific library profiles now
+      supersede a generic profile sharing their alias without being hidden themselves, with a
+      regression test covering both library-owned and vendor-owned variants.
+
+  **Implement:** `src/libslic3r/Preset.cpp`
+  **Verify:** `tests/libslic3r/test_preset_bundle_loading.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Anisotropic surfaces + Separated Infills (#11682)**
+      — Merged upstream as `bc6ffcfb31`, followed by the separated-infill enhancements in
+      `c4ea86041b`.
+
+  **Implement:** `src/libslic3r/Fill/Fill.cpp` · `src/libslic3r/Fill/FillBase.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Cyclic ordering toolpath strategy (#13578)**
+      — Merged upstream as `ef7bfeda9c`, with subsequent improvements in `33dfb66aa5` and the
+      Standard/Cyclic configuration control in `da149ee75a`.
+
+  **Implement:** `src/libslic3r/GCode/OrderingStrategies.cpp` · `src/libslic3r/GCode.cpp`
+  **Verify:** `tests/libslic3r/test_ordering_strategies.cpp`
+
+- [x] **Score 3 🥈 · Class 2 — Cache system presets to eliminate startup/wizard load time (#14217)**
+      — Merged upstream as `5ed56eb876`. System presets are serialized into validated vendor
+      cache files and used by startup/wizard loading, with fallback behavior and regression
+      coverage. The merge-specific loader repairs compile, the focused preset tests pass, and the
+      complete core suite passes.
+
+  **Implement:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
+  **Verify:** `tests/libslic3r/test_preset_bundle_loading.cpp`

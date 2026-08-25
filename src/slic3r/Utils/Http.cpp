@@ -14,6 +14,8 @@
 
 #include <curl/curl.h>
 
+#include "libslic3r/Diagnostics.hpp"
+
 #ifdef OPENSSL_CERT_OVERRIDE
 #include <openssl/x509.h>
 #endif
@@ -73,8 +75,14 @@ struct CurlGlobalInit
 #endif // OPENSSL_CERT_OVERRIDE
 
         if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
-            message += "CURL initialization failed. See the log for additional details.";
-            BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
+            const std::string detail = ::curl_easy_strerror(ec);
+            const std::string diagnostic_id = record_diagnostic(
+                DiagnosticSeverity::error, "NETWORK-INIT-001", "network", "Network services could not start",
+                detail, "Restart OrcaSlicer. If the problem persists, include a support bundle when reporting it.",
+                {{"curl_error_code", std::to_string(static_cast<int>(ec))}});
+            if (!message.empty())
+                message += '\n';
+            message += "Network services could not start. Restart OrcaSlicer and try again. Diagnostic ID: " + diagnostic_id;
         }
     }
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 14:07-0300\n"
+"POT-Creation-Date: 2026-08-24 12:22-0500\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -480,6 +480,18 @@ msgstr "스마트 채우기 각도"
 msgid "Gap area"
 msgstr "간격 영역"
 
+msgid "Paint mode"
+msgstr ""
+
+msgid "Enforce"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Eraser"
+msgstr ""
+
 msgid "Left mouse button"
 msgstr "마우스 왼쪽 버튼"
 
@@ -512,6 +524,15 @@ msgstr "채우기"
 
 msgid "Gap Fill"
 msgstr "간격 채우기"
+
+msgid "Paint supports (Left mouse button)"
+msgstr ""
+
+msgid "Block supports (also: Right mouse button)"
+msgstr ""
+
+msgid "Erase paint (also: Shift + Left mouse button)"
+msgstr ""
 
 msgid "Vertical"
 msgstr "수직"
@@ -3765,10 +3786,6 @@ msgstr "선택된 항목 필터링"
 msgid "Filter nonSelected"
 msgstr "선택되지 않은 항목 필터링"
 
-# AI Translated
-msgid "Simple settings"
-msgstr "간단 설정"
-
 msgid "Advanced settings"
 msgstr "고급 설정"
 
@@ -4538,6 +4555,14 @@ msgstr "파일"
 msgid "Calibration"
 msgstr "교정"
 
+msgid "Find missing or unavailable presets"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset needs attention. Find missing or unavailable presets."
+msgid_plural "%d presets need attention. Find missing or unavailable presets."
+msgstr[0] ""
+
 msgid "Failed to download the plug-in. Please check your firewall settings and VPN software and retry."
 msgstr "플러그인을 다운로드하지 못했습니다. 방화벽 설정 및 VPN 소프트웨어를 확인하고 확인한 후 다시 시도하세요."
 
@@ -4900,6 +4925,15 @@ msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
 "예 - 아라크네 벽 생성기 활성화\n"
 "아니오 - 아라크네 벽 생성기 비활성화 및 퍼지 스킨 [변위] 모드 설정"
+
+msgid "Stagger perimeters requires the Arachne Wall Generator, and is incompatible with Z contouring and the Inner/Outer/Inner wall printing order."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator, disable Z contouring, and set the wall printing order to Inner/Outer\n"
+"No  - Disable Stagger perimeters"
+msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
@@ -5532,6 +5566,9 @@ msgstr "서포트 전환"
 msgid "Mixed"
 msgstr "혼합"
 
+msgid "Bridge wall"
+msgstr ""
+
 msgid "Height: "
 msgstr "높이: "
 
@@ -6033,7 +6070,7 @@ msgstr "용량:"
 msgid "Size:"
 msgstr "크기:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "레이어 %d, Z = %.2lf mm에서 Gcode 경로 충돌이 발견되었습니다. 충돌하는 객체를 더 멀리 분리하세요 (%s <-> %s)."
 
@@ -6360,6 +6397,12 @@ msgstr "설정 가져오기"
 msgid "Load configs"
 msgstr "설정 불러오기"
 
+msgid "Migrate Presets from Folder"
+msgstr ""
+
+msgid "Find printer, process, and filament presets in an OrcaSlicer user or backup folder"
+msgstr ""
+
 msgid "Import"
 msgstr "가져오기"
 
@@ -6662,6 +6705,12 @@ msgstr "불러올 사전설정 선택:"
 msgid "Config files (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 msgstr "설정 파일 (*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament)|*.json;*.zip;*.orca_printer;*.orca_bundle;*.orca_filament"
 
+msgid "Preset import needs attention"
+msgstr ""
+
+msgid "Review Preset Migration"
+msgstr ""
+
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
@@ -6674,14 +6723,80 @@ msgstr ""
 "\n"
 "힌트: 구성을 가져오기 전에 해당 프린터를 추가했는지 확인하세요."
 
+msgid ""
+"\n"
+"\n"
+"Any existing user presets you chose to replace were backed up beside their original files."
+msgstr ""
+
 msgid "Import result"
 msgstr "결과 가져오기"
+
+msgid "Select an OrcaSlicer user, version backup, or preset folder:"
+msgstr ""
+
+msgid "Current settings"
+msgstr ""
+
+msgid "Choose one settings generation to review. OrcaSlicer keeps current settings and each backup separate so same-name presets are not mixed."
+msgstr ""
+
+msgid "Choose Preset Source"
+msgstr ""
+
+msgid "No printer, process, or filament preset JSON files were found in that folder."
+msgstr ""
+
+msgid "No Presets Found"
+msgstr ""
 
 msgid "File is missing"
 msgstr "파일이 없습니다"
 
 msgid "The project is no longer available."
 msgstr "프로젝트를 더 이상 사용할 수 없습니다."
+
+msgid ""
+"Install all temporary printer, process, and filament settings from this project as reusable standalone presets?\n"
+"\n"
+"The project will not be changed and unavailable source-fork parents will not be required. New names will be installed; same-named writable user presets will be replaced in place after an untouched backup is saved. No numbered copies will be created."
+msgstr ""
+
+msgid "Install Project Settings"
+msgstr ""
+
+msgid "Install this project's settings as a reusable user preset."
+msgstr ""
+
+msgid "Install Project Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Replace the existing user preset '%s' with the resolved settings from this project?\n"
+"\n"
+"The existing file will be backed up, the preset will keep this exact name, and no copy will be created."
+msgstr ""
+
+msgid "Replace Existing Preset"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The exact base '%s' exists in more than one bundled library. Choose the printer family this preset came from."
+msgstr ""
+
+msgid "Choose Preset Library"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Install the '%s' preset library to restore the exact base '%s'?\n"
+"\n"
+"This copies OrcaSlicer's bundled system profiles into the active profile. Your user presets are not overwritten. Restart OrcaSlicer afterward."
+msgstr ""
+
+msgid "Install Preset Library"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -7834,6 +7949,24 @@ msgstr "설정 표시 방식 순환"
 msgid "Compare presets"
 msgstr "사전 설정 비교"
 
+msgid "Create process preset"
+msgstr ""
+
+msgid "Remove selected process preset"
+msgstr ""
+
+msgid "IMPORT"
+msgstr ""
+
+msgid "Import process presets from a file"
+msgstr ""
+
+msgid "EXPORT"
+msgstr ""
+
+msgid "Export the current process preset to a file"
+msgstr ""
+
 msgid "View all object's settings"
 msgstr "모든 객체 설정 보기"
 
@@ -7969,6 +8102,18 @@ msgstr "연결"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "노즐 정보 및 AMS 개수 동기화"
 
+msgid "Add printer"
+msgstr ""
+
+msgid "Remove selected printer preset"
+msgstr ""
+
+msgid "Import printer presets from a file"
+msgstr ""
+
+msgid "Export the current printer preset to a file"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "클릭하여 사전 설정 편집"
 
@@ -7994,8 +8139,23 @@ msgstr "마지막 필라멘트 제거"
 msgid "Synchronize filament list from AMS"
 msgstr "AMS에서 필라멘트 목록 동기화"
 
-msgid "Set filaments to use"
-msgstr "사용할 필라멘트 설정"
+msgid "Add filament preset"
+msgstr ""
+
+msgid "Remove selected filament preset"
+msgstr ""
+
+msgid "Import filament presets from a file"
+msgstr ""
+
+msgid "Export the current filament preset to a file"
+msgstr ""
+
+msgid "Resin process"
+msgstr ""
+
+msgid "Resin material"
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "플레이트, 객체 및 부품을 검색합니다."
@@ -8068,6 +8228,28 @@ msgstr "사이드바 접기"
 # AI Translated
 msgid "Tab"
 msgstr "탭"
+
+#, c-format, boost-format
+msgid "This project contains a preset named \"%s\" whose settings differ from the one already installed. What would you like to do?"
+msgstr ""
+
+msgid "Preset name conflict"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Keep Both"
+msgstr ""
+
+msgid "Rename..."
+msgstr ""
+
+msgid "Enter a new name for the imported preset:"
+msgstr ""
+
+msgid "Rename preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -9649,6 +9831,15 @@ msgstr "디버그 설정이 성공적으로 저장되었습니다!"
 msgid "Cloud environment switched; please login again!"
 msgstr "클라우드 환경 전환, 다시 로그인해주세요!"
 
+#, c-format, boost-format
+msgid "Based on: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d preset inherits from this"
+msgid_plural "%d presets inherit from this"
+msgstr[0] ""
+
 msgid "System presets"
 msgstr "시스템 사전 설정"
 
@@ -9706,18 +9897,6 @@ msgstr "지원되지 않는 사전 설정"
 
 msgid "Unsupported"
 msgstr "지원되지 않음"
-
-msgid "Add/Remove filament"
-msgstr "필라멘트 추가/제거"
-
-msgid "Add/Remove materials"
-msgstr "재료 추가/제거"
-
-msgid "Select/Remove printers (system presets)"
-msgstr "프린터 선택/제거(시스템 사전 설정)"
-
-msgid "Create printer"
-msgstr "프린터 생성"
 
 msgid "Incompatible"
 msgstr "호환되지 않음"
@@ -10506,8 +10685,14 @@ msgstr "로그아웃에 실패했습니다."
 msgid "Save current %s"
 msgstr "현재 %s 저장"
 
+msgid "Rename this preset in place"
+msgstr ""
+
 msgid "Delete this preset"
 msgstr "이 사전 설정 삭제"
+
+msgid "Browse preset relationships and repair problems"
+msgstr ""
 
 msgid "Search in preset"
 msgstr "사전 설정에서 찾기"
@@ -10696,6 +10881,9 @@ msgstr "브릿지"
 
 msgid "Walls"
 msgstr "벽"
+
+msgid "Brick layers"
+msgstr ""
 
 msgid "Top/bottom shells"
 msgstr "상단/하단 쉘"
@@ -11077,6 +11265,31 @@ msgstr ""
 msgid "Firmware Retraction"
 msgstr "펌웨어 리트렉션"
 
+msgid "Only a writable user preset can be renamed in place."
+msgstr ""
+
+msgid "Enter the new name. OrcaSlicer will rename this preset rather than create a copy."
+msgstr ""
+
+msgid "Rename Preset"
+msgstr ""
+
+msgid "That preset name is empty or contains characters OrcaSlicer cannot use."
+msgstr ""
+
+#, c-format
+msgid ""
+"Rename '%s' to '%s'?\n"
+"\n"
+"OrcaSlicer will update %zu direct child preset(s), preserve this preset's identity and settings, and back up every changed file. No duplicate will remain."
+msgstr ""
+
+msgid "Confirm Preset Rename"
+msgstr ""
+
+msgid "Preset Renamed"
+msgstr ""
+
 msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
 msgstr "압출기 유형 또는 번호가 다른 프린터로 전환하면 압출기 또는 다중 노즐 관련 매개 변수의 변경 사항이 삭제되거나 초기화됩니다."
 
@@ -11117,6 +11330,15 @@ msgstr ""
 #, boost-format
 msgid "Are you sure you want to %1% the selected preset?"
 msgstr "선택한 사전 설정을 %1%하시겠습니까?"
+
+msgid "Back up and delete"
+msgstr ""
+
+msgid "Both compatible and incompatible presets are shown - hover an incompatible preset to see why. Click to hide presets not compatible with the current printer/process."
+msgstr ""
+
+msgid "Only compatible presets are shown. Click to also show incompatible presets, with a tooltip explaining why each one is incompatible."
+msgstr ""
 
 # AI Translated
 msgid "Select printers"
@@ -11206,6 +11428,63 @@ msgstr "현재 값을 재설정하고 전역 값에 연결하려면 클릭합니
 
 msgid "Click to drop current modifications and reset to saved value."
 msgstr "현재 수정 내용을 삭제하고 저장된 값으로 재설정하려면 클릭하세요."
+
+msgid "Material"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Corrections"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr "프로필 종속성"
+
+msgid "Material printing profile"
+msgstr ""
+
+msgid "Layers and perimeters"
+msgstr ""
+
+msgid "Supports"
+msgstr ""
+
+msgid "Support head"
+msgstr ""
+
+msgid "Support pillar"
+msgstr ""
+
+msgid "Connection of the support sticks and junctions"
+msgstr ""
+
+msgid "Automatic generation"
+msgstr ""
+
+msgid "Pad"
+msgstr ""
+
+msgid "Hollowing"
+msgstr ""
+
+msgid "Output options"
+msgstr ""
+
+msgid "Output file"
+msgstr ""
+
+#, boost-format
+msgid ""
+"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+"To enable \"%1%\", please switch off \"%2%\""
+msgstr ""
+
+msgid "Object elevation"
+msgstr ""
+
+msgid "Pad around object"
+msgstr ""
 
 msgid "Process Settings"
 msgstr "프로세스 설정"
@@ -12425,6 +12704,12 @@ msgstr "검증에 실패했습니다"
 
 msgid "write callback failed"
 msgstr "쓰기 호출 실패"
+
+msgid "SLA print"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -15789,6 +16074,18 @@ msgid ""
 msgstr ""
 "최소 Z 레이어 높이입니다.\n"
 "슬라이싱 평면도 함께 제어합니다."
+
+msgid "Brick layers (staggered perimeters)"
+msgstr ""
+
+msgid "Experimental: alternate the Z-height of inner-wall perimeters every other layer, like bricks in a wall, so vertical seams in adjacent layers don't line up. Requires the Arachne wall generator. The outer wall is left unaffected. Incompatible with Z contouring and spiral vase."
+msgstr ""
+
+msgid "Brick layers extrusion multiplier"
+msgstr ""
+
+msgid "Extra flow applied to staggered inner-wall segments to compensate for the raised Z-height. Staggering without extra flow tends to print weaker than an unstaggered wall."
+msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "이 Gcode는 Z올리기 이후 모든 레이어 변경에 삽입됩니다"
@@ -19939,6 +20236,33 @@ msgstr ""
 "사전 설정의 이름을 \"제조사 유형 일련번호 @선택한 프린터\" 형식으로 변경합니다.\n"
 "더 많은 프린터에 사전 설정을 추가하려면 프린터 선택으로 이동하십시오"
 
+msgid "Add Printer"
+msgstr ""
+
+msgid "What type of printer would you like to add?"
+msgstr ""
+
+msgid "FDM (Filament) Printer"
+msgstr ""
+
+msgid "Resin (SLA) Printer"
+msgstr ""
+
+msgid "The built-in resin printer profile (Anycubic Photon D2) was not found."
+msgstr ""
+
+msgid "Printer name:"
+msgstr ""
+
+msgid "Add Resin Printer"
+msgstr ""
+
+msgid "My Resin Printer"
+msgstr ""
+
+msgid "A printer with that name already exists; please choose a different name."
+msgstr ""
+
 msgid "Create Printer/Nozzle"
 msgstr "프린터/노즐 생성"
 
@@ -20464,17 +20788,14 @@ msgstr "시스템 정보 표시/숨기기"
 msgid "Copy system information to clipboard"
 msgstr "시스템 정보를 클립보드에 복사"
 
-# AI Translated
-msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
-msgstr "문제의 원인을 진단하려면 정보가 필요합니다. 자세한 안내는 위키 페이지를 확인하십시오."
+msgid "Use the session ID to match an on-screen error with its log entry."
+msgstr ""
 
-# AI Translated
-msgid "Pack button collects project file and logs of current session onto a zip file."
-msgstr "패키지 버튼은 현재 세션의 프로젝트 파일과 로그를 zip 파일로 모읍니다."
+msgid "Pack creates a support bundle with the current project, session logs, system information, and structured diagnostics."
+msgstr ""
 
-# AI Translated
-msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
-msgstr "이미지나 화면 녹화 같은 추가 시각 자료는 문제를 보고할 때 도움이 됩니다."
+msgid "Support bundles can contain personal data. Review the ZIP file before sharing it."
+msgstr ""
 
 # AI Translated
 msgid "Report issue"
@@ -20516,6 +20837,15 @@ msgstr "설정 폴더"
 msgid "Opens configurations folder."
 msgstr "설정 폴더를 엽니다."
 
+msgid "Diagnostic session"
+msgstr ""
+
+msgid "Identifies all diagnostic messages from this application session."
+msgstr ""
+
+msgid "Copy the diagnostic session ID to the clipboard."
+msgstr ""
+
 # AI Translated
 msgid "Log level"
 msgstr "로그 수준"
@@ -20531,6 +20861,15 @@ msgstr "저장된 모든 로그를 zip 파일로 묶습니다."
 # AI Translated
 msgid "Profiles"
 msgstr "프로필"
+
+msgid "This support bundle contains diagnostic information from OrcaSlicer."
+msgstr ""
+
+msgid "Review the project and log files for personal data before sharing this bundle."
+msgstr ""
+
+msgid "Diagnostic session:"
+msgstr ""
 
 # AI Translated
 msgid "Select NO to close dialog and review project."
@@ -20583,6 +20922,33 @@ msgstr "내보낸 ZIP 파일을 저장할 위치를 선택하십시오"
 # AI Translated
 msgid "File already exists. Overwrite?"
 msgstr "파일이 이미 있습니다. 덮어쓰시겠습니까?"
+
+msgid "Export failed."
+msgstr ""
+
+msgid "Diagnostic ID:"
+msgstr ""
+
+msgid "Saved to:"
+msgstr ""
+
+msgid "The destination file could not be opened. Check folder permissions and whether the file is already in use."
+msgstr ""
+
+msgid "The ZIP archive could not be initialized."
+msgstr ""
+
+msgid "A source file disappeared while the support bundle was being created:"
+msgstr ""
+
+msgid "A source file could not be read while the support bundle was being created:"
+msgstr ""
+
+msgid "The ZIP archive could not be finalized."
+msgstr ""
+
+msgid "The completed ZIP archive could not be written to disk."
+msgstr ""
 
 # AI Translated
 msgid "3DPrinterOS Cloud upload options"
@@ -22159,6 +22525,37 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+# AI Translated
+#~ msgid "Simple settings"
+#~ msgstr "간단 설정"
+
+#~ msgid "Set filaments to use"
+#~ msgstr "사용할 필라멘트 설정"
+
+#~ msgid "Add/Remove filament"
+#~ msgstr "필라멘트 추가/제거"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "재료 추가/제거"
+
+#~ msgid "Select/Remove printers (system presets)"
+#~ msgstr "프린터 선택/제거(시스템 사전 설정)"
+
+#~ msgid "Create printer"
+#~ msgstr "프린터 생성"
+
+# AI Translated
+#~ msgid "We need information for diagnosing source of the issue. Check wiki page for detailed guide."
+#~ msgstr "문제의 원인을 진단하려면 정보가 필요합니다. 자세한 안내는 위키 페이지를 확인하십시오."
+
+# AI Translated
+#~ msgid "Pack button collects project file and logs of current session onto a zip file."
+#~ msgstr "패키지 버튼은 현재 세션의 프로젝트 파일과 로그를 zip 파일로 모읍니다."
+
+# AI Translated
+#~ msgid "Any additional visual examples like images or screen recordings might be helpful while reporting the issue."
+#~ msgstr "이미지나 화면 녹화 같은 추가 시각 자료는 문제를 보고할 때 도움이 됩니다."
+
 #~ msgid ""
 #~ "Layer height is too small.\n"
 #~ "It will set to min_layer_height\n"
@@ -23396,9 +23793,6 @@ msgstr ""
 
 #~ msgid "Ramming settings"
 #~ msgstr "채워넣기 설정"
-
-#~ msgid "Profile dependencies"
-#~ msgstr "프로필 종속성"
 
 #~ msgid "the Configuration package is incompatible with the current APP."
 #~ msgstr "구성 패키지가 현재 애플리케이션과 호환되지 않습니다."
