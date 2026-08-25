@@ -459,16 +459,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context Load:** 81
   **Chars:** ~81,006 text total (largest: src/slic3r/GUI/IMSlider.cpp ~81,006) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Concentric top/bottom layers not continuous, regression since 2.2.0 (#8383)**
-      — Confirmed still present in 2.3.0/2.3.1. Reporter traces it to a seam-staggering
-      interaction with concentric fill ordering; affects surface quality broadly. Touches fill
-      path ordering that reaches emitted G-code.
-
-  **Context:** `src/libslic3r/Fill/FillConcentric.cpp` · `src/libslic3r/Fill/FillConcentricInternal.cpp`
-  **Route:** claude
-  **Context Load:** 27
-  **Chars:** ~13,377 text total (largest: src/libslic3r/Fill/FillConcentric.cpp ~8,721) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Organic tree supports print in air, first ~6 layers missing (#4158)**
       — Acknowledged by a maintainer as inherited from upstream PrusaSlicer's organic
       tree-support implementation (also present in BambuStudio, still unfixed there). Real

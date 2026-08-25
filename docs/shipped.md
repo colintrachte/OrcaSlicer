@@ -363,3 +363,17 @@
       see the new coverage-gap finding below if picked up later.
 
   **Implement:** `src/libslic3r/Feature/FuzzySkin/FuzzySkin.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Concentric top/bottom layers not continuous, regression since 2.2.0 (#8383)**
+      — DONE verification (2026-08-24, per TRIAGE_POLICY.md's re-entry rule): a maintainer
+      confirmed this fixed in upstream `main` on 2025-07-30 ("I can confirm it has been fixed!"),
+      well before this fork's baseline. The issue's final closing comment (2026-08-02, after an
+      auto-stale bump) cross-references #14179 and #11682 as the relevant fill-ordering work —
+      both already confirmed shipped in this fork per `docs/shipped.md` ("Top/bottom fill order
+      control" as `c84d5c7943`; "Anisotropic surfaces + Separated Infills" as `bc6ffcfb31` /
+      `c4ea86041b`). No specific commit to pin for *this* issue directly (fixed via general
+      upstream fill-ordering work, not a standalone patch), but given the maintainer confirmation
+      predates this fork's last sync by over a year, treating as shipped rather than re-deriving
+      from scratch. No code change needed.
+
+  **Context:** `src/libslic3r/Fill/FillConcentric.cpp` · `src/libslic3r/Fill/FillConcentricInternal.cpp`
