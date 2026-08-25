@@ -512,3 +512,23 @@
   `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/PrintObjectSlice.cpp` ·
   `src/libslic3r/TriangleMeshSlicer.cpp` · `src/libslic3r/TriangleMeshSlicer.hpp` ·
   `src/slic3r/GUI/Tab.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Zero flow ironing (#10350)** — Cherry-picked (2026-08-24, per
+      `TRIAGE_POLICY.md`'s Cherry-pick tier) from the issue's own PR, OrcaSlicer/OrcaSlicer#10350
+      itself (open, not draft, mergeable, 73+/-19 across 9 files). Allows `ironing_flow = 0` -
+      the nozzle passes over the top surface without extruding any material, purely for thermal
+      smoothing. Adds `ironing_retract`/`ironing_unretract_extra` options so the filament is
+      retracted before and restored after the zero-flow pass (avoiding oozing during a pass with
+      no planned extrusion), and marks these zero-E ironing moves as `Extrude` type in
+      `GCodeProcessor` (rather than travel) so the G-code preview shows them correctly. Refactors
+      `GCodeWriter::_retract`/`unretract`'s bodies into new reusable `emit_retract`/
+      `emit_unretract` helpers - confirmed behaviorally identical for existing callers (same E
+      position, speed, comment computation, just extracted). New options are only consulted when
+      `ironing_flow == 0`, so default (non-zero-flow) ironing is unaffected.
+      **Verified:** `fff_print_tests` builds clean; full suite (excluding the pre-existing
+      `[Invalidation]` crash) shows only the same 3 pre-existing failures as baseline.
+
+  **Implement:** `src/libslic3r/GCode.cpp` · `src/libslic3r/GCode/GCodeProcessor.cpp` ·
+  `src/libslic3r/GCodeWriter.cpp` · `src/libslic3r/GCodeWriter.hpp` · `src/libslic3r/Preset.cpp` ·
+  `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` ·
+  `src/slic3r/GUI/ConfigManipulation.cpp` · `src/slic3r/GUI/Tab.cpp`
