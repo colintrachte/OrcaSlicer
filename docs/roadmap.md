@@ -1109,15 +1109,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 1203
   **Chars:** ~601,587 text total (largest: src/libslic3r/GCode.cpp ~542,270) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Extra perimeters on overhangs vs. bridging (#10565)** — small,
-      clean, targeted overhang-quality fix, single file. Related to the bridging area already
-      tracked under #2231.
-
-  **Context:** `src/libslic3r/PerimeterGenerator.cpp`
-  **Route:** claude
-  **Context Load:** 167
-  **Chars:** ~167,245 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~167,245) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Add a slicing tolerance option (#9801)** — touches core
       mesh-slicing math; real, widely-wanted precision control.
 

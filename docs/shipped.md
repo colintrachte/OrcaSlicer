@@ -377,3 +377,31 @@
       from scratch. No code change needed.
 
   **Context:** `src/libslic3r/Fill/FillConcentric.cpp` · `src/libslic3r/Fill/FillConcentricInternal.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Extra perimeters on overhangs vs. bridging (#10565)** — Cherry-
+      picked (2026-08-24, per `TRIAGE_POLICY.md`'s Cherry-pick tier) from OrcaSlicer/OrcaSlicer#10565
+      itself (open; `mergeable: CONFLICTING` against upstream `main`, but applied cleanly to this
+      fork with one small conflict — see below). Complements, doesn't duplicate, the #2231 bridge
+      cherry-pick (`erBridgePerimeter` role) already shipped: that changes G-code speed/flow/fan
+      for perimeters already classified as bridge; this changes the *upstream* decision of
+      whether `generate_extra_perimeters_over_overhangs` treats an overhang region as bridgeable
+      at all — different stage of the same pipeline. Root cause: the old "extra perimeters on
+      overhangs" heuristic forced extra-perimeter treatment whenever unbridgeable area exceeded
+      20%, causing areas that should bridge to become overhangs instead. Fix redefines
+      bridgeable as "has any anchored area AND no upper-layer holes over it" (replacing the
+      percentage threshold), tightens the anchor margin constant (`EXTERNAL_INFILL_MARGIN` →
+      `BRIDGE_INFILL_MARGIN`), and fixes a closed-loop anchor-detection edge case where a first
+      overhang polyline exactly aligned with the layer below was wrongly treated as anchored
+      (now shrunk by a quarter extrusion width before the intersection test).
+      **Conflict resolved:** one 3-way merge conflict in `PerimeterGenerator.cpp` — the PR's base
+      predates this fork's `Polyline`/`ArcPolyline` API split, so `overhang_region.front().polyline`
+      needs an explicit `.to_polyline()` (matching the surrounding code's existing pattern);
+      resolved by using the PR's new expression with that conversion added, and hit the same
+      drift a second time at compile time (`to_polygons({overhang_region.front().polyline})` also
+      needed `.to_polyline()`) — fixed post-conflict-resolution when the build caught it.
+      **Verified:** `fff_print_tests` builds clean; full suite excluding the pre-existing
+      `[Invalidation]` crash (see #13891's shipped entry) shows the same 3 pre-existing
+      `test_support_material.cpp` failures as baseline; the `[Bridge]` tag (24 cases, 101
+      assertions) passes unchanged, confirming no interaction with the #2231 cherry-pick.
+
+  **Context:** `src/libslic3r/PerimeterGenerator.cpp`
