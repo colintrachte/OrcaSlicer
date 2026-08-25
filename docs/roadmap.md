@@ -1120,6 +1120,31 @@ diff-read time, not assumed from the title here.
 
 - [ ] **Score 3 🥈 · Class 3 — Variable fan speed (#6738)** — widely-requested cooling feature,
       touches the cooling buffer and emitted fan values.
+      **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** real, non-obvious
+      risks found in the PR itself (open, mergeable, 114+/-27 across 7 files), not just size:
+      - **Silent default-behavior change for existing users.** Today `overhang_fan_speed` applies
+        uniformly to both overhangs and external bridges past the threshold. This PR turns it
+        into a gradient floor (interpolating up to a new `overhang_fan_speed_max`, default 100%)
+        and splits bridges into a separate `bridge_fan_speed` (default `-1` → falls back to
+        `overhang_fan_speed_max`, **not** to the user's existing `overhang_fan_speed` value). A
+        user who tuned `overhang_fan_speed` down from the 100% default would silently get 100%
+        bridge cooling after upgrading, with no prompt - a real regression risk for anyone who
+        customized this, not just a new opt-in.
+      - **Legacy key reinterpreted, not migrated.** Removes the existing `handle_legacy()` mapping
+        `bridge_fan_speed → overhang_fan_speed` (an old pre-2.4.0 key) and immediately reuses the
+        bare name `bridge_fan_speed` for the new, differently-scoped option - an ancient profile
+        with a literal `bridge_fan_speed` key would now load into the new option's semantics
+        instead of being migrated, unlike every other legacy key in this file.
+      - **Suspicious `overhang_degree` computation.** In `GCode.cpp`, the `-1` sentinel meaning
+        "use `bridge_fan_speed` directly" (checked later in `CoolingBuffer.cpp` as
+        `line->overhang_degree < 0`) is computed as `std::max(0, int(100 - overlap*100))` for one
+        call site with `overlap = 1.01` for true bridge infill - `100 - 101 = -1`, but the
+        `std::max(0, ...)` clamps it to `0` before it can ever reach the negative-sentinel check,
+        so that code path silently loses the ability to select the bridge fan speed via the
+        sentinel it was seemingly designed to feed. Needs the PR author's own review or a fresh
+        read against test G-code output before trusting the fan values it produces, given this is
+        a Known Risky Subsystem (retraction/cooling) and a cooling bug is easy to ship unnoticed
+        (wrong fan speed doesn't fail a build or an assertion - it just prints worse).
 
   **Context:** `src/libslic3r/GCode/CoolingBuffer.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
