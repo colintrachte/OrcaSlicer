@@ -344,3 +344,22 @@
       shipped.
 
   **Context:** `src/libslic3r/Support/SupportMaterial.cpp` · `src/libslic3r/Support/TreeSupport.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — No fuzzy skin on bridges (#13891)** — Cherry-picked (2026-08-24,
+      per `TRIAGE_POLICY.md`'s Cherry-pick tier) from OrcaSlicer/OrcaSlicer#13891 itself (open,
+      mergeable, not a draft, single-file diff, fixes #9137). Root cause: `apply_fuzzy_skin`
+      jittered the whole perimeter loop regardless of whether a segment was over solid material
+      below or spanning a bridged void, degrading bridge surface quality/adhesion. Fix computes
+      `expanded_lower_slices` (the layer below, grown by extrusion width + fuzzy thickness) and
+      clips the fuzzy displacement to only the polyline/extrusion-line portions that intersect
+      it, leaving bridge spans smooth — for both the classic (`Polygon`) and Arachne
+      (`Arachne::ExtrusionLine`) code paths.
+      **Reformatted on apply:** two blocks in the PR's raw diff had zero leading indentation
+      (a formatting artifact, not intentional), reindented to match the surrounding 4-space
+      style per `AGENTS.md`'s code-style note — no functional change.
+      **Verified:** `fff_print_tests` builds clean; full suite and the `[Bridge]` tag (24 cases,
+      101 assertions from the earlier #2231 cherry-pick) pass with this change present. No
+      dedicated regression test exists for this fix (the upstream PR didn't add one either) —
+      see the new coverage-gap finding below if picked up later.
+
+  **Implement:** `src/libslic3r/Feature/FuzzySkin/FuzzySkin.cpp`
