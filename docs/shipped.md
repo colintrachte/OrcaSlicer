@@ -433,3 +433,24 @@
   `src/libslic3r/Preset.cpp` · `src/libslic3r/Print.cpp` · `src/libslic3r/PrintConfig.cpp` ·
   `src/libslic3r/PrintConfig.hpp` · `src/slic3r/GUI/ConfigManipulation.cpp` ·
   `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Tab.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Port FillScatteredRectilinear from SuperSlicer (#12000)** —
+      Cherry-picked (2026-08-24, per `TRIAGE_POLICY.md`'s Cherry-pick tier) from
+      OrcaSlicer/OrcaSlicer#12000 itself (open, mergeable, 137+/-2 across 6 files). Competitor-
+      port check per the antipattern: SuperSlicer is AGPLv3, same lineage as OrcaSlicer,
+      license-compatible - confirmed, not just assumed. New `FillScatteredRectilinear` infill
+      pattern (subclass of `FillRectilinear`) generates 100%-density vertical lines then randomly
+      prunes them (seeded by layer index, via `boost::random::mt19937`) to hit the target density
+      on average, giving a randomized light-diffusing texture instead of a uniform grid - useful
+      for light panels/diffusers. Purely additive: new `InfillPattern::ipScatteredRectilinear`
+      enum value appended before the `ipCount` sentinel (preserves existing ordinal positions,
+      and matched by string key via `s_keys_map_InfillPattern` regardless), new subclass with no
+      changes to `FillRectilinear`'s existing behavior, new icon resource. Stripped trailing
+      whitespace on 4 lines the PR's raw diff introduced (no textual change) on apply.
+      **Verified:** `fff_print_tests` builds clean; full suite (excluding the pre-existing
+      `[Invalidation]` crash) shows the same 3 pre-existing `test_support_material.cpp` failures
+      as baseline.
+
+  **Implement:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/Fill/FillRectilinear.cpp` ·
+  `src/libslic3r/Fill/FillRectilinear.hpp` · `src/libslic3r/PrintConfig.cpp` ·
+  `src/libslic3r/PrintConfig.hpp` · `resources/images/param_scatteredrectilinear.svg`

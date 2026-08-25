@@ -1234,15 +1234,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 622
   **Chars:** ~310,819 text total (largest: src/libslic3r/PrintObject.cpp ~299,277) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Port FillScatteredRectilinear from SuperSlicer (#12000)** — new
-      infill pattern. SuperSlicer is AGPLv3 (same lineage as OrcaSlicer, license-compatible),
-      but verify per the competitor-port antipattern before adopting.
-
-  **Context:** `src/libslic3r/Fill/FillRectilinear.cpp`
-  **Route:** claude
-  **Context Load:** 201
-  **Chars:** ~201,254 text total (largest: src/libslic3r/Fill/FillRectilinear.cpp ~201,254) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 2 — Practical Flow Ratio Calibration Test (#11065)** — real
       calibration-workflow feature. Touches unrelated `Emboss.cpp`/`Model.cpp` alongside the
       calibration code — flag for decomposition before taking the whole diff.
