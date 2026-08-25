@@ -1135,8 +1135,23 @@ diff-read time, not assumed from the title here.
   **Chars:** ~601,587 text total (largest: src/libslic3r/GCode.cpp ~542,270) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — "Smooth" outer perimeters (#8443)** — well-known quality feature.
-      Unexpectedly also touches `Support/TreeSupport.cpp` — confirm that's not an unrelated
-      bundled change before taking it as-is.
+      **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** confirmed the
+      `Support/TreeSupport.cpp` touch is **not** a bundle — it's a real, necessary integration
+      point. The feature works by introducing a new `outer_perimeter_layer_divider` config option
+      that Z-subdivides each layer into finer "sub-slices" (`Layer::lsub_slices`/
+      `lsub_slices_merged`, new fields) just for the outer perimeter, giving it a smoother
+      vertical profile than the rest of the layer. `TreeSupport::detect_overhangs` has to read
+      from the new sub-sliced geometry instead of `lslices_extrudable` when the divider is active,
+      or overhang detection would silently use stale/wrong geometry - a real correctness
+      dependency, not an unrelated change riding along.
+      That said, this is genuinely large cross-cutting surgery on the core `Layer` data model:
+      877+/-169 (1,046 total) across 15 files, `mergeable: CONFLICTING` against upstream, and it
+      touches **two** Known Risky Subsystems at once (Arachne/perimeter generation via 580 lines
+      in `PerimeterGenerator.cpp`, and support material via `TreeSupport.cpp`). Under the 1,500-
+      line hard threshold, but the blast radius (every consumer of per-layer slice geometry needs
+      to be checked for whether it also needs sub-slice awareness, not just the two touched here)
+      warrants a dedicated review pass with a slice-and-inspect comparison, not an unattended
+      apply-and-build. Worth a focused follow-up session.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/Layer.cpp`
   **Route:** claude
