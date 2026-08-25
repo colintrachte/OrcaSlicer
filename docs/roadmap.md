@@ -1162,6 +1162,25 @@ diff-read time, not assumed from the title here.
 
 - [ ] **Score 3 🥈 · Class 3 — Fill in truncated octahedron tops, optional setting (#12541)**
       — fixes a visible top-surface gap defect in 3D-honeycomb infill.
+      **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** the actual PR is
+      much bigger than the title suggests. It substantially rewrites `Fill3DHoneycomb.cpp`'s core
+      pattern generation (237+/-125 lines: replaces `colinearPoints`/`perpendPoints`/`zip`/
+      `makeActualGrid` with new `addTops`/`makeEndPoints`/`patternPoints`/`makeZigZag`), and
+      several of those changes affect **every** 3D-honeycomb print regardless of whether the new
+      `infill_complete_top` option is enabled — notably `layerHeight` switches from a hardcoded
+      `scale_(1.0)` to `scale_(params.layer_height)`, the density/`gridSize`/`zScale` branching
+      logic changes (`density > 0.42` → `density > 0.42 || layersPerModule < 2`, with the old
+      else-branch re-adjustment loop removed), a new Z `startOffset` is introduced, and the grid
+      alignment changes from `gridSize*4` to `gridSize*2`. That's a direct conflict with
+      `AGENTS.md`'s "features gated by options must not affect existing behavior when disabled"
+      rule. The PR author's own description says they haven't print-tested it ("I do not
+      currently have access to a 3D printer... purely from inspecting the GCode output"). Per
+      `TRIAGE_POLICY.md`'s Known-Risky-Subsystem verification note, this needs a slice-and-inspect
+      comparison against a canonical 3D-honeycomb model (default settings, option **disabled**)
+      before/after this diff to confirm no silent behavior change, not a blind apply-and-build —
+      out of scope for an unattended pass. Re-enter as **Adapt** tier once that comparison is
+      done, or decompose into "top-fill option" (additive) vs. "existing pattern math rewrite"
+      (needs its own justification) per the bundle-antipattern guidance.
 
   **Context:** `src/libslic3r/Fill/Fill3DHoneycomb.cpp`
   **Route:** claude
