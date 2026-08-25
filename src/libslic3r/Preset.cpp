@@ -1068,6 +1068,7 @@ static std::vector<std::string> s_Preset_print_options{
     "spiral_starting_flow_ratio",
     "spiral_finishing_flow_ratio",
     "slicing_mode",
+    "slicing_tolerance",
     "top_shell_layers",
     "top_shell_thickness",
     "top_surface_density",

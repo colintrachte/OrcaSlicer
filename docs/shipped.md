@@ -487,3 +487,28 @@
   `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/PrintObject.cpp` ·
   `src/libslic3r/Support/SupportCommon.cpp` · `src/slic3r/GUI/ConfigManipulation.cpp` ·
   `src/slic3r/GUI/GUI_Factories.cpp` · `src/slic3r/GUI/Tab.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Add a slicing tolerance option (#9801)** — Cherry-picked
+      (2026-08-24, per `TRIAGE_POLICY.md`'s Cherry-pick tier) from the issue's own PR,
+      OrcaSlicer/OrcaSlicer#9801 itself (open, not draft, 88+/-2 across 7 files). New
+      `slicing_tolerance` option (Middle/Exclusive/Inclusive): for sloped walls, slices each
+      layer's top and bottom Z boundary separately and combines them with an intersection
+      (Exclusive - keeps extrusions strictly within the model, reduces volume) or a union
+      (Inclusive - ensures full coverage, increases volume, useful before sanding/finishing)
+      instead of the single mid-layer slice used today (Middle, the default and only behavior
+      before this change). Gated behind `tolerance != SlicingTol::Default`, so the default
+      "Middle" setting takes the exact original code path unchanged - purely additive.
+      **Fixed on apply:** a real conflict in `Preset.cpp` (the PR's base predates this fork's
+      reformatting of `s_Preset_print_options` from packed comma-lines to one-key-per-line, and
+      several keys added by other cherry-picks already landed this session were on the "theirs"
+      side) - resolved by inserting `"slicing_tolerance"` into the current one-per-line list
+      rather than reintroducing the old packed format. Also fixed a `category = L("other")` typo
+      (should be `L("Other")`, matching every other use of that category name in this file) and
+      stripped trailing whitespace/a stray blank line the PR's raw diff introduced.
+      **Verified:** `fff_print_tests` builds clean; full suite (excluding the pre-existing
+      `[Invalidation]` crash) shows only the same 3 pre-existing failures as baseline.
+
+  **Implement:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PrintConfig.cpp` ·
+  `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/PrintObjectSlice.cpp` ·
+  `src/libslic3r/TriangleMeshSlicer.cpp` · `src/libslic3r/TriangleMeshSlicer.hpp` ·
+  `src/slic3r/GUI/Tab.cpp`

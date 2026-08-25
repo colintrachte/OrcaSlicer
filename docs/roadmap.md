@@ -1117,14 +1117,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 1203
   **Chars:** ~601,587 text total (largest: src/libslic3r/GCode.cpp ~542,270) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Add a slicing tolerance option (#9801)** — touches core
-      mesh-slicing math; real, widely-wanted precision control.
-
-  **Context:** `src/libslic3r/TriangleMeshSlicer.cpp`
-  **Route:** claude
-  **Context Load:** 128
-  **Chars:** ~128,278 text total (largest: src/libslic3r/TriangleMeshSlicer.cpp ~128,278) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — "Smooth" outer perimeters (#8443)** — well-known quality feature.
       Unexpectedly also touches `Support/TreeSupport.cpp` — confirm that's not an unrelated
       bundled change before taking it as-is.
