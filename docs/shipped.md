@@ -332,3 +332,15 @@
 
   **Implement:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
   **Verify:** `tests/libslic3r/test_preset_bundle_loading.cpp`
+
+- [x] **Score 5 🥇 · Class 3 — Support interface material assignment regressed for multi-material supports (#13983)**
+      — DONE verification (2026-08-24, per TRIAGE_POLICY.md's re-entry rule): GitHub shows this
+      issue closed (`state_reason: completed`) at 2026-07-26T22:16:21Z, two seconds after
+      OrcaSlicer/OrcaSlicer#14678 ("Support bugfixes", kisslorand) merged as `04e13200aa`.
+      Confirmed an ancestor of this fork's current HEAD via `git merge-base --is-ancestor`
+      (pulled in by the 2026-08-24 upstream sync) — touches `SupportCommon.cpp`,
+      `SupportParameters.hpp`, `TreeSupport.cpp`, `TreeModelVolumes.cpp`,
+      `TreeSupport3D.cpp`, `TreeSupportCommon.hpp`. No code change needed; closing as already
+      shipped.
+
+  **Context:** `src/libslic3r/Support/SupportMaterial.cpp` · `src/libslic3r/Support/TreeSupport.cpp`

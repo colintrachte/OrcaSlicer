@@ -479,17 +479,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context Load:** 604
   **Chars:** ~301,968 text total (largest: src/libslic3r/Support/TreeSupport3D.cpp ~249,465) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 3 — Support interface material assignment regressed for multi-material supports (#13983)**
-      — Filed as an enhancement but is a regression: up to 2.3.2 the first support-interface
-      layer printed in the support material and subsequent layers in the model material; that
-      assignment broke, causing poor interface adhesion. Touches Support material (Known Risky
-      Subsystem) — a real, if non-crashing, print-quality regression, not a feature request.
-
-  **Context:** `src/libslic3r/Support/SupportMaterial.cpp` · `src/libslic3r/Support/TreeSupport.cpp`
-  **Route:** claude
-  **Context Load:** 746
-  **Chars:** ~373,052 text total (largest: src/libslic3r/Support/TreeSupport.cpp ~195,177) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Option to restrict Support/Raft Interface filament to the top layer only (#13109)**
       — Currently the interface material applies to every interface layer, not just the one
       touching the model. Real workflow request (22 rxn) for multi-material support setups.
