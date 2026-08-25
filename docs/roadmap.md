@@ -1054,6 +1054,23 @@ diff-read time, not assumed from the title here.
 
 - [ ] **Score 3 🥈 · Class 3 — Alternate internal walls direction within a layer (#5839)**
       — related to #9362 below (also a wall-alternation refinement) — read both together.
+      **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** this is the base
+      PR #9362 is built on top of. It **replaces** the existing `overhang_reverse_internal_only`
+      option with a new `alternate_internal_walls` option that is behaviorally different, not
+      just renamed. Old behavior: `overhang_reverse_internal_only` only mattered *when overhang-
+      reversal was already triggered* (`steep_overhang_contour`/`steep_overhang_hole`), and then
+      restricted that reversal to internal perimeters only. New behavior: `alternate_internal_walls`
+      is an independent trigger (`if (steep_overhang_contour || steep_overhang_hole ||
+      alternate_internal_walls)`) that alternates internal-wall winding direction on every layer
+      unconditionally, regardless of overhang detection - a different feature (stress/warping
+      reduction via alternating wall direction) wearing the old option's clothes.
+      `handle_legacy()` does map `overhang_reverse_internal_only=1` → `alternate_internal_walls=1`,
+      so it's not a bare break, but a profile that had the old "only reverse internal walls when
+      overhang-reversing" behavior would silently start alternating internal walls on *every*
+      layer after migration - a real behavior change for existing users, not just a settings-panel
+      rename. Needs an owner decision (keep both as separate options vs. accept the
+      reinterpretation) before this is safe to apply, not an unattended judgment call for Claude
+      per `TRIAGE_POLICY.md`'s Impact≥2-needs-evidence framing extended to compat risk.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/GCode/SeamPlacer.cpp`
   **Route:** claude
@@ -1198,19 +1215,17 @@ diff-read time, not assumed from the title here.
 - [ ] **Score 3 🥈 · Class 3 — Alternate extra wall as a number, not just a boolean (#9362)**
       — refinement of an existing wall-alternation option; related to #5839 above.
       **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** the PR (130+/-52
-      across 10 files: `GCode.cpp`, `SeamPlacer.cpp/.hpp`, `PerimeterGenerator.cpp`, `Preset.cpp`,
-      `PrintConfig.cpp/.hpp`, `PrintObject.cpp`, `ConfigManipulation.cpp`, `Tab.cpp`) silently
-      **deletes** the existing `overhang_reverse_internal_only` config option's definition in
-      `PrintConfig.cpp` — an unrelated option from the paired #5839 feature the PR's own
-      description recommends using alongside this one. That's a bundle (per `TRIAGE_POLICY.md`'s
-      antipattern) and a real backward-compat break (`AGENTS.md`: profile/format changes need
-      migration handling; a project file referencing this option would fail to load or silently
-      drop it after this change with no migration path). Needs decomposing into "widen
-      `alternate_extra_wall` to an int" (the PR's actual title) vs. whatever the
-      `overhang_reverse_internal_only` removal is trying to do (verify against #5839's own scope
-      first — it may have been superseded/merged into this same wall-alternation rework, but that
-      needs to be confirmed, not assumed) before any part is safe to apply. `mergeable: UNKNOWN`
-      on GitHub (stale PR, needs its own refresh/rebase check too).
+      across 10 files) is built directly on top of #5839 (confirmed: diffing the two PRs shows
+      identical content, only line-number/blob-hash drift) and inherits #5839's replacement of
+      `overhang_reverse_internal_only` with `alternate_internal_walls`. **Correction to an earlier
+      note on this item:** it's not a bare deletion with no migration - `handle_legacy()` does map
+      `overhang_reverse_internal_only=1` → `alternate_internal_walls=1`. But the two options are
+      not behaviorally equivalent (see #5839's own flag above for the full explanation), so the
+      migration silently changes what a migrated profile actually does. Still a bundle per
+      `TRIAGE_POLICY.md` (widening `alternate_extra_wall` to an int, the PR's actual title, is
+      entangled with inheriting all of #5839's unrelated option-reinterpretation) and still needs
+      #5839 resolved/reviewed first, not assumed compatible. `mergeable: UNKNOWN` on GitHub (stale
+      PR, needs its own refresh/rebase check too).
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp`
   **Route:** claude
