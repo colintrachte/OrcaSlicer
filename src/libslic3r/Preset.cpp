@@ -1120,6 +1120,7 @@ static std::vector<std::string> s_Preset_print_options{
     "skin_infill_density",
     "align_infill_direction_to_model",
     "extra_solid_infills",
+    "even_loops_flow_ratio", "loop_sequence", "even_loops_speed", "outermost_wall_control",
     "center_of_surface_pattern",
     "separated_infills",
     "minimum_sparse_infill_area",

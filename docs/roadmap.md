@@ -1052,14 +1052,6 @@ diff-read time, not assumed from the title here.
   **Context Load:** 2744
   **Chars:** ~914,755 text total (largest: src/libslic3r/GCode.cpp ~542,270) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — New wall order: Odd-Even (#10622)** — real perimeter-ordering
-      quality feature.
-
-  **Context:** `src/libslic3r/PerimeterGenerator.cpp`
-  **Route:** claude
-  **Context Load:** 167
-  **Chars:** ~167,245 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~167,245) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Alternate internal walls direction within a layer (#5839)**
       — related to #9362 below (also a wall-alternation refinement) — read both together.
 

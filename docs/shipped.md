@@ -405,3 +405,31 @@
       assertions) passes unchanged, confirming no interaction with the #2231 cherry-pick.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — New wall order: Odd-Even (#10622)** — Cherry-picked (2026-08-24,
+      per `TRIAGE_POLICY.md`'s Cherry-pick tier) from OrcaSlicer/OrcaSlicer#10622 itself (open,
+      mergeable). Adds a new `WallSequence::OddEven` mode: odd-numbered inner walls print first
+      (outer-to-inner), then even-numbered walls print in reverse (inner-to-outer), filling the
+      grooves left between the odd walls with extra material for a more monolithic wall - with a
+      configurable `loop_sequence` (inward/outward direction), `even_loops_flow_ratio` and
+      `even_loops_speed` for the even pass, and `outermost_wall_control` to choose whether the
+      outer wall is still isolated and printed last. Confirmed additive and backward-compatible
+      before applying: new enum values (`WallInfillOrder::OddEvenInfill`, `WallSequence::OddEven`)
+      are appended after all existing values and matched by string key (not ordinal), all new
+      logic is gated behind `wall_sequence == WallSequence::OddEven` so existing wall sequences
+      are untouched, and the four new config options are new keys with no collisions.
+      **Cleaned up on apply** (not present in the shipped diff): dropped an unused
+      `static WallSequence _wall_sequence_trig` variable in `ConfigManipulation.cpp` (declared,
+      never read) per `AGENTS.md`'s "keep code concise" review focus, and stripped trailing
+      whitespace the PR's raw diff introduced on ~10 lines across 6 files (comments and string
+      literals only - no textual/behavioral change).
+      **Verified:** `fff_print_tests` builds clean; full suite (excluding the pre-existing
+      `[Invalidation]` crash) shows the same 3 pre-existing `test_support_material.cpp` failures
+      as baseline; `[Bridge]` tag (24 cases) passes unchanged.
+
+  **Implement:** `src/libslic3r/Arachne/utils/ExtrusionLine.hpp` · `src/libslic3r/Config.cpp` ·
+  `src/libslic3r/ExtrusionEntity.cpp` · `src/libslic3r/ExtrusionEntity.hpp` ·
+  `src/libslic3r/GCode.cpp` · `src/libslic3r/Layer.cpp` · `src/libslic3r/PerimeterGenerator.cpp` ·
+  `src/libslic3r/Preset.cpp` · `src/libslic3r/Print.cpp` · `src/libslic3r/PrintConfig.cpp` ·
+  `src/libslic3r/PrintConfig.hpp` · `src/slic3r/GUI/ConfigManipulation.cpp` ·
+  `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Tab.cpp`
