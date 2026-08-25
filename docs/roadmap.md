@@ -1063,6 +1063,22 @@ diff-read time, not assumed from the title here.
 - [ ] **Score 3 🥈 · Class 3 — Precise Seam placement feature (#12974)** — substantial,
       widely-wanted seam feature. Bundles an unrelated Russian localization `.po` file update —
       strip that before adopting per the localization-touch antipattern.
+      **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** confirmed the
+      roadmap's own note is right (`localization/i18n/ru/OrcaSlicer_ru.po` is in the file list,
+      unrelated to the feature). But the real diff is much bigger than "strip the localization
+      file" implies: 2,562 additions across 32 files, a wholly new subsystem
+      (`src/libslic3r/GCode/PreciseSeam.cpp`/`.hpp`, 1,658 new lines alone) with 6 new modifier
+      subtypes, new `.3mf` project-file serialization (`Format/3mf.cpp`), new persisted `Model`/
+      `ModelVolume` state (`Model.cpp`/`.hpp`), and a full new GUI object-list/context-menu/gizmo
+      surface (`GUI_Factories.cpp`, `GUI_ObjectList.cpp`, `3DScene.cpp`, 8 new icon SVGs). This
+      exceeds `TRIAGE_POLICY.md`'s 1,500-line decomposition threshold outright and touches
+      `.3mf` backward-compatibility (`AGENTS.md`: "Backward compatibility required for .3mf
+      project files... Profile/format changes need version migration handling") for a genuinely
+      new persisted format extension, not just a config option — needs a real compat/round-trip
+      check (old files still open; new files degrade sanely in older builds) before merge, plus
+      the GUI gizmo interaction can't be verified without manual testing. Out of scope for an
+      unattended pass; worth a dedicated multi-session pickup given the "widely-wanted" framing,
+      not a quick cherry-pick.
 
   **Context:** `src/libslic3r/GCode/SeamPlacer.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp`
   **Route:** claude
