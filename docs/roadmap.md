@@ -469,16 +469,6 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
   **Context Load:** 604
   **Chars:** ~301,964 text total (largest: src/libslic3r/Support/TreeSupport3D.cpp ~249,461) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Option to restrict Support/Raft Interface filament to the top layer only (#13109)**
-      — Currently the interface material applies to every interface layer, not just the one
-      touching the model. Real workflow request (22 rxn) for multi-material support setups.
-      Touches Support material (Known Risky Subsystem).
-
-  **Context:** `src/libslic3r/Support/SupportMaterial.cpp`
-  **Route:** claude
-  **Context Load:** 178
-  **Chars:** ~177,947 text total (largest: src/libslic3r/Support/SupportMaterial.cpp ~177,947) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-
 - [ ] **Score 3 🥈 · Class 3 — Variable line width on overhangs (#12029)**
       — Wider line width on overhang perimeters measurably improves printability of otherwise
       impossible overhangs. Touches wall generation (Arachne-adjacent).

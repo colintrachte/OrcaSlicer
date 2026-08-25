@@ -454,3 +454,36 @@
   **Implement:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/Fill/FillRectilinear.cpp` ·
   `src/libslic3r/Fill/FillRectilinear.hpp` · `src/libslic3r/PrintConfig.cpp` ·
   `src/libslic3r/PrintConfig.hpp` · `resources/images/param_scatteredrectilinear.svg`
+
+- [x] **Score 3 🥈 · Class 3 — Option to restrict Support/Raft Interface filament to the top layer only (#13109)**
+      — Cherry-picked (2026-08-24, per `TRIAGE_POLICY.md`'s Cherry-pick tier) from the issue's
+      own linked PR, OrcaSlicer/OrcaSlicer#14232 ("Option for Support Interface Filament only
+      where necessary", open, mergeable, 72+/-5 across 11 files). New `minimal_support_interface`
+      option: when enabled, support interface material is used only where it directly touches
+      the printed object/raft (top/bottom/raft contact layers) - support built up *on top of
+      already-printed support* (not touching the object) reverts to the regular support material
+      instead, reducing filament changes for multiplexer (AMS-like) systems and helping with
+      interface filaments that bond poorly to the support filament. Implemented via a new pure-
+      virtual `ExtrusionEntity::set_extrusion_role_all()` (confirmed only 4 subclasses exist in
+      this tree - `ExtrusionPath`, `ExtrusionMultiPath`, `ExtrusionLoop`,
+      `ExtrusionEntityCollection` - all patched by the PR, so no missing-override compile risk)
+      plus a new `PrintObject::reassign_on_object_support()` pass that walks support layers
+      bottom-up and reassigns any support extrusion whose bounding box doesn't overlap the layer
+      below to the plain support role.
+      **Dropped one line on apply** (not in the shipped diff): the PR's
+      `toggle_print_sla_options()` change (`toggle_field("support_minimal_support_interface", ...)`)
+      references a config key that doesn't exist anywhere in this codebase (the real option is
+      `minimal_support_interface`, FFF-only, no `support_` prefix) inside the *SLA* options
+      toggle function - a copy-paste mistake in the PR, not something SLA actually has. Left out;
+      `toggle_field` no-ops gracefully on a missing key either way, so this was inert, not unsafe,
+      but not worth carrying forward.
+      **Verified:** `fff_print_tests` builds clean; full suite (excluding the pre-existing
+      `[Invalidation]` crash) and the `[SupportMaterial]` tag show only the same 3/1 pre-existing
+      failures as baseline (the stale `discarded_branch_meshes` constant from #13983's shipped
+      entry) - no new regressions.
+
+  **Implement:** `src/libslic3r/ExtrusionEntity.hpp` · `src/libslic3r/ExtrusionEntityCollection.hpp` ·
+  `src/libslic3r/Preset.cpp` · `src/libslic3r/Print.hpp` · `src/libslic3r/PrintConfig.cpp` ·
+  `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/PrintObject.cpp` ·
+  `src/libslic3r/Support/SupportCommon.cpp` · `src/slic3r/GUI/ConfigManipulation.cpp` ·
+  `src/slic3r/GUI/GUI_Factories.cpp` · `src/slic3r/GUI/Tab.cpp`
