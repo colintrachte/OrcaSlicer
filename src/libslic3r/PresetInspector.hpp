@@ -105,6 +105,16 @@ std::vector<std::string> recovery_parent_candidates(
 PresetRecoveryActionResult reparent_rejected_preset(
     PresetCollection &collection, const PresetLoadIssue &issue, const std::string &parent_name);
 
+// True if a load issue is a duplicate-canonical-name collision: a preset directory holds two
+// files (typically one in the base/ subfolder, one directly in the type folder) that resolve to
+// the same preset name, so the loader kept the first and silently skipped the second.
+bool is_duplicate_name_load_issue(const PresetLoadIssue &issue);
+
+// Load the shadowed duplicate's content as a new, distinctly-named standalone preset so nothing
+// is lost, then mark the original file as resolved (renamed with a non-.json suffix, bytes
+// preserved) so it stops being rescanned as a conflicting duplicate on the next load.
+PresetRecoveryActionResult resolve_duplicate_preset(PresetCollection &collection, const PresetLoadIssue &issue);
+
 std::string format_preset_inspection(const PresetInspection &inspection);
 std::string format_preset_recovery(const PresetInspection &inspection);
 std::string format_preset_load_issue(const PresetLoadIssue &issue);

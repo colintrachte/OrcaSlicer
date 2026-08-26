@@ -368,10 +368,17 @@ TEST_CASE("User preset rename updates direct children without leaving a duplicat
 {
     TempPresetDir              temp_dir;
     PresetBundle               bundle;
+    PresetsConfigSubstitutions substitutions;
     const fs::path process_dir = temp_dir.path / PRESET_PRINT_NAME;
     const fs::path parent_file = process_dir / "Old Process.json";
     const fs::path child_file = process_dir / "Z Child Process.json";
     fs::create_directories(process_dir);
+    // Loading an (empty) directory first establishes the collection's directory_path, so the
+    // rename below - which computes the new file's path from that, not from any single
+    // preset's existing .file - resolves inside the sandboxed temp dir rather than leaking a
+    // "base/<name>.json" file relative to the test process's actual working directory.
+    bundle.prints.load_presets(temp_dir.path.string(), PRESET_PRINT_NAME, substitutions,
+                               ForwardCompatibilitySubstitutionRule::Disable);
     Preset &old_preset = add_inmemory_preset(bundle.prints, "Old Process");
     old_preset.file = parent_file.string();
     old_preset.save(nullptr);
@@ -424,6 +431,66 @@ TEST_CASE("User preset rename updates direct children without leaving a duplicat
         rename_user_preset(bundle.prints, "Renamed Process", "Z Child Process", &bundle);
     CHECK_FALSE(collision.succeeded);
     CHECK(collision.error.find("already exists") != std::string::npos);
+}
+
+// Regression coverage: a preset directory can hold two files that resolve to the same canonical
+// name (typically one in base/, one directly in the type folder - e.g. after an interrupted
+// save or a manual file copy). The loader keeps whichever it scans first and silently drops the
+// other, recording only a load issue - this proves the drop is recoverable, not a data loss.
+TEST_CASE("Duplicate canonical name load issue can be resolved without losing the shadowed preset",
+          "[Preset][Inspector][Duplicate]")
+{
+    TempPresetDir              temp_dir;
+    PresetBundle               bundle;
+    PresetsConfigSubstitutions substitutions;
+    const fs::path process_dir = temp_dir.path / PRESET_PRINT_NAME;
+    const fs::path base_dir    = process_dir / "base";
+    const fs::path kept_file   = base_dir / "Dup.json";
+    const fs::path shadowed_file = process_dir / "Dup.json";
+
+    DynamicPrintConfig kept_config(bundle.prints.default_preset().config);
+    kept_config.option<ConfigOptionInt>("wall_loops", true)->value = 3;
+    fs::create_directories(base_dir);
+    kept_config.save_to_json(kept_file.string(), "Dup", "User", "1.0.0");
+
+    DynamicPrintConfig shadowed_config(bundle.prints.default_preset().config);
+    shadowed_config.option<ConfigOptionInt>("wall_loops", true)->value = 5;
+    shadowed_config.save_to_json(shadowed_file.string(), "Dup", "User", "1.0.0");
+
+    bundle.prints.load_presets(temp_dir.path.string(), PRESET_PRINT_NAME, substitutions,
+                               ForwardCompatibilitySubstitutionRule::Disable);
+
+    const Preset *kept = bundle.prints.find_preset("Dup", false, true);
+    REQUIRE(kept != nullptr);
+    CHECK(kept->config.option<ConfigOptionInt>("wall_loops")->value == 3);
+    REQUIRE(bundle.prints.load_issues().size() == 1);
+    const PresetLoadIssue &issue = bundle.prints.load_issues().front();
+    CHECK(issue.preset_name == "Dup");
+    CHECK(is_duplicate_name_load_issue(issue));
+
+    const PresetRecoveryActionResult result = resolve_duplicate_preset(bundle.prints, issue);
+    INFO(result.error);
+    REQUIRE(result.succeeded);
+    CHECK(result.preset_name != "Dup");
+    CHECK(result.preset_name.find("Dup") != std::string::npos);
+
+    const Preset *recovered = bundle.prints.find_preset(result.preset_name, false, true);
+    REQUIRE(recovered != nullptr);
+    CHECK(recovered->config.option<ConfigOptionInt>("wall_loops")->value == 5);
+
+    // The originally-kept preset is untouched.
+    const Preset *still_kept = bundle.prints.find_preset("Dup", false, true);
+    REQUIRE(still_kept != nullptr);
+    CHECK(still_kept->config.option<ConfigOptionInt>("wall_loops")->value == 3);
+
+    // The shadowed file is preserved, not deleted, just renamed out of the .json scan.
+    CHECK_FALSE(fs::exists(shadowed_file));
+    CHECK(fs::exists(shadowed_file.string() + ".duplicate-resolved"));
+    CHECK(bundle.prints.load_issues().empty());
+
+    // A second attempt on the same (now-resolved) issue is rejected rather than silently retried.
+    const PresetRecoveryActionResult repeat = resolve_duplicate_preset(bundle.prints, issue);
+    CHECK_FALSE(repeat.succeeded);
 }
 
 TEST_CASE("Rejected child repair reparents the existing preset without creating copies", "[Preset][Inspector][Recovery]")

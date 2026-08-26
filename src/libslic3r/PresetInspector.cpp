@@ -139,6 +139,16 @@ std::string unique_recovery_name(const PresetCollection &collection, const std::
     });
 }
 
+std::string unique_duplicate_copy_name(const PresetCollection &collection, const std::string &source_name)
+{
+    const std::string base_name = get_preset_bare_name(source_name) + " (duplicate copy)";
+    return find_unique_candidate(base_name, " ", [&collection](const std::string &candidate) {
+        return collection.find_preset(candidate, false) != nullptr ||
+               boost::filesystem::exists(collection.path_from_name(candidate, true)) ||
+               boost::filesystem::exists(collection.path_from_name(candidate, false));
+    });
+}
+
 } // namespace
 
 PresetInspection inspect_preset(
@@ -798,6 +808,104 @@ PresetRecoveryActionResult reparent_rejected_preset(
     } catch (const std::exception &error) {
         result.error = error.what();
     }
+    return result;
+}
+
+bool is_duplicate_name_load_issue(const PresetLoadIssue &issue)
+{
+    static const std::string marker = "Another preset with the same canonical name is already loaded.";
+    return issue.reason == marker;
+}
+
+PresetRecoveryActionResult resolve_duplicate_preset(PresetCollection &collection, const PresetLoadIssue &issue)
+{
+    PresetRecoveryActionResult result;
+    if (! is_duplicate_name_load_issue(issue)) {
+        result.error = "This load problem is not a duplicate-name problem.";
+        return result;
+    }
+    const boost::filesystem::path source_path(issue.file);
+    if (! boost::filesystem::is_regular_file(source_path)) {
+        result.error = "The duplicate preset file is no longer available.";
+        return result;
+    }
+
+    DynamicPrintConfig parsed_config;
+    std::map<std::string, std::string> key_values;
+    std::string reason;
+    ConfigSubstitutionContext substitutions(ForwardCompatibilitySubstitutionRule::Enable);
+    try {
+        parsed_config.load_from_json(issue.file, substitutions, true, key_values, reason);
+    } catch (const std::exception &error) {
+        result.error = std::string("OrcaSlicer could not read the duplicate file: ") + error.what();
+        return result;
+    }
+    if (! reason.empty()) {
+        result.error = "OrcaSlicer could not read the duplicate file: " + reason;
+        return result;
+    }
+
+    DynamicPrintConfig resolved_config;
+    const ConfigOptionString *inherits = parsed_config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS);
+    if (inherits == nullptr || inherits->value.empty()) {
+        // A parentless (base) preset's file already holds its full config.
+        resolved_config = std::move(parsed_config);
+    } else {
+        const Preset *parent = collection.find_preset2(inherits->value, true);
+        if (parent == nullptr) {
+            result.error = "The duplicate file inherits from '" + inherits->value +
+                "', which is not available, so OrcaSlicer cannot resolve its full settings.";
+            return result;
+        }
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(collection.type(), extruder_id_name, extruder_variant_name,
+                                               &key_set1, &key_set2);
+        resolved_config = parent->config;
+        extend_default_config_length(parsed_config, false, {});
+        resolved_config.update_diff_values_to_child_config(
+            parsed_config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
+        Preset::normalize(resolved_config);
+    }
+
+    const std::string new_name = unique_duplicate_copy_name(collection, issue.preset_name);
+    set_recovered_identity(resolved_config, collection.type(), new_name);
+    resolved_config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS, true)->value.clear();
+
+    // A detached standalone copy: reuses collection.clone_presets()'s tested insert-and-save
+    // path (also used by install_project_preset) rather than reimplementing it here.
+    Preset source_preset(collection.type(), new_name, false);
+    source_preset.config = std::move(resolved_config);
+
+    std::vector<std::string> failures;
+    try {
+        const bool copied = collection.clone_presets(
+            { &source_preset }, failures,
+            [&new_name](Preset &copy, Preset::Type &) { copy.name = new_name; });
+        if (! copied) {
+            result.error = failures.empty() ? "OrcaSlicer could not create a preset from the duplicate file."
+                                            : "A preset with that name already exists.";
+            return result;
+        }
+    } catch (const std::exception &error) {
+        result.error = error.what();
+        return result;
+    }
+
+    // Mark the original file resolved so it stops colliding on the next load. It is renamed,
+    // not deleted - its bytes are preserved, just moved out of the .json scan.
+    const boost::filesystem::path resolved_path(find_unique_candidate(
+        issue.file + ".duplicate-resolved", "-",
+        [](const std::string &candidate) { return boost::filesystem::exists(candidate); }));
+    // If this rename fails (e.g. a permissions issue), the original file is untouched and the
+    // same duplicate-name issue simply gets reported again on the next load - safe, not silent.
+    boost::system::error_code rename_error;
+    boost::filesystem::rename(source_path, resolved_path, rename_error);
+    if (! rename_error)
+        collection.clear_load_issue(issue.file);
+
+    result.succeeded = true;
+    result.preset_name = new_name;
     return result;
 }
 

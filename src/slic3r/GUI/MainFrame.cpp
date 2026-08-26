@@ -4826,6 +4826,19 @@ void MainFrame::show_preset_recovery(Preset::Type focus_type, const std::string 
                             "' preset library containing '" + missing_parent + "'. Restart OrcaSlicer to load it and reconnect the preset automatically.");
                     };
                 }
+            } else if (is_duplicate_name_load_issue(issue)) {
+                entry.current_path = { issue.preset_name + " (could not load)" };
+                entry.action_label = "Load as Separate Preset";
+                entry.action_hint = "Another preset already uses this name, so OrcaSlicer kept the one that loaded first and skipped this file. Load this one too under a new name so nothing is lost; the original file is kept, renamed so it stops colliding.";
+                entry.action_before_label = "Duplicate file: not loaded";
+                entry.action_after_label = "Loaded as a new, distinctly named preset";
+                entry.action = [collection_ptr = &collection, issue]() -> std::pair<bool, std::string> {
+                    const PresetRecoveryActionResult result = resolve_duplicate_preset(*collection_ptr, issue);
+                    if (! result.succeeded)
+                        return std::make_pair(false, result.error);
+                    return std::make_pair(true, "Loaded the duplicate as '" + result.preset_name +
+                        "'. The original preset kept its name and settings; the duplicate file was renamed, not deleted.");
+                };
             } else {
                 entry.current_path = { issue.preset_name + " (could not load)" };
             }
@@ -4885,6 +4898,20 @@ void MainFrame::update_preset_recovery_state()
         count_collection(bundle.filaments);
     }
     m_topbar->SetPresetRecoveryWarning(issue_count);
+
+    // Notify only when new issues appear (not on every routine recount) and only for a real
+    // increase, so this can't fire repeatedly while the same problem sits unresolved.
+    if (issue_count > m_last_known_preset_issue_count && m_plater != nullptr) {
+        m_plater->get_notification_manager()->push_notification(
+            NotificationType::CustomNotification,
+            NotificationManager::NotificationLevel::WarningNotificationLevel,
+            (issue_count == 1
+                 ? _u8L("A preset could not be loaded because of a naming conflict or missing dependency.")
+                 : (boost::format(_u8L("%1% presets could not be loaded because of naming conflicts or missing dependencies.")) % issue_count).str()),
+            _u8L("Resolve"),
+            [this](wxEvtHandler *) { this->show_preset_recovery(); return true; });
+    }
+    m_last_known_preset_issue_count = issue_count;
 #endif
 }
 

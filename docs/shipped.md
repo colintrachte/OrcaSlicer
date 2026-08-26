@@ -1,3 +1,30 @@
+- [x] **Score 5 🥇 · Class 2 — Duplicate-canonical-name preset load issues were silent; no
+      resolution and no notification (owner-reported, 2026-08-26)** — owner traced a "renamed
+      preset disappeared" report to `PresetCollection::load_presets()` (`Preset.cpp:1742-1748`):
+      when a preset directory holds two files that resolve to the same canonical name (e.g. one
+      in `base/`, one directly in the type folder — confirmed pre-existing on the owner's machine,
+      unrelated to any change this session), the loader keeps whichever it scans first and drops
+      the other with only a `BOOST_LOG_TRIVIAL(warning)` line — no user-facing signal, no
+      resolution path. Renaming this session's own preset-rename feature was cleared as the
+      direct cause (no `.rename-backup` was created for the affected file, and its identity
+      fields were blank, both inconsistent with `rename_user_preset()`'s own guarantees) —  the
+      collision predated it. Added `resolve_duplicate_preset()`/`is_duplicate_name_load_issue()`
+      (`PresetInspector.cpp`) to load the shadowed duplicate as a new, distinctly-named preset
+      (nothing lost) and mark the original file resolved (renamed, not deleted) so it stops
+      re-triggering; wired into the recovery dialog as a "Load as Separate Preset" action.
+      `MainFrame::update_preset_recovery_state()` now also pushes a `NotificationManager` toast
+      with a "Resolve" hyperlink the first time new preset-load issues appear, instead of only
+      lighting a passive toolbar icon the user has to know to check. Also fixed a test-isolation
+      bug found while investigating: the existing preset-rename regression test never initialized
+      its `PresetCollection`'s directory path, so a rename's *new* file (computed from that path,
+      not from any single preset's own `.file`) leaked to `<cwd>/base/<name>.json` — explaining a
+      stray `base/Renamed Process.json` artifact found (and removed) in the repo the night before.
+      New regression test reproduces the exact collision and resolution; `[Preset]` passes 383
+      assertions in 33 cases (up from 367/32), full RelWithDebInfo application target links.
+
+  **Context:** `src/libslic3r/PresetInspector.cpp` · `src/libslic3r/PresetInspector.hpp` ·
+  `src/slic3r/GUI/MainFrame.cpp` · `src/slic3r/GUI/MainFrame.hpp`
+
 - [x] **Score 3 🥈 · Class 3 — Vertical brick / interlock layer printing, "Stagger perimeters"
       (#7282)** — 76 rxn, most-requested pure engine feature. Implemented natively rather than
       cherry-picking unmerged community PR #8181 (self-documented alpha, ignores wall slope) or

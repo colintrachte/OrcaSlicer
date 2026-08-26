@@ -300,6 +300,9 @@ public:
     void        show_preset_recovery(Preset::Type focus_type = Preset::TYPE_INVALID,
                                      const std::string &focus_name = {});
     void        update_preset_recovery_state();
+    // Tracks the last-known preset-recovery issue count so a notification fires only when new
+    // issues appear, not on every routine recount (preset switch, tab change, etc.).
+    size_t      m_last_known_preset_issue_count = 0;
     void        update_side_preset_ui();
     void        on_select_default_preset(SimpleEvent& evt);
 
