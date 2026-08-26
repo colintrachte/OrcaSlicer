@@ -1,7 +1,8 @@
 # OrcaSlicer integrated improvement plan
 
-**Status:** Active; Phase 3 true in-place preset rename is implemented and Windows-verified
-(2026-08-25); the configuration-schema ADR is the remaining Phase 3 exit gate before Phase 4
+**Status:** Active; Phase 3 is complete (2026-08-25) with the configuration-schema ADR recorded;
+Phase 4 (`slic3r_config` pilot continuation, U1 Plater state-machine characterization) is
+unblocked and next
 
 **Scope:** Core slicing/configuration, GUI/plater/rendering, support generation, and the build and
 test infrastructure required to improve them safely

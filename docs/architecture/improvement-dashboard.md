@@ -1,8 +1,9 @@
 # OrcaSlicer improvement dashboard
 
 **Plan:** `research/orcaslicer-improvement-plan.md`
-**Current position:** Phase 3 true in-place preset rename is implemented, tested, and Windows-linked
-(verified 2026-08-25); the configuration-schema ADR is the remaining Phase 3 exit gate
+**Current position:** Phase 3 is complete (rename verified, configuration-schema ADR recorded,
+both 2026-08-25); Phase 4 (`slic3r_config` pilot continuation, U1 Plater state-machine
+characterization) is unblocked and not yet started
 **Evidence scope:** Windows x64; macOS/Linux validation deferred by user
 **Source baseline:** `1bf7950d8db39201e6940514e3ab6d138c98d360` with the recorded working patch
 
@@ -16,8 +17,8 @@ not establish physical print safety.
 | Phase 0 — reconcile and instrument | Complete | Fixture candidates, metrics, diagnostics, and blocked inputs are named below |
 | Phase 1 — correctness net | Complete | G1, C1, and C2 pass their Windows gates |
 | Phase 2 — build containment | Complete | Direct-edge budget; retained `GUI_App.hpp` seam; rejected/reverted GUI PCH candidate |
-| Phase 3 — configuration/product foundation | In progress | P1 implementation/build gates pass; true in-place preset rename implemented, tested, Windows-linked (2026-08-25); remaining gate is the configuration-schema ADR |
-| Phase 4 — enforceable boundaries | Blocked on Phases 1 and 3 | `slic3r_config` target and Plater state characterization require behavioral oracles |
+| Phase 3 — configuration/product foundation | Complete | P1, true in-place preset rename, and the configuration-schema ADR (`docs/architecture/configuration-schema-adr.md`) all pass their Windows gates (2026-08-25) |
+| Phase 4 — enforceable boundaries | Unblocked, not started | `slic3r_config` target continuation (`docs/architecture/module-boundaries.md` action items 4-5) and U1 Plater state-machine characterization now have their required behavioral oracles from Phases 1 and 3 |
 | Phases 5–6 — bounded extraction/expansion | Gated | Run only for a boundary whose prerequisite corpus passes |
 
 ## Fixture inventory and provenance
