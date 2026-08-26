@@ -289,6 +289,10 @@ test ("User preset rename updates direct children without leaving a duplicate",
 selection with unsaved edits, and a same-name collision against an existing preset — all pass. The
 Windows RelWithDebInfo `OrcaSlicer` application target was rebuilt to confirm the link.
 
+Interactive Windows smoke passed 2026-08-25: the owner ran the rebuilt `orca-slicer.exe` by hand
+against a scratch `--datadir` and confirmed rename-in-place behaves as intended. True in-place
+preset rename is now verified at both the automated and interactive layers.
+
 The remaining Phase 3 exit gate is the configuration-schema ADR (per the plan's own sequencing:
 "Record the configuration-schema ADR only after the active contract is observable" — now true,
 since C2's registry oracle and P1/rename's preset-mutation contract are both proven).
