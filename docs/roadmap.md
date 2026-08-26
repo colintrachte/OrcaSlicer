@@ -1227,9 +1227,14 @@ diff-read time, not assumed from the title here.
   **Context Load:** 500
   **Chars:** ~250,161 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~173,759) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 3 🥈 · Class 3 — Precise Seam placement feature (#12974)** — substantial,
+- [ ] **Score 1 🥉 · Class 3 — Precise Seam placement feature (#12974)** — substantial,
       widely-wanted seam feature. Bundles an unrelated Russian localization `.po` file update —
       strip that before adopting per the localization-touch antipattern.
+      **Deprioritized 2026-08-25 (owner direction): back burner relative to maintainability,
+      performance, and UX work** — re-scored 3→1 despite the "widely-wanted" framing; the
+      architecture/improvement-plan work (`research/orcaslicer-improvement-plan.md`) and the
+      preset-management UX decomposition above take precedence. Revisit only after that higher-
+      priority work lands or the owner explicitly re-raises it.
       **Diff-read at pickup (2026-08-24), NOT cherry-picked — flagged instead:** confirmed the
       roadmap's own note is right (`localization/i18n/ru/OrcaSlicer_ru.po` is in the file list,
       unrelated to the feature). But the real diff is much bigger than "strip the localization
