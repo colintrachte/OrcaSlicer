@@ -119,13 +119,46 @@ mechanics with file I/O. Moving it wholesale would violate the forbidden-edge an
 budgets. The next candidate must first isolate an object set whose unresolved symbols close without
 linking back to `libslic3r`.
 
+## Object-symbol evidence for the config-I/O seam (2026-08-25)
+
+A direct symbol search of `Config.cpp` (2,136 lines) found every remaining reverse dependency on
+`LocalesUtils.cpp`, `Utils.cpp`, and `PrintConfig.hpp`'s `SupportMaterialStyle` enum confined to
+exactly 5 `ConfigBase` methods — nothing in the option/registry mechanics (`add`, `option`, `set`
+for non-`double` types, `diff`, `equals`, `apply`, and the rest) touches any of them:
+
+| Method | Lines | Dependency used |
+| --- | --- | --- |
+| `ConfigBase::set(key, double, create)` | 564-~572 | `float_to_string_decimal_point` (one branch of a 4-way type switch only) |
+| `ConfigBase::load_string_map` | 803-818 | `CNumericLocalesSetter` |
+| `ConfigBase::load(file, rule)` (dispatch overload) | 822-836 | `is_gcode_file`, `is_json_file` |
+| `ConfigBase::load_from_json` | 848-1152 | `CNumericLocalesSetter`, `ConfigOptionEnum<SupportMaterialStyle>` (legacy `support_style` migration) |
+| `ConfigBase::load(file, rule)` (second overload, INI path) | 1213-1228 | inherits the same dependency chain as the dispatch overload it calls |
+| `ConfigBase::save` | 1585-1595 | `header_slic3r_generated` |
+
+This closes action item 4's proposal: the seam is real and the object set is these 6 function
+spans (`load_from_json` is one of them, and by far the largest — 305 lines of legacy-key
+migration logic, not simple I/O plumbing). Moving them into a new `ConfigIO.cpp` in the same
+`libslic3r` target (no new compiled target yet, per this ADR's staged decision) would let the
+remaining ~1,800 lines of `Config.cpp` core mechanics drop the `LocalesUtils.hpp`, `Utils.hpp`,
+and `PrintConfig.hpp` includes entirely.
+
+`load_from_json`'s size is the reason this is recorded as evidence rather than executed tonight:
+it is 305 lines of legacy-substitution business logic touching many option keys, not a mechanical
+cut-paste candidate, and Executive Decision 1 in the plan requires characterization/compatibility
+tests before moving code like this, not just object-symbol evidence that it's separable. The
+actual extraction (action item 5) should be its own gated session: extract, rebuild, run the full
+`[Config]`/`[Registry]`/`[Preset]` selectors plus the 67-vendor validator, and only then run the
+formal leaf/clean-build timing benchmarks this ADR's pilot budget table requires.
+
 ## Action items
 
 1. [x] Add and run a `ConfigLeaf` benchmark scenario.
 2. [x] Capture the focused config/preset compatibility cases and current test result.
 3. [x] Replace the `Preset.hpp` dependency with the lightweight `PresetJsonKeys.hpp` seam; retain
        the proven `PrintConfig.hpp` dependency.
-4. [ ] Use object symbols and source ownership to propose the smallest `ConfigCore.cpp` / config-I/O
-       seam.
-5. [ ] Pilot `slic3r_config` only if the proposed object set closes without a forbidden edge; held
-       at this gate in the current iteration.
+4. [x] Use object symbols and source ownership to propose the smallest `ConfigCore.cpp` / config-I/O
+       seam — see "Object-symbol evidence" above: 6 function spans, ~336 lines, dominated by
+       `load_from_json`.
+5. [ ] Extract the proposed `ConfigIO.cpp` seam within the existing `libslic3r` target (no new
+       compiled target yet), verify compatibility tests and both application targets still build,
+       then pilot `slic3r_config` only if the proposed object set closes without a forbidden edge.
