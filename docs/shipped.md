@@ -532,3 +532,45 @@
   `src/libslic3r/GCodeWriter.cpp` · `src/libslic3r/GCodeWriter.hpp` · `src/libslic3r/Preset.cpp` ·
   `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` ·
   `src/slic3r/GUI/ConfigManipulation.cpp` · `src/slic3r/GUI/Tab.cpp`
+
+- [x] **Score 3 🥈 · Class 3 — Variable fan speed (#6738)** — widely-requested cooling feature,
+      touches the cooling buffer and emitted fan values.
+      **Cherry-picked from PR #6738 (2026-08-25), with 5 bugs found and fixed during review** —
+      the 2026-08-24 flag below caught real issues; on user approval, fixed all of them rather
+      than deferring:
+      1. **Sentinel-clamping bug (the one flagged below).** In `GCode.cpp`, the `-1` sentinel
+         meaning "use `bridge_fan_speed` directly" was computed as
+         `std::max(0, int(100 - overlap*100))`, which clamps the sentinel to `0` before the
+         negative-check in `CoolingBuffer.cpp` ever sees it. Fixed by branching explicitly:
+         `if (is_bridge(path.role()) && path.role() != erOverhangPerimeter) overhang_degree = -1;`
+         before the `std::max` computation runs at all, so true bridges always reach the sentinel
+         path.
+      2. **`bridge_fan_speed` default-fallback regression (the one flagged below).** Unset
+         (`-1`) `bridge_fan_speed` fell back to `overhang_fan_speed_max` instead of the user's
+         existing `overhang_fan_speed` — exactly the silent-regression risk identified at
+         pickup. Fixed the fallback in `CoolingBuffer.cpp` to use `overhang_fan_speed`.
+      3. **`internal_bridge_fan_speed` default-fallback regression.** The PR also regressed this
+         *pre-existing* option's fallback to `overhang_fan_speed_max`, directly contradicting its
+         own "backward compatibility" comment. Fixed to fall back to `overhang_fan_speed`.
+      4. **Double-scaling bug in the ramp-up branch.** The first-layers fan ramp reassigns
+         `overhang_fan_speed` before scaling `overhang_fan_speed_max`, so the max was being
+         scaled from an already-ramped value instead of its own pre-ramp value. Reordered so each
+         value scales from its own original value.
+      5. **Incomplete anchored ramp branch.** The "Option-B anchored ramp" branch only ramped
+         `fan_speed_new`/`overhang_fan_speed`, leaving `overhang_fan_speed_max` and
+         `bridge_fan_speed` unramped — a sudden full-speed fan burst on early layers once overhang
+         degree crossed the threshold. Extended the branch to ramp all four values consistently.
+
+      New options: `overhang_fan_speed_max`, `bridge_fan_speed` (independent bridge-cooling knob,
+      default `-1` = fall back to `overhang_fan_speed`). Fan speed is now a gradient between
+      `overhang_fan_speed` and `overhang_fan_speed_max` keyed on per-segment overhang degree, with
+      true bridges using `bridge_fan_speed` directly via the sentinel path above.
+
+      **Verified:** `fff_print_tests` builds clean on `build-vs2026`. Added two regression tests
+      in `tests/fff_print/test_cooling.cpp` with hand-verified exact `M106 S<n>` PWM values —
+      "Bridge fan speed is honored independently of the overhang fan speed" (S43) and "Unset
+      bridge fan speed falls back to the overhang fan speed, not its maximum" (S94) — both pass.
+      Full suite: 160/163 passing, with only the same 3 pre-existing unrelated failures as
+      baseline (no regressions introduced).
+
+  **Context:** `src/libslic3r/GCode/CoolingBuffer.cpp` · `src/libslic3r/GCode.cpp`
