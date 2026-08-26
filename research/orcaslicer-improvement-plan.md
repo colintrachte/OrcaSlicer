@@ -1,6 +1,7 @@
 # OrcaSlicer integrated improvement plan
 
-**Status:** Active; Phase 3 relationship workspace passed Windows validation; true rename next
+**Status:** Active; Phase 3 true in-place preset rename is implemented and Windows-verified
+(2026-08-25); the configuration-schema ADR is the remaining Phase 3 exit gate before Phase 4
 
 **Scope:** Core slicing/configuration, GUI/plater/rendering, support generation, and the build and
 test infrastructure required to improve them safely
@@ -425,6 +426,32 @@ after the read-only mental model is proven.
   links. Interactive Windows validation passed on 2026-08-09 for all three type-focused entry
   points, relationship navigation, no-duplicate in-place repair, restart persistence, and stable
   Windows caption controls. True in-place preset rename is the next separate slice.
+
+### Execution checkpoint — 2026-08-25
+
+- Re-audit found true in-place preset rename already implemented and Windows-verified, undocumented
+  here since 2026-08-24. `rename_user_preset()` (`src/libslic3r/PresetInspector.cpp`) saves the
+  preset under its new name; rewrites direct children's `inherits`/`base_id`; rewrites cross-type
+  `compatible_printers`/`compatible_prints`/`default_print_profile`/`default_filament_profile`
+  references and physical-printer preset links when a `PresetBundle` is supplied; carries forward
+  `setting_id`/`user_id`/`sync_info`/`updated_time`; appends to `renamed_from`; deletes the old
+  file; and re-selects the new name. Every step is wrapped in a snapshot/backup/restore path that
+  undoes all changes if any step throws. `Tab::rename_preset()` wires this to a toolbar button
+  gated to writable, non-bundled, non-project-embedded presets. Re-verification on Windows: clean
+  `libslic3r_tests` build; `[Rename]` 73/9, `[Preset]` 367/32, `[Inspector]` 126/7, all passing at
+  seed 424242; the RelWithDebInfo `OrcaSlicer` application target rebuilt and linked. An interactive
+  Windows smoke of this feature had already run (evidenced by a leaked `base/Renamed Process.json`/
+  `.info` test-datadir artifact accidentally committed in the large `6221b1bcc4` "diagnostics
+  upgrade" commit); that stray artifact has been removed from the repository.
+- `docs/architecture/module-boundaries.md` (the Phase 4 `slic3r_config` compilation-boundary ADR)
+  had mislabeled its own scope "Phase 6" since it was written before this plan's phase numbering was
+  finalized. Corrected to "Phase 4" to match Workstream B3/C3's actual sequencing here — this
+  mislabel is the likely source of an owner query about "phase 6 or 7" work.
+- The remaining Phase 3 exit gate is the configuration-schema ADR: a decision record on whether/how
+  to move settings toward a generated schema, now that C2's registry oracle (759 options, digest
+  `0x4fe1dfc4053e23d5`) and P1/rename's preset-mutation contract are both observable. Phase 4
+  (`slic3r_config` pilot completion, U1 Plater state-machine characterization) remains blocked on
+  this ADR per the dashboard.
 
 ### Phase 0 - Reconcile and instrument (about 1 week)
 

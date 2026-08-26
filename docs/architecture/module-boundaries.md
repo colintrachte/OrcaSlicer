@@ -1,8 +1,10 @@
 # ADR: Staged read-only configuration boundary
 
 **Status:** Accepted for staged implementation; compiled target held at gate
-**Date:** 2026-07-31
-**Decision scope:** Phase 6 `slic3r_config` pilot
+**Date:** 2026-07-31 (scope corrected 2026-08-25: this is the Phase 4 pilot, not Phase 6 — see
+`research/orcaslicer-improvement-plan.md` Workstream B3/C3, sequenced under "Phase 4 - First
+enforceable boundaries")
+**Decision scope:** Phase 4 `slic3r_config` pilot
 **Validation scope:** Windows x64 Release; macOS/Linux validation deferred by user
 
 ## Context

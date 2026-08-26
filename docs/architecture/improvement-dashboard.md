@@ -1,7 +1,8 @@
 # OrcaSlicer improvement dashboard
 
 **Plan:** `research/orcaslicer-improvement-plan.md`
-**Current position:** Phase 3 preset relationship workspace passed Windows smoke; true rename next
+**Current position:** Phase 3 true in-place preset rename is implemented, tested, and Windows-linked
+(verified 2026-08-25); the configuration-schema ADR is the remaining Phase 3 exit gate
 **Evidence scope:** Windows x64; macOS/Linux validation deferred by user
 **Source baseline:** `1bf7950d8db39201e6940514e3ab6d138c98d360` with the recorded working patch
 
@@ -15,7 +16,7 @@ not establish physical print safety.
 | Phase 0 — reconcile and instrument | Complete | Fixture candidates, metrics, diagnostics, and blocked inputs are named below |
 | Phase 1 — correctness net | Complete | G1, C1, and C2 pass their Windows gates |
 | Phase 2 — build containment | Complete | Direct-edge budget; retained `GUI_App.hpp` seam; rejected/reverted GUI PCH candidate |
-| Phase 3 — configuration/product foundation | In progress | P1 implementation/build gates pass; finish the scoped case matrix and manual UI smoke before the schema ADR |
+| Phase 3 — configuration/product foundation | In progress | P1 implementation/build gates pass; true in-place preset rename implemented, tested, Windows-linked (2026-08-25); remaining gate is the configuration-schema ADR |
 | Phase 4 — enforceable boundaries | Blocked on Phases 1 and 3 | `slic3r_config` target and Plater state characterization require behavioral oracles |
 | Phases 5–6 — bounded extraction/expansion | Gated | Run only for a boundary whose prerequisite corpus passes |
 
@@ -263,4 +264,33 @@ the full `[Preset]` selector passes 268 assertions in 24 cases, `git diff --chec
 Windows RelWithDebInfo application links. Interactive Windows validation passed on 2026-08-09:
 the type-focused Printer, Process, and Filament entry points, relationship layout, backed-up
 in-place repair, original-name preservation, restart persistence, and stable caption controls all
-behaved as intended. True in-place preset rename is the next separate slice.
+behaved as intended.
+
+True in-place preset rename is implemented and Windows-verified (found already complete in code
+on re-audit 2026-08-25; the interactive Windows smoke that exercised it left a stray
+`base/Renamed Process.json`/`.info` datadir artifact in the repository, since removed).
+`rename_user_preset()` in `PresetInspector.cpp` saves the preset under its new name, rewrites
+direct children's `inherits`/`base_id`, rewrites cross-type `compatible_printers`/
+`compatible_prints`/`default_print_profile`/`default_filament_profile` references and physical-
+printer preset links when a `PresetBundle` is supplied, carries forward `setting_id`/`user_id`/
+`sync_info`/`updated_time` and appends to `renamed_from`, deletes the old file, and re-selects the
+new name — all wrapped in a snapshot/backup-and-restore path that undoes every change if any step
+throws, so a failed rename never leaves a half-renamed collection. `Tab::rename_preset()` wires
+this to a "Rename this preset in place" toolbar button gated to writable, non-bundled, non-project
+presets, with a confirmation dialog naming the affected child count.
+
+Windows re-verification on 2026-08-25: `libslic3r_tests` builds clean (0 warnings introduced, 0
+errors). `[Rename]` passes 73 assertions in 9 cases; `[Preset]` passes 367 assertions in 32 cases;
+`[Inspector]` passes 126 assertions in 7 cases; all repeated at seed 424242. The dedicated rename
+test ("User preset rename updates direct children without leaving a duplicate",
+`[Preset][Inspector][Rename]`) covers a parent with a child, a cross-type filament
+`compatible_prints` reference, a cross-type printer `default_print_profile` reference, an active
+selection with unsaved edits, and a same-name collision against an existing preset — all pass. The
+Windows RelWithDebInfo `OrcaSlicer` application target was rebuilt to confirm the link.
+
+The remaining Phase 3 exit gate is the configuration-schema ADR (per the plan's own sequencing:
+"Record the configuration-schema ADR only after the active contract is observable" — now true,
+since C2's registry oracle and P1/rename's preset-mutation contract are both proven).
+`docs/architecture/module-boundaries.md` is a different, already-written ADR (the Phase 4
+`slic3r_config` compilation-boundary pilot, not the configuration-schema decision); its header
+mislabeled itself "Phase 6" and has been corrected to "Phase 4" to match this plan's numbering.
