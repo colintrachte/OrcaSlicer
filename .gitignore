@@ -1,7 +1,9 @@
 Build
 Build.bat
 /build*/
+/out/
 CMakeLists.txt.user
+CMakeUserPresets.json
 **/CMakeLists.txt.autosave
 deps/build*
 MYMETA.json
@@ -70,3 +72,5 @@ compile_commands.json
 /logs/
 /build.ps1 - Shortcut.lnk
 *.opc
+/.test/
+docs/superpowers/
