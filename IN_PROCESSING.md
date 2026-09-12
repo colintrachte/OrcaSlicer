@@ -52,7 +52,7 @@ Ensure debug logging can be toggled globally.
 
 Create or update setup and run scripts per platform:
 
-- Windows: setup.bat / setup.ps1, run.bat / run.ps1
+- Windows launcher helpers: `helper_scripts/orcaslicer_launcher/`
 - Linux: setup.sh, run.sh
 - macOS: setup.command, run.command
 

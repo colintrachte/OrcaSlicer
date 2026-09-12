@@ -4,7 +4,10 @@
 #include "I18N.hpp"
 #include "MsgDialog.hpp"
 
+#include <boost/filesystem.hpp>
 #include <wx/button.h>
+#include <wx/choicdlg.h>
+#include <wx/filedlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
@@ -70,6 +73,15 @@ PresetInspectorDialog::PresetInspectorDialog(
     m_action_button = new wxButton(repair_panel, wxID_ANY);
     m_action_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { run_action(); });
     repair_buttons->Add(m_action_button, 0, wxRIGHT, FromDIP(8));
+
+    m_consolidate_button = new wxButton(repair_panel, wxID_ANY, _L("Consolidate..."));
+    m_consolidate_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { run_consolidate(); });
+    repair_buttons->Add(m_consolidate_button, 0, wxRIGHT, FromDIP(8));
+
+    m_export_prusa_button = new wxButton(repair_panel, wxID_ANY, _L("Export Prusa .ini..."));
+    m_export_prusa_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { run_export_prusa(); });
+    repair_buttons->Add(m_export_prusa_button, 0, wxRIGHT, FromDIP(8));
+
     m_use_parent_button = new wxButton(repair_panel, wxID_ANY, _L("Use Selected Base"));
     m_use_parent_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
         const wxTreeItemId selected = m_repair_tree->GetSelection();
@@ -181,10 +193,18 @@ void PresetInspectorDialog::show_report(size_t index)
         m_reports[index] = m_report_generators[index]();
     m_report_text->SetValue(from_u8(m_reports[index]));
     m_selected = index;
+
     const bool has_action = index < m_actions.size() && static_cast<bool>(m_actions[index]);
     m_action_button->Show(has_action);
     if (has_action)
         m_action_button->SetLabel(from_u8(m_action_labels[index]));
+
+    const bool has_consolidate = index < m_entries.size() && static_cast<bool>(m_entries[index].consolidate_action);
+    m_consolidate_button->Show(has_consolidate);
+
+    const bool has_export_prusa = index < m_entries.size() && static_cast<bool>(m_entries[index].export_prusa_action);
+    m_export_prusa_button->Show(has_export_prusa);
+
     rebuild_repair_tree(index);
     Layout();
 }
@@ -197,16 +217,26 @@ void PresetInspectorDialog::rebuild_repair_tree(size_t index)
         return;
     const Entry &entry = m_entries[index];
     const wxTreeItemId root = m_repair_tree->AddRoot(_L("Repair workspace"));
-    if (! entry.suggested_parents.empty() && entry.parent_action) {
+    if (entry.parent_action) {
         m_repair_hint->SetLabel(_L("Drag the unavailable preset onto the base it should use, or select a base to repair the existing preset."));
         m_repair_tree->AppendItem(root, from_u8(entry.label + "  (drag me)"), -1, -1,
                                   new RecoveryTreeData(RecoveryTreeRole::Orphan, index));
-        const wxTreeItemId candidates = m_repair_tree->AppendItem(root, _L("Likely base presets"));
-        for (const std::string &parent : entry.suggested_parents)
-            m_repair_tree->AppendItem(candidates, from_u8(parent), -1, -1,
-                                      new RecoveryTreeData(RecoveryTreeRole::Candidate, index, parent));
+        if (! entry.suggested_parents.empty()) {
+            const wxTreeItemId candidates = m_repair_tree->AppendItem(root, _L("Likely base presets (Name match)"));
+            for (const std::string &parent : entry.suggested_parents)
+                m_repair_tree->AppendItem(candidates, from_u8(parent), -1, -1,
+                                          new RecoveryTreeData(RecoveryTreeRole::Candidate, index, parent));
+            m_repair_tree->Expand(candidates);
+        }
+        if (! entry.all_eligible_parents.empty()) {
+            const wxTreeItemId all_parents = m_repair_tree->AppendItem(root, _L("Browse all base presets"));
+            for (const std::string &parent : entry.all_eligible_parents)
+                m_repair_tree->AppendItem(all_parents, from_u8(parent), -1, -1,
+                                          new RecoveryTreeData(RecoveryTreeRole::Candidate, index, parent));
+            if (entry.suggested_parents.empty())
+                m_repair_tree->Expand(all_parents);
+        }
         m_repair_tree->Expand(root);
-        m_repair_tree->Expand(candidates);
         m_use_parent_button->Show();
         m_use_parent_button->Enable(false);
     } else if (entry.action) {
@@ -217,6 +247,13 @@ void PresetInspectorDialog::rebuild_repair_tree(size_t index)
             ? _L("Original preset (unchanged)") : from_u8(entry.action_before_label));
         m_repair_tree->AppendItem(root, entry.action_after_label.empty()
             ? _L("Recovered standalone copy") : from_u8(entry.action_after_label));
+        m_repair_tree->Expand(root);
+    } else if (! entry.all_eligible_parents.empty()) {
+        m_repair_hint->SetLabel(_L("Base presets available in this profile."));
+        const wxTreeItemId all_parents = m_repair_tree->AppendItem(root, _L("Available base presets"));
+        for (const std::string &parent : entry.all_eligible_parents)
+            m_repair_tree->AppendItem(all_parents, from_u8(parent), -1, -1,
+                                      new RecoveryTreeData(RecoveryTreeRole::Candidate, index, parent));
         m_repair_tree->Expand(root);
     } else {
         m_repair_hint->SetLabel(_L("No safe automatic repair is available for this item."));
@@ -249,13 +286,148 @@ void PresetInspectorDialog::run_parent_action(const std::string &parent_name)
     show_action_result(m_entries[m_selected].parent_action(parent_name));
 }
 
+void PresetInspectorDialog::run_consolidate()
+{
+    if (m_selected >= m_entries.size())
+        return;
+    const Entry &current_entry = m_entries[m_selected];
+    if (! current_entry.consolidate_action)
+        return;
+
+    wxArrayString choices;
+    std::vector<std::string> candidate_names;
+
+    // First add similar presets with match percentage
+    for (const auto &sim : current_entry.similar_summary) {
+        choices.Add(wxString::Format(_L("%s (%.1f%% match)"), from_u8(sim.first), sim.second));
+        candidate_names.push_back(sim.first);
+    }
+
+    // Also add any other user presets in this dialog
+    for (const Entry &other : m_entries) {
+        if (other.is_user_preset && other.preset_name != current_entry.preset_name) {
+            if (std::find(candidate_names.begin(), candidate_names.end(), other.preset_name) == candidate_names.end()) {
+                choices.Add(from_u8(other.preset_name));
+                candidate_names.push_back(other.preset_name);
+            }
+        }
+    }
+
+    if (choices.empty()) {
+        MessageDialog msg(this, _L("No other user presets found in this category to consolidate with."),
+                          _L("Consolidate Profiles"), wxOK | wxICON_INFORMATION);
+        msg.ShowModal();
+        return;
+    }
+
+    wxSingleChoiceDialog chooser(
+        this,
+        wxString::Format(_L("Select a profile to consolidate with '%s':"), from_u8(current_entry.preset_name)),
+        _L("Consolidate Profiles"), choices);
+
+    if (chooser.ShowModal() != wxID_OK)
+        return;
+
+    const int sel = chooser.GetSelection();
+    if (sel < 0 || static_cast<size_t>(sel) >= candidate_names.size())
+        return;
+
+    const std::string target_name = candidate_names[sel];
+
+    wxArrayString actions;
+    actions.Add(wxString::Format(_L("Keep '%s' as master; reparent '%s' to inherit from it"),
+                                 from_u8(current_entry.preset_name), from_u8(target_name)));
+    actions.Add(wxString::Format(_L("Keep '%s' as master; DELETE duplicate '%s' (backed up to .json.bak)"),
+                                 from_u8(current_entry.preset_name), from_u8(target_name)));
+    actions.Add(wxString::Format(_L("Keep '%s' as master; reparent '%s' to inherit from it"),
+                                 from_u8(target_name), from_u8(current_entry.preset_name)));
+
+    wxSingleChoiceDialog action_chooser(
+        this,
+        _L("Choose consolidation strategy:"),
+        _L("Consolidation Action"), actions);
+
+    if (action_chooser.ShowModal() != wxID_OK)
+        return;
+
+    const int action_sel = action_chooser.GetSelection();
+    std::string winner_name, loser_name;
+    bool delete_loser = false;
+
+    if (action_sel == 0) {
+        winner_name = current_entry.preset_name;
+        loser_name = target_name;
+        delete_loser = false;
+    } else if (action_sel == 1) {
+        winner_name = current_entry.preset_name;
+        loser_name = target_name;
+        delete_loser = true;
+    } else if (action_sel == 2) {
+        winner_name = target_name;
+        loser_name = current_entry.preset_name;
+        delete_loser = false;
+    } else {
+        return;
+    }
+
+    MessageDialog confirmation(
+        this,
+        wxString::Format(_L("Consolidate '%s' and '%s'?\n\n"
+                            "Master (Winner): %s\n"
+                            "Secondary (Loser): %s\n"
+                            "Action: %s\n\n"
+                            "An untouched backup (.json.bak) will be saved before any changes."),
+                         from_u8(current_entry.preset_name), from_u8(target_name),
+                         from_u8(winner_name), from_u8(loser_name),
+                         delete_loser ? _L("Delete secondary profile") : _L("Reparent secondary to inherit from master")),
+        _L("Confirm Consolidation"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+
+    if (confirmation.ShowModal() != wxID_YES)
+        return;
+
+    show_action_result(current_entry.consolidate_action(winner_name, loser_name, delete_loser));
+}
+
+void PresetInspectorDialog::run_export_prusa()
+{
+    if (m_selected >= m_entries.size())
+        return;
+    const Entry &entry = m_entries[m_selected];
+    if (! entry.export_prusa_action)
+        return;
+
+    wxString default_name = from_u8(entry.preset_name) + ".ini";
+    wxString default_dir = wxEmptyString;
+    const char *appdata = getenv("APPDATA");
+    if (appdata != nullptr) {
+        boost::filesystem::path ps_dir = boost::filesystem::path(appdata) / "PrusaSlicer";
+        if (boost::filesystem::exists(ps_dir))
+            default_dir = from_u8(ps_dir.string());
+    }
+
+    wxFileDialog save_dialog(
+        this,
+        _L("Export Preset to PrusaSlicer INI"),
+        default_dir,
+        default_name,
+        _L("PrusaSlicer Configuration (*.ini)|*.ini"),
+        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (save_dialog.ShowModal() != wxID_OK)
+        return;
+
+    const std::string path = into_u8(save_dialog.GetPath());
+    const auto result = entry.export_prusa_action(path);
+    show_action_result(result);
+}
+
 void PresetInspectorDialog::show_action_result(const std::pair<bool, std::string> &result_value)
 {
     const auto &[succeeded, message] = result_value;
     if (message.empty())
         return;
     MessageDialog result(this, from_u8(message),
-                         succeeded ? _L("Preset Updated") : _L("Preset Update Failed"), wxOK);
+                         succeeded ? _L("Preset Operation Completed") : _L("Preset Operation Failed"), wxOK);
     result.ShowModal();
     if (succeeded)
         EndModal(wxID_OK);

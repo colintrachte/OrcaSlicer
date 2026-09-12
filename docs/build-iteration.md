@@ -4,6 +4,18 @@ The Windows build driver supports a focused developer path without changing the 
 build/install workflow. A command with `-Target` builds only that CMake target, skips dependency
 rebuilds, and does not run gettext or install unless explicitly requested.
 
+## Long-build operating policy
+
+- Use the smallest target and focused deterministic checks that can reject the current patch.
+- Build Release only when the owner needs to perform a human slicing test. Automated verification,
+  compilation checks, and agent-only work must use focused development targets instead.
+- Run long builds quietly in the background with durable stdout/stderr logs. Check once when the
+  process exits or when the build reports a failure; do not continuously poll ordinary progress.
+- Do not restart a broad build merely to refresh status. Diagnose and resume only after a failure.
+- When the owner needs to slice, only Release is suitable. This repository deliberately compiles
+  RelWithDebInfo with optimization disabled (`/Od`, `/Ob0`) and runtime checks enabled (`/RTC1`),
+  so it is useful for debugging but not a substitute for the owner's slicing build.
+
 ## Common loops
 
 ```powershell
@@ -44,11 +56,26 @@ file, keyed by target, toolset, architecture, configuration, and generator. A re
 failure retries at successively halved ceilings until the build succeeds or reaches one compiler
 worker; each retry is classified from only its own newly appended log output.
 
-The current Windows x64 Release baseline selects two compiler processes. This is a measured local
-default, not a universal machine limit: use `-SafeBuild` after a resource failure and retain the
-generated manifest when reporting it. D8040 child-process communication failures are treated as
-resource failures alongside PCH virtual-memory errors (C3859/C1076 and Windows error 1455) and
-linker heap exhaustion (LNK1102).
+Automatic mode uses the highest ceiling proven by at least three successful builds for the exact
+target/toolset/architecture/configuration/generator identity. A memory failure temporarily lowers
+that ceiling, but three later successes at the same ceiling rehabilitate it; one stale failure does
+not permanently serialize every future build. Use an explicit `-Parallel` value only for a
+controlled probe above the proven ceiling.
+
+Throughput policy minimizes expected completion time, not first-attempt success rate. A controlled
+probe may start one step above the proven ceiling when the potential time saving justifies a retry.
+If it exhausts compiler memory, the retry goes directly to the highest repeatedly proven lower
+ceiling rather than blindly halving past it. Failures that occur only near the end of a build remain
+expensive, so large jumps above the proven ceiling require new measurements rather than enthusiasm
+about logical-core count alone.
+
+The current Windows x64 Release application baseline selects two compiler processes. This is the
+highest repeatedly proven stable ceiling for that memory-intensive target and cut the controlled
+core-header rebuild by about 49% versus one process. Focused targets use their own history and may
+select higher ceilings (p8 is proven for several current RelWithDebInfo test targets). Use
+`-SafeBuild` after an unclassified resource failure and retain the generated manifest when reporting
+it. D8040 child-process communication failures are treated as resource failures alongside PCH
+virtual-memory errors (C3859/C1076 and Windows error 1455) and linker heap exhaustion (LNK1102).
 
 ## Diagnostics and benchmarks
 

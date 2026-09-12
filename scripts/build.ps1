@@ -300,14 +300,50 @@ function Get-ParallelHistory([string] $Path) {
     }
 }
 
+function ConvertTo-ParallelHistoryTimestamp($Value) {
+    try { return [DateTimeOffset]$Value }
+    catch { return [DateTimeOffset]::MinValue }
+}
+
 function Get-LearnedParallelCeiling {
     param([string] $Path, [string] $Key, [int] $AutomaticCeiling)
 
-    $matching = @(Get-ParallelHistory $Path | Where-Object { $_.key -eq $Key })
-    $unsafe = @($matching | Where-Object { $_.memory_failure } | ForEach-Object { [int]$_.parallel })
-    if ($unsafe.Count) {
-        $AutomaticCeiling = [math]::Min($AutomaticCeiling, ([int]($unsafe | Measure-Object -Minimum).Minimum) - 1)
+    $matching = @(Get-ParallelHistory $Path | Where-Object { $_.key -eq $Key } |
+        Sort-Object { ConvertTo-ParallelHistoryTimestamp $_.timestamp })
+    if (-not $matching.Count) { return [math]::Max(1, $AutomaticCeiling) }
+
+    # A resource failure is evidence about the conditions of that run, not a lifetime ban on the
+    # ceiling. Three later successes at the same ceiling rehabilitate it. This prevents a single
+    # stale D8040/PCH failure from forcing all future builds to one compiler process even after the
+    # controlled benchmark and subsequent builds repeatedly prove the higher ceiling stable.
+    $recoverySuccesses = 3
+    $unresolvedUnsafe = New-Object System.Collections.Generic.List[int]
+    foreach ($failure in @($matching | Where-Object { $_.memory_failure })) {
+        $failureTime = ConvertTo-ParallelHistoryTimestamp $failure.timestamp
+        $laterSuccessCount = @($matching | Where-Object {
+            $_.success -and [int]$_.parallel -eq [int]$failure.parallel -and
+            (ConvertTo-ParallelHistoryTimestamp $_.timestamp) -gt $failureTime
+        }).Count
+        if ($laterSuccessCount -lt $recoverySuccesses) {
+            [void]$unresolvedUnsafe.Add([int]$failure.parallel)
+        }
     }
+
+    if ($unresolvedUnsafe.Count) {
+        $AutomaticCeiling = [math]::Min(
+            $AutomaticCeiling,
+            ([int]($unresolvedUnsafe | Measure-Object -Minimum).Minimum) - 1)
+    }
+
+    # Once history exists, do not jump from a merely hardware-derived estimate to an untested
+    # ceiling. Use the highest ceiling demonstrated by at least three successful builds. Explicit
+    # -Parallel remains available for a controlled higher-ceiling benchmark.
+    $proven = @($matching | Where-Object { $_.success } | Group-Object { [int]$_.parallel } |
+        Where-Object { $_.Count -ge $recoverySuccesses } | ForEach-Object { [int]$_.Name })
+    if ($proven.Count) {
+        $AutomaticCeiling = [math]::Min($AutomaticCeiling, [int]($proven | Measure-Object -Maximum).Maximum)
+    }
+
     return [math]::Max(1, $AutomaticCeiling)
 }
 
@@ -334,6 +370,19 @@ function Add-ParallelHistory {
     # This is learned build telemetry, not an unbounded event log.
     $historyArray = if ($history.Count -gt 200) { @($history | Select-Object -Last 200) } else { @($history.ToArray()) }
     ConvertTo-Json -InputObject $historyArray -Depth 4 | Set-Content -LiteralPath $Path -Encoding UTF8
+}
+
+function Get-ProvenParallelCeilingBelow {
+    param([string] $Path, [string] $Key, [int] $CurrentCeiling)
+
+    $recoverySuccesses = 3
+    $provenBelow = @(Get-ParallelHistory $Path | Where-Object {
+        $_.key -eq $Key -and $_.success -and [int]$_.parallel -lt $CurrentCeiling
+    } | Group-Object { [int]$_.parallel } | Where-Object {
+        $_.Count -ge $recoverySuccesses
+    } | ForEach-Object { [int]$_.Name })
+    if (-not $provenBelow.Count) { return $null }
+    return [int]($provenBelow | Measure-Object -Maximum).Maximum
 }
 
 function Test-CompilerMemoryFailure([string] $LogPath, [long] $StartOffset = 0) {
@@ -417,7 +466,13 @@ function Invoke-BoundedBuild {
         if ($code -eq 0) { return 0 }
         if (-not $memoryFailure -or $ceiling -le 1) { return $code }
 
-        $ceiling = [math]::Max(1, [math]::Floor($ceiling / 2))
+        $provenFallback = Get-ProvenParallelCeilingBelow $HistoryPath $HistoryKey $ceiling
+        $ceiling = if ($null -ne $provenFallback) {
+            $provenFallback
+        }
+        else {
+            [math]::Max(1, [math]::Floor($ceiling / 2))
+        }
         Write-Warning "$Phase exhausted compiler memory; retrying with compiler parallelism $ceiling."
     }
 }
@@ -756,7 +811,7 @@ try {
             }
 
             if ($Run) {
-                $launcher = Join-Path $script:RepoRoot 'run.ps1'
+                $launcher = Join-Path $script:RepoRoot 'helper_scripts\orcaslicer_launcher\run.ps1'
                 & $launcher -Configuration $Configuration -Architecture $Architecture -BuildDirectory $slicerBuild
             }
         }

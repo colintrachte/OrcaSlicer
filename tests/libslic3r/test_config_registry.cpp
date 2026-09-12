@@ -34,8 +34,8 @@ TEST_CASE("Normalized print configuration registry is deterministic", "[Config][
     REQUIRE(registry.at("options").is_array());
 
     // Review gate: intentional registry changes update these two values together.
-    CHECK(registry.at("options").size() == 827);
-    CHECK(fnv1a_64(first) == UINT64_C(14416003058665866796));
+    CHECK(registry.at("options").size() == 837);
+    CHECK(fnv1a_64(first) == UINT64_C(6268684061437257480));
 }
 
 TEST_CASE("Normalized registry preserves representative contracts", "[Config][Registry]")

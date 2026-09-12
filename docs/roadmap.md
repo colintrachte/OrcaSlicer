@@ -81,6 +81,22 @@ effort = max(1, round(total_files * total_chars / 1000))
 By severity, carried over from `TODO.md`'s existing Critical → High → Medium → Low
 buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 
+## Owner execution override — 2026-08-29
+
+This order controls pickup even where the severity sections below are ordered differently:
+
+1. Build Windows Release only when the owner needs to perform a human slicing test, and do not poll
+   normal compiler progress. Automated verification and agent-only work use focused development
+   targets. RelWithDebInfo is not a substitute for owner slicing because OrcaSlicer disables
+   optimization and enables runtime checks in that configuration.
+2. Ship **Scope nozzle/variant profile validation to FFF printers** below, including the SLA and
+   malformed-FFF regression cases plus the 67-vendor validator.
+3. Work the **Preset management UX** group and related compatibility defects as the primary
+   product stream. Prioritize reliable preset selection/import/recovery and explanations that let
+   the owner troubleshoot without editing JSON.
+4. Defer architecture pilots, unrelated upstream bugs, support work, and other improvements until
+   the owner confirms preset compatibility and troubleshooting are dependable.
+
 ---
 
 ## 1. Critical — crashes, data loss
@@ -136,6 +152,24 @@ buckets — see `TRIAGE_POLICY.md`'s categories, which map directly onto this.
 ---
 
 ## 2. High — broken functionality, major bugs
+
+- [ ] **Score 5 🥇 · Class 2 — Scope nozzle/variant profile validation to FFF printers**
+      — The CI-style validator currently rejects the valid SLA preset `Anycubic Photon D2`
+      because its validation-only printer rule assumes every instantiable
+      `printer_variant` begins with a numeric nozzle diameter. SLA printers correctly have
+      no `nozzle_diameter` and may use a semantic variant such as `default`. After Phase 4 C3,
+      gate only this nozzle/variant consistency rule on `printer_technology == FFF`; retain
+      the existing model/variant membership checks for both technologies. Add regression
+      coverage proving the SLA profile loads cleanly while malformed FFF numeric, suffix,
+      and multi-nozzle variants remain rejected. Acceptance: the focused preset tests pass
+      and `OrcaSlicer_profile_validator -p resources/profiles -l 2` loads all 67 vendors with
+      no validation error. No profile JSON or vendor-version bump should be needed.
+
+  **Implement:** `src/libslic3r/PresetBundle.cpp` · `tests/libslic3r/test_preset_bundle_loading.cpp`
+  **Context:** `resources/profiles/GenericResin.json` · `resources/profiles/GenericResin/machine/Anycubic Photon D2.json` · `.github/workflows/check_profiles.yml`
+  **Route:** claude
+  **Context Load:** 2133
+  **Chars:** ~426,682 text total (largest: src/libslic3r/PresetBundle.cpp ~338,404) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Previously working filaments now show as "incompatible" after profile changes (#12314)**
       — Compatibility filtering regression; valid filament/printer combos incorrectly
@@ -827,6 +861,22 @@ button` to erase and `Right mouse button` to paint a "blocker"
       — Compare generator-specific trees and `DevFast`, `DevOptimized`, and `Release` options with
       repeated controlled workloads before changing global MSVC optimization/debug/link flags.
 
+- [ ] **Score 1 🥉 · Class 1 — Refresh the bundled Python runtime and synchronized packaging pins**
+      — Evaluate the next supported CPython maintenance or feature release as one coordinated
+      dependency change. Update the exact application/dependency version pins, ABI library name,
+      source checksum, Windows staging and CPython patch applicability, macOS/Linux relocation,
+      Flatpak metadata, and any packaged standard-library or plugin assumptions together. Rebuild
+      dependencies from clean Windows x64 and representative macOS/Linux trees; verify the embedded
+      interpreter, pybind11 module/stub generation, plugins, application packaging, and startup
+      before accepting the update. A globally installed Python is not a substitute for the bundled
+      runtime and must not weaken reproducible-build isolation.
+
+  **Implement:** `CMakeLists.txt` · `deps/python3/python3.cmake` · `deps/python3/stage_windows.cmake` · `deps/python3/relocate_linux.cmake` · `scripts/flatpak/com.orcaslicer.OrcaSlicer.yml` · `build_release_macos.sh`
+  **Context:** `deps/python3/01-windows-nuget.patch` · `src/CMakeLists.txt` · `src/slic3rutils/CMakeLists.txt`
+  **Route:** claude
+  **Context Load:** 1112
+  **Chars:** ~123,534 text total (largest: CMakeLists.txt ~55,608) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+
 - [ ] **Score 3 🥈 · Class 1 — Flatpak runtime on EOL `org.gnome.Platform` branch**
       — Flatpak manifest still targets an end-of-life GNOME runtime branch; update to a current
       LTS branch before it stops receiving security updates. Packaging-only, no print-correctness
@@ -882,8 +932,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `CMakeLists.txt` · `src/libslic3r/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt` · `build_windows.ps1`
   **Write:** `research/architecture-baselines.md` · `scripts/architecture_metrics.ps1`
   **Route:** kimi
-  **Context Load:** 589
-  **Chars:** ~98,159 text total (largest: CMakeLists.txt ~55,608) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 596
+  **Chars:** ~99,253 text total (largest: CMakeLists.txt ~55,608) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Record the configuration-schema architecture decision**
       — Specify ownership of setting identity, type, defaults, bounds, units, translation keys,
@@ -909,8 +959,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/configuration-schema.md` · `research/architecture-baselines.md`
   **Write:** `src/libslic3r/config_schema/` · `scripts/generate_config_schema.py` · `tests/config_schema/`
   **Route:** kimi
-  **Context Load:** 236
-  **Chars:** ~33,692 text total (largest: src/libslic3r/CMakeLists.txt ~17,671) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 241
+  **Chars:** ~34,414 text total (largest: src/libslic3r/CMakeLists.txt ~18,393) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Shadow-generate one low-risk PrintConfig setting family**
       — Encode one representative setting family without activating it. Differentially compare
@@ -921,8 +971,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/config_schema/` · `tests/libslic3r/test_config.cpp` · `src/libslic3r/CMakeLists.txt`
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `tests/data/config_registry/` · `research/architecture-baselines.md`
   **Route:** claude
-  **Context Load:** 5790
-  **Chars:** ~827,141 text total (largest: src/libslic3r/PrintConfig.cpp ~637,672) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 5795
+  **Chars:** ~827,863 text total (largest: src/libslic3r/PrintConfig.cpp ~637,672) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Add the post-upstream schema reconciliation report**
       — Compare the active registry with the shadow schema after each upstream merge and report
@@ -1027,8 +1077,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
   **Context:** `docs/architecture/module-boundaries.md` · `research/architecture-baselines.md` · `src/libslic3r/PrintConfig.hpp`
   **Route:** claude
-  **Context Load:** 1069
-  **Chars:** ~178,154 text total (largest: src/libslic3r/PrintConfig.hpp ~115,678) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1107
+  **Chars:** ~184,419 text total (largest: src/libslic3r/PrintConfig.hpp ~115,678) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Move configuration write and preset-loading paths behind proven targets**
       — Only after the read-only pilot passes its gate, add the mutation/migration interface and a
@@ -1038,8 +1088,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `docs/architecture/module-boundaries.md`
   **Route:** claude
-  **Context Load:** 3607
-  **Chars:** ~601,169 text total (largest: src/libslic3r/PresetBundle.cpp ~338,404) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 3645
+  **Chars:** ~607,434 text total (largest: src/libslic3r/PresetBundle.cpp ~338,404) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Characterize one Plater responsibility and its state boundaries**
       — Choose one cohesive, non-G-code candidate such as selection model, printer assignment, or
@@ -1539,8 +1589,8 @@ verified as fixed — re-check current code before starting either.
 
   **Context:** `src/libslic3r/ConfigRegistry.cpp` · `src/libslic3r/ConfigRegistry.hpp` · `src/libslic3r/PresetImportPreflight.hpp` · `src/libslic3r/PresetInspector.hpp` · `docs/architecture/module-boundaries.md` · `ai_inbox/orcaslicer-build-iteration-plan.md`
   **Route:** kimi
-  **Context Load:** 255
-  **Chars:** ~42,490 text total (largest: ai_inbox/orcaslicer-build-iteration-plan.md ~23,234) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 290
+  **Chars:** ~48,395 text total (largest: ai_inbox/orcaslicer-build-iteration-plan.md ~23,234) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   **Route/Effort/Chars:** run `helper_scripts/route_tasks.py` to stamp
 
 - [ ] **Score 1 🥉 · Class 1 — Duplicated unique-suffix naming logic across preset backup/rename paths**
@@ -1553,8 +1603,8 @@ verified as fixed — re-check current code before starting either.
 
   **Implement:** `src/libslic3r/PresetBundle.cpp` · `src/libslic3r/PresetInspector.cpp`
   **Route:** kimi
-  **Context Load:** 762
-  **Chars:** ~381,143 text total (largest: src/libslic3r/PresetBundle.cpp ~338,404) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 773
+  **Chars:** ~386,356 text total (largest: src/libslic3r/PresetBundle.cpp ~338,404) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   **Route/Effort/Chars:** run `helper_scripts/route_tasks.py` to stamp
 
 ## Code-review findings — 2026-08-24, discovered while verifying the #13891 fuzzy-skin cherry-pick

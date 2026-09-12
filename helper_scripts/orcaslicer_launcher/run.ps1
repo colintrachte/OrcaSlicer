@@ -3,10 +3,10 @@
 Launches a locally built OrcaSlicer from any working directory.
 
 .EXAMPLE
-.\run.ps1
+.\helper_scripts\orcaslicer_launcher\run.ps1
 
 .EXAMPLE
-.\run.ps1 -Configuration RelWithDebInfo -Wait -- --single-instance
+.\helper_scripts\orcaslicer_launcher\run.ps1 -Configuration RelWithDebInfo -Wait -- --single-instance
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(
@@ -26,6 +26,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 
 if (-not $Architecture) {
     $Architecture = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64' -or
@@ -41,7 +42,7 @@ if ($Architecture -eq 'ARM64') { $baseName += '-arm64' }
 
 if ($BuildDirectory) {
     if (-not [IO.Path]::IsPathRooted($BuildDirectory)) {
-        $BuildDirectory = Join-Path $PSScriptRoot $BuildDirectory
+        $BuildDirectory = Join-Path $repoRoot $BuildDirectory
     }
     $buildDirectories = @(Get-Item -LiteralPath $BuildDirectory -ErrorAction SilentlyContinue)
 }
@@ -49,7 +50,7 @@ else {
     # Visual Studio version and Ninja suffixes are added by scripts/build.ps1.
     # Match the complete directory name so Release never selects build-dbginfo.
     $namePattern = '^' + [regex]::Escape($baseName) + '(?:-vs\d+|-ninja)?$'
-    $buildDirectories = @(Get-ChildItem -LiteralPath $PSScriptRoot -Directory |
+    $buildDirectories = @(Get-ChildItem -LiteralPath $repoRoot -Directory |
         Where-Object { $_.Name -match $namePattern })
 }
 

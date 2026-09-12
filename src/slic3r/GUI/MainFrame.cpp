@@ -4629,7 +4629,7 @@ void MainFrame::show_preset_recovery(Preset::Type focus_type, const std::string 
         if (type_browser && collection.type() != focus_type)
             return;
         for (const Preset &preset : collection.get_presets()) {
-            if (! type_browser && ! preset.is_project_embedded && ! preset_needs_recovery(collection, preset))
+            if (! type_browser && ! preset.is_project_embedded && ! preset_needs_recovery(collection, preset) && ! preset.is_user())
                 continue;
             const PresetWithVendorProfile active_printer =
                 bundle->printers.get_edited_preset_with_vendor_profile();
@@ -4644,6 +4644,36 @@ void MainFrame::show_preset_recovery(Preset::Type focus_type, const std::string 
 
             PresetInspectorDialog::Entry entry;
             entry.label = std::string(category) + ": " + preset.name;
+            entry.preset_name = preset.name;
+            entry.is_user_preset = preset.is_user();
+            entry.all_eligible_parents = all_eligible_parent_candidates(collection);
+            for (const auto &sim : inspection.similar_presets)
+                entry.similar_summary.push_back({ sim.target_name, sim.similarity_percent });
+
+            if (preset.is_user()) {
+                entry.consolidate_action = [collection_ptr = &collection](const std::string &winner, const std::string &loser, bool delete_loser) -> std::pair<bool, std::string> {
+                    const PresetRecoveryActionResult res = consolidate_presets(*collection_ptr, winner, loser, delete_loser);
+                    if (! res.succeeded)
+                        return std::make_pair(false, res.error);
+                    std::string msg = "Consolidation complete. ";
+                    if (delete_loser)
+                        msg += "'" + loser + "' was deleted. Backup saved: " + res.backup_file;
+                    else
+                        msg += "'" + loser + "' now inherits from '" + winner + "'. Backup saved: " + res.backup_file;
+                    return std::make_pair(true, msg);
+                };
+            }
+
+            entry.export_prusa_action = [collection_ptr = &collection, preset_name = preset.name](const std::string &dest_path) -> std::pair<bool, std::string> {
+                const Preset *preset_ptr = collection_ptr->find_preset(preset_name, false, true);
+                if (preset_ptr == nullptr)
+                    return std::make_pair(false, "Preset no longer exists in this session.");
+                const PresetRecoveryActionResult res = export_preset_to_prusa_ini(*collection_ptr, *preset_ptr, dest_path);
+                if (! res.succeeded)
+                    return std::make_pair(false, res.error);
+                return std::make_pair(true, "Exported preset successfully.");
+            };
+
             entry.current_path = inspection.parent_chain;
             std::reverse(entry.current_path.begin(), entry.current_path.end());
             if (! inspection.broken_parent.empty())
@@ -4752,6 +4782,22 @@ void MainFrame::show_preset_recovery(Preset::Type focus_type, const std::string 
             const std::string missing_parent = missing_parent_from_load_issue(issue);
             const std::vector<std::string> candidates =
                 recovery_parent_candidates(collection, missing_parent);
+            const std::vector<std::string> all_eligible =
+                all_eligible_parent_candidates(collection);
+            entry.all_eligible_parents = all_eligible;
+            if (! candidates.empty()) {
+                entry.suggested_parents = candidates;
+            }
+            if (! missing_parent.empty() || ! all_eligible.empty()) {
+                entry.parent_action = [collection_ptr = &collection, issue](const std::string &parent_name) {
+                    const PresetRecoveryActionResult result = reparent_rejected_preset(
+                        *collection_ptr, issue, parent_name);
+                    if (! result.succeeded)
+                        return std::make_pair(false, result.error);
+                    return std::make_pair(true, "Repaired '" + result.preset_name +
+                        "' in place. Its settings and version were retained. Backup: " + result.backup_file);
+                };
+            }
             const std::vector<std::string> library_vendors = missing_parent.empty()
                 ? std::vector<std::string>()
                 : PresetBundle::find_preset_vendors(missing_parent, collection.type());
@@ -4776,17 +4822,6 @@ void MainFrame::show_preset_recovery(Preset::Type focus_type, const std::string 
             }
             if (! missing_parent.empty()) {
                 entry.current_path = { "[Missing] " + missing_parent, issue.preset_name + " (could not load)" };
-                if (! candidates.empty()) {
-                    entry.suggested_parents = candidates;
-                    entry.parent_action = [collection_ptr = &collection, issue](const std::string &parent_name) {
-                        const PresetRecoveryActionResult result = reparent_rejected_preset(
-                            *collection_ptr, issue, parent_name);
-                        if (! result.succeeded)
-                            return std::make_pair(false, result.error);
-                        return std::make_pair(true, "Repaired '" + result.preset_name +
-                            "' in place. Its settings and version were retained. Backup: " + result.backup_file);
-                    };
-                }
                 if (! library_vendors.empty()) {
                     entry.action_label = "Install Exact Base Library";
                     entry.action_hint = "The exact missing base is included with OrcaSlicer but its vendor library is not installed in this profile.";

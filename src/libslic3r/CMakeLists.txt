@@ -101,11 +101,11 @@ set(lisbslic3r_sources
     Color.cpp
     Color.hpp
     CommonDefs.hpp
-    Config.cpp
+    ConfigIO.cpp
     Config.hpp
     # ConfigRegistry.cpp/.hpp are deliberately NOT compiled into this target: they have no
     # production caller (only tests/libslic3r/test_config_registry.cpp) and pull in
-    # PrintConfig.hpp, the header this library's Phase 6 firewall pilot is trying to shrink
+    # PrintConfig.hpp, the header this library's Phase 4 firewall pilot is trying to shrink
     # exposure to. See tests/libslic3r/CMakeLists.txt, which compiles ConfigRegistry.cpp
     # directly into the test binary instead.
     ContourZ.cpp
@@ -504,6 +504,32 @@ if (APPLE)
         )
 endif ()
 
+set(slic3r_config_sources
+    Config.cpp
+    Config.hpp
+    format.hpp
+)
+
+add_library(slic3r_config STATIC ${slic3r_config_sources})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${slic3r_config_sources})
+target_compile_definitions(slic3r_config PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_include_directories(slic3r_config PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${Boost_INCLUDE_DIRS}
+)
+target_link_libraries(slic3r_config
+    PUBLIC
+        Eigen3::Eigen
+        boost_headeronly
+        cereal::cereal
+        semver
+        TBB::tbb
+    PRIVATE
+        boost_libs
+        nlohmann_json
+)
+
 add_library(libslic3r STATIC ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     ${OpenVDBUtils_SOURCES})
@@ -556,6 +582,7 @@ if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
 endif ()
 
 encoding_check(libslic3r)
+encoding_check(slic3r_config)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 if (USE_SLIC3R_CONSOLE_LOG)
@@ -603,6 +630,7 @@ set(OCCT_LIBS
 
 target_link_libraries(libslic3r
     PUBLIC
+        slic3r_config
         Eigen3::Eigen
         admesh
         libigl
@@ -622,6 +650,7 @@ target_link_libraries(libslic3r
         JPEG::JPEG
         libslic3r_cgal
         mcut
+        nlohmann_json
         noise::noise
         PNG::PNG
         qhull

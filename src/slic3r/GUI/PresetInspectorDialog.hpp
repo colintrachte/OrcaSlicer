@@ -30,10 +30,17 @@ public:
         RecoveryAction  action;
         std::vector<std::string> current_path;
         std::vector<std::string> suggested_parents;
+        std::vector<std::string> all_eligible_parents;
         ParentRecoveryAction     parent_action;
         std::string              action_hint;
         std::string              action_before_label;
         std::string              action_after_label;
+
+        bool                     is_user_preset { false };
+        std::string              preset_name;
+        std::vector<std::pair<std::string, float>> similar_summary;
+        std::function<std::pair<bool, std::string>(const std::string &winner, const std::string &loser, bool delete_loser)> consolidate_action;
+        std::function<std::pair<bool, std::string>(const std::string &dest_path)> export_prusa_action;
     };
 
     PresetInspectorDialog(wxWindow *parent, const std::vector<Entry> &entries, size_t initial_index = 0);
@@ -45,6 +52,8 @@ private:
     void show_report(size_t index);
     void run_action();
     void run_parent_action(const std::string &parent_name);
+    void run_consolidate();
+    void run_export_prusa();
     void show_action_result(const std::pair<bool, std::string> &result);
     void rebuild_repair_tree(size_t index);
 
@@ -56,6 +65,8 @@ private:
     wxTextCtrl                  *m_report_text { nullptr };
     wxButton                    *m_action_button { nullptr };
     wxButton                    *m_use_parent_button { nullptr };
+    wxButton                    *m_consolidate_button { nullptr };
+    wxButton                    *m_export_prusa_button { nullptr };
     wxStaticText                *m_repair_hint { nullptr };
     wxTreeCtrl                  *m_current_tree { nullptr };
     wxTreeCtrl                  *m_repair_tree { nullptr };

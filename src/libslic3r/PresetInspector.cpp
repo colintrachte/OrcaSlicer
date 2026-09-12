@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cctype>
 #include <exception>
+#include <iomanip>
 #include <map>
 #include <set>
 #include <sstream>
@@ -236,6 +237,18 @@ PresetInspection inspect_preset(
         }
         result.effective_values.push_back({ key, preset.config.opt_serialize(key), std::move(source) });
     }
+
+    try {
+        if (! preset.file.empty() && boost::filesystem::exists(preset.file)) {
+            std::time_t t = boost::filesystem::last_write_time(preset.file);
+            char buf[64];
+            if (std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t)))
+                result.file_last_modified = std::string(buf);
+        }
+    } catch (...) {}
+
+    result.similar_presets = find_similar_presets(collection, preset);
+
     return result;
 }
 
@@ -689,6 +702,242 @@ std::vector<std::string> recovery_parent_candidates(
     return result;
 }
 
+std::vector<std::string> all_eligible_parent_candidates(const PresetCollection &collection)
+{
+    std::vector<std::string> candidates;
+    for (const Preset &preset : collection.get_presets()) {
+        if (preset.is_default || preset.is_project_embedded)
+            continue;
+        if (preset.is_system || preset.inherits().empty())
+            candidates.push_back(preset.name);
+    }
+    std::sort(candidates.begin(), candidates.end());
+    return candidates;
+}
+
+std::vector<PresetSimilarity> find_similar_presets(
+    const PresetCollection &collection, const Preset &preset, float min_similarity_percent)
+{
+    std::vector<PresetSimilarity> result;
+    const std::vector<std::string> keys = preset.config.keys();
+    if (keys.empty())
+        return result;
+
+    for (const Preset &target : collection.get_presets()) {
+        if (target.name == preset.name || target.is_default || target.is_project_embedded)
+            continue;
+
+        std::vector<std::string> diff_keys = PresetCollection::dirty_options(&preset, &target, true);
+        size_t total_keys = std::max(keys.size(), target.config.keys().size());
+        if (total_keys == 0)
+            continue;
+
+        size_t identical_count = total_keys > diff_keys.size() ? (total_keys - diff_keys.size()) : 0;
+        float sim_percent = (static_cast<float>(identical_count) / static_cast<float>(total_keys)) * 100.0f;
+
+        if (sim_percent >= min_similarity_percent) {
+            PresetSimilarity sim;
+            sim.target_name = target.name;
+            sim.similarity_percent = sim_percent;
+            sim.identical_options_count = identical_count;
+            sim.differing_options_count = diff_keys.size();
+
+            try {
+                if (! target.file.empty() && boost::filesystem::exists(target.file)) {
+                    std::time_t t = boost::filesystem::last_write_time(target.file);
+                    char buf[64];
+                    if (std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t)))
+                        sim.last_modified_time = std::string(buf);
+                }
+            } catch (...) {}
+
+            for (const std::string &k : diff_keys) {
+                std::string val_a = preset.config.opt_serialize(k);
+                std::string val_b = target.config.opt_serialize(k);
+                sim.differences.push_back({ k, { val_a, val_b } });
+            }
+            result.push_back(std::move(sim));
+        }
+    }
+
+    std::sort(result.begin(), result.end(), [](const PresetSimilarity &a, const PresetSimilarity &b) {
+        return a.similarity_percent > b.similarity_percent;
+    });
+
+    return result;
+}
+
+PresetRecoveryActionResult consolidate_presets(
+    PresetCollection &collection, const std::string &winner_name, const std::string &loser_name, bool delete_loser)
+{
+    PresetRecoveryActionResult result;
+    Preset *winner = collection.find_preset(winner_name, false, true);
+    const Preset *loser  = collection.find_preset(loser_name, false, true);
+    if (winner == nullptr || loser == nullptr) {
+        result.error = "One or both presets to consolidate were not found.";
+        return result;
+    }
+
+    if (! loser->file.empty() && boost::filesystem::exists(loser->file)) {
+        try {
+            boost::filesystem::path p(loser->file);
+            boost::filesystem::path bak = p;
+            bak.replace_extension(".json.bak");
+            boost::filesystem::copy_file(p, bak, boost::filesystem::copy_option::overwrite_if_exists);
+            result.backup_file = bak.string();
+        } catch (const std::exception &e) {
+            result.error = std::string("Backup before consolidation failed: ") + e.what();
+            return result;
+        }
+    }
+
+    if (delete_loser) {
+        collection.delete_preset(loser_name, true);
+        result.succeeded = true;
+        result.preset_name = winner_name;
+    } else {
+        Preset *loser_ptr = collection.find_preset(loser_name, false, true);
+        if (loser_ptr == nullptr) {
+            result.error = "Could not find profile to update.";
+            return result;
+        }
+        loser_ptr->inherits() = winner_name;
+        loser_ptr->base_id = winner->setting_id;
+        loser_ptr->sync_info = loser_ptr->setting_id.empty() ? "create" : "update";
+        loser_ptr->save(&winner->config);
+        result.succeeded = true;
+        result.preset_name = loser_name;
+    }
+
+    return result;
+}
+
+PresetRecoveryActionResult export_preset_to_prusa_ini(
+    const PresetCollection &collection, const Preset &preset, const std::string &target_file_path)
+{
+    PresetRecoveryActionResult result;
+    try {
+        boost::filesystem::path target(target_file_path);
+        if (target.has_parent_path() && ! boost::filesystem::exists(target.parent_path()))
+            boost::filesystem::create_directories(target.parent_path());
+
+        boost::nowide::ofstream out(target.string(), std::ios::out | std::ios::trunc);
+        if (! out) {
+            result.error = "Could not open target file for writing: " + target_file_path;
+            return result;
+        }
+
+        out << "# generated by OrcaSlicer Preset Inspector for PrusaSlicer\n";
+        out << "# preset_name = " << preset.name << "\n\n";
+
+        static const std::map<std::string, std::string> key_map = {
+            { "nozzle_temperature", "temperature" },
+            { "nozzle_temperature_initial_layer", "first_layer_temperature" },
+            { "bed_temperature", "bed_temperature" },
+            { "bed_temperature_initial_layer", "first_layer_bed_temperature" },
+            { "outer_wall_speed", "external_perimeter_speed" },
+            { "inner_wall_speed", "perimeter_speed" },
+            { "sparse_infill_speed", "infill_speed" },
+            { "internal_solid_infill_speed", "solid_infill_speed" },
+            { "top_surface_speed", "top_solid_infill_speed" },
+            { "initial_layer_speed", "first_layer_speed" },
+            { "initial_layer_infill_speed", "first_layer_speed" },
+            { "initial_layer_print_height", "first_layer_height" },
+            { "initial_layer_line_width", "first_layer_extrusion_width" },
+            { "outer_wall_line_width", "external_perimeter_extrusion_width" },
+            { "inner_wall_line_width", "perimeter_extrusion_width" },
+            { "sparse_infill_line_width", "infill_extrusion_width" },
+            { "top_surface_line_width", "top_infill_extrusion_width" },
+            { "internal_solid_infill_line_width", "solid_infill_extrusion_width" },
+            { "support_line_width", "support_material_extrusion_width" },
+            { "slow_down_layers", "slowdown_below_layer_time" },
+            { "reduce_fan_stop_start_freq", "fan_always_on" },
+            { "fan_speed", "max_fan_speed" },
+            { "fan_min_speed", "min_fan_speed" },
+            { "bridge_fan_speed", "bridge_fan_speed" },
+            { "filament_flow_ratio", "extrusion_multiplier" },
+            { "filament_diameter", "filament_diameter" },
+            { "filament_density", "filament_density" },
+            { "filament_cost", "filament_cost" },
+            { "bed_custom_model", "bed_custom_model" },
+            { "bed_custom_texture", "bed_custom_texture" },
+            { "printable_area", "bed_shape" },
+            { "printable_height", "max_print_height" },
+            { "gcode_flavor", "gcode_flavor" },
+            { "machine_start_gcode", "start_gcode" },
+            { "machine_end_gcode", "end_gcode" },
+            { "change_filament_gcode", "filament_load_gcode" },
+            { "machine_pause_gcode", "pause_print_gcode" },
+            { "layer_change_gcode", "layer_gcode" },
+            { "retraction_length", "retract_length" },
+            { "retraction_speed", "retract_speed" },
+            { "deretraction_speed", "deretract_speed" },
+            { "retract_restart_extra", "retract_restart_extra" },
+            { "retract_when_changing_layer", "retract_layer_change" },
+            { "wipe_distance", "retract_lift" },
+            { "nozzle_diameter", "nozzle_diameter" },
+            { "layer_height", "layer_height" },
+            { "travel_speed", "travel_speed" },
+            { "bridge_speed", "bridge_speed" }
+        };
+
+        auto translate_gcode = [](std::string text) {
+            static const std::vector<std::pair<std::string, std::string>> replacements = {
+                { "[bed_temperature_initial_layer_single]", "[first_layer_bed_temperature]" },
+                { "[bed_temperature_initial_layer]", "[first_layer_bed_temperature]" },
+                { "[nozzle_temperature_initial_layer]", "[first_layer_temperature]" },
+                { "[nozzle_temperature]", "[temperature]" },
+                { "[bed_temperature]", "[bed_temperature]" },
+                { "[initial_layer_print_height]", "[first_layer_height]" },
+                { "[initial_layer_speed]", "[first_layer_speed]" },
+                { "[initial_layer_line_width]", "[first_layer_extrusion_width]" },
+                { "[filament_type]", "[filament_type]" }
+            };
+            for (const auto &r : replacements) {
+                size_t pos = 0;
+                while ((pos = text.find(r.first, pos)) != std::string::npos) {
+                    text.replace(pos, r.first.length(), r.second);
+                    pos += r.second.length();
+                }
+            }
+            return text;
+        };
+
+        for (const std::string &key : preset.config.keys()) {
+            if (key == BBL_JSON_KEY_INHERITS || key == "from" || key == "version" ||
+                key == "instantiation" || key == "is_custom_defined" || key == "setting_id")
+                continue;
+
+            std::string out_key = key;
+            auto it = key_map.find(key);
+            if (it != key_map.end())
+                out_key = it->second;
+
+            std::string val = preset.config.opt_serialize(key);
+            if (boost::algorithm::ends_with(key, "_gcode")) {
+                val = translate_gcode(val);
+                std::string escaped;
+                for (char c : val) {
+                    if (c == '\n') escaped += "\\n";
+                    else if (c == '\r') continue;
+                    else escaped += c;
+                }
+                val = escaped;
+            }
+
+            out << out_key << " = " << val << "\n";
+        }
+
+        out.close();
+        result.succeeded = true;
+        result.preset_name = preset.name;
+        result.backup_file = target.string();
+    } catch (const std::exception &e) {
+        result.error = e.what();
+    }
+    return result;
+}
+
 PresetRecoveryActionResult reparent_rejected_preset(
     PresetCollection &collection, const PresetLoadIssue &issue, const std::string &parent_name)
 {
@@ -919,8 +1168,11 @@ std::string format_preset_inspection(const PresetInspection &inspection)
         << "  Provenance: " << inspection.provenance << '\n';
     if (! inspection.vendor.empty())
         out << "  Vendor: " << inspection.vendor << '\n';
-    if (! inspection.file.empty())
+    if (! inspection.file.empty()) {
         out << "  File: " << inspection.file << '\n';
+        if (! inspection.file_last_modified.empty())
+            out << "  Last modified: " << inspection.file_last_modified << '\n';
+    }
     out << "  Visibility: " << inspection.visibility_reason << '\n'
         << "  Compatibility: " << inspection.compatibility_reason << "\n\n";
 
@@ -939,6 +1191,18 @@ std::string format_preset_inspection(const PresetInspection &inspection)
             out << "  - " << issue.preset_name << ": " << issue.reason;
             if (! issue.file.empty())
                 out << " [" << issue.file << "]";
+            out << '\n';
+        }
+    }
+
+    if (! inspection.similar_presets.empty()) {
+        out << "Similar presets:\n";
+        for (const PresetSimilarity &sim : inspection.similar_presets) {
+            out << "  - " << sim.target_name << ": "
+                << std::fixed << std::setprecision(1) << sim.similarity_percent << "% match ("
+                << sim.differing_options_count << " diffs)";
+            if (! sim.last_modified_time.empty())
+                out << " [" << sim.last_modified_time << "]";
             out << '\n';
         }
     }
@@ -1008,6 +1272,32 @@ std::string format_preset_recovery(const PresetInspection &inspection)
     if (! inspection.child_presets.empty())
         out << "Presets based on this one: " << inspection.child_presets.size() << "\n";
     out << "Source: " << inspection.provenance << "\n";
+    if (! inspection.file.empty()) {
+        out << "File: " << inspection.file << "\n";
+        if (! inspection.file_last_modified.empty())
+            out << "Last modified: " << inspection.file_last_modified << "\n";
+    }
+
+    if (! inspection.similar_presets.empty()) {
+        out << "\nSimilar Presets Identified (" << inspection.similar_presets.size() << "):\n";
+        for (const PresetSimilarity &sim : inspection.similar_presets) {
+            out << "  * \"" << sim.target_name << "\" - "
+                << std::fixed << std::setprecision(1) << sim.similarity_percent << "% match ("
+                << sim.differing_options_count << " differences)";
+            if (! sim.last_modified_time.empty())
+                out << " [Modified: " << sim.last_modified_time << "]";
+            out << "\n";
+            size_t diff_shown = 0;
+            for (const auto &d : sim.differences) {
+                if (diff_shown >= 4) {
+                    out << "      ... and " << (sim.differences.size() - diff_shown) << " more differences\n";
+                    break;
+                }
+                out << "      - " << d.first << ": '" << d.second.first << "' vs '" << d.second.second << "'\n";
+                diff_shown++;
+            }
+        }
+    }
     return out.str();
 }
 

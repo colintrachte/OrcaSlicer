@@ -73,8 +73,8 @@ Use the canonical PowerShell driver from the repository root:
 .\scripts\build.ps1 -Run
 ```
 
-Launch an existing local build from any directory with `run.bat`, or select a
-configuration explicitly with `run.ps1 -Configuration RelWithDebInfo`. To create a
+Launch an existing local build from any directory with `helper_scripts/orcaslicer_launcher/run.bat`, or select a
+configuration explicitly with `helper_scripts/orcaslicer_launcher/run.ps1 -Configuration RelWithDebInfo`. To create a
 desktop shortcut suitable for taskbar pinning, run:
 
 ```powershell

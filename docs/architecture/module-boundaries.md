@@ -113,11 +113,11 @@ definitions. The final Visual Studio 2026 no-op application build completed in 3
 zero objects rebuilt, and `OrcaSlicer.dll` remained exactly 128,203,776 bytes, so the linked-artifact
 no-growth check passes.
 
-The compiled `slic3r_config` target remains held. `Config.cpp` still calls symbols owned by
-`LocalesUtils.cpp` and `Utils.cpp`, still uses a print-schema enum, and still combines generic
-mechanics with file I/O. Moving it wholesale would violate the forbidden-edge and focused-link
-budgets. The next candidate must first isolate an object set whose unresolved symbols close without
-linking back to `libslic3r`.
+The compiled `slic3r_config` target remained held at this checkpoint. `Config.cpp` still called
+symbols owned by `LocalesUtils.cpp` and `Utils.cpp`, still used a print-schema enum, and still
+combined generic mechanics with file I/O. Moving it wholesale would have violated the
+forbidden-edge and focused-link budgets. The next candidate therefore had to isolate an object set
+whose unresolved symbols closed without linking back to `libslic3r`.
 
 ## Object-symbol evidence for the config-I/O seam (2026-08-25)
 
@@ -150,6 +150,36 @@ actual extraction (action item 5) should be its own gated session: extract, rebu
 `[Config]`/`[Registry]`/`[Preset]` selectors plus the 67-vendor validator, and only then run the
 formal leaf/clean-build timing benchmarks this ADR's pilot budget table requires.
 
+## Config-I/O extraction result (2026-08-28)
+
+The proposed seam is now extracted mechanically. `ConfigIO.cpp` owns the six previously identified
+`ConfigBase` spans: the `double` setter, string-map loader, file-dispatch loader, both JSON-loader
+overloads, and `save`. `Config.cpp` remains in the existing `libslic3r` target and no public
+signature or serialization key changed. Its source no longer includes `LocalesUtils.hpp`,
+`Utils.hpp`, or `PrintConfig.hpp`; all uses of `CNumericLocalesSetter`, file-type helpers,
+`float_to_string_decimal_point`, `SupportMaterialStyle`, and `header_slic3r_generated` are confined
+to `ConfigIO.cpp`.
+
+Windows RelWithDebInfo verification passed the rebuilt `libslic3r_tests` target and the combined
+`[Config],[Registry],[Preset]` selector at seed 424242: 642 assertions in 66 cases. The application
+target then completed a broad rebuild and linked `OrcaSlicer.dll` successfully. The registry oracle
+was refreshed from 827 to 837 options and digest `0x56fed6f0e31ee708` after tracing the ten additions
+to six already-merged setting commits; the extraction itself adds no registry entries.
+
+The 67-vendor profile validator builds and loads all vendors, but the repository baseline currently
+fails its CI-style validation command because the SLA preset `Anycubic Photon D2` declares
+`printer_variant = default` with an empty `nozzle_diameter`. This is outside the config-I/O move and
+is recorded as a pre-existing profile-data gate rather than silently folded into the architecture
+patch.
+
+Post-extraction `dumpbin /symbols` evidence shows no unresolved project-owned call from
+`Config.obj` into locale utilities, general utilities, print schema, presets, app config, or GUI
+code. The remaining unresolved edges are the C++ runtime and already-approved external libraries
+(notably Boost, cereal, Eigen, and nowide). This satisfies the object-closure prerequisite for a
+standalone target proposal. Creating `slic3r_config` is intentionally the next isolated change so
+its focused link, rebuild fan-out, timing, and artifact-size effects remain attributable rather
+than being mixed with this source extraction.
+
 ## Action items
 
 1. [x] Add and run a `ConfigLeaf` benchmark scenario.
@@ -159,6 +189,9 @@ formal leaf/clean-build timing benchmarks this ADR's pilot budget table requires
 4. [x] Use object symbols and source ownership to propose the smallest `ConfigCore.cpp` / config-I/O
        seam — see "Object-symbol evidence" above: 6 function spans, ~336 lines, dominated by
        `load_from_json`.
-5. [ ] Extract the proposed `ConfigIO.cpp` seam within the existing `libslic3r` target (no new
-       compiled target yet), verify compatibility tests and both application targets still build,
-       then pilot `slic3r_config` only if the proposed object set closes without a forbidden edge.
+5. [x] Extract the proposed `ConfigIO.cpp` seam within the existing `libslic3r` target and verify
+       the focused compatibility tests and Windows application target; the profile-validator target
+       builds, with its unrelated Anycubic SLA data failure recorded above.
+6. [ ] Create the standalone `slic3r_config` pilot now that `Config.obj` closes without a forbidden
+       project edge; prove the focused link, rebuild fan-out, timings, and linked-artifact budgets as
+       a separate attributable change.

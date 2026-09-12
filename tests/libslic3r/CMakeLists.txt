@@ -47,6 +47,20 @@ add_executable(${_TEST_NAME}_tests
     ../libnest2d/printer_parts.cpp
     )
 
+add_executable(slic3r_config_tests
+    test_config_core.cpp
+)
+
+target_link_libraries(slic3r_config_tests
+    test_common
+    slic3r_config
+    Catch2::Catch2WithMain
+)
+target_include_directories(slic3r_config_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/libslic3r)
+set_property(TARGET slic3r_config_tests PROPERTY FOLDER "tests")
+
+orcaslicer_discover_tests(slic3r_config_tests)
+
 if (TARGET OpenVDB::openvdb)
     target_sources(${_TEST_NAME}_tests PRIVATE test_hollowing.cpp)
 endif()

@@ -11,6 +11,12 @@
 OrcaSlicer: an open source Next-Gen Slicing Software for Precision 3D Prints.  
 Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
 
+## Windows source launcher
+
+After cloning, double-click **`START ORCASLICER.vbs`** in the repository root. It is the
+only launcher entry point intended for ordinary use. Build prerequisites, source builds,
+shortcuts, version selection, and launching are handled in that one window.
+
 # Official links and community
 
 #### Official Website:

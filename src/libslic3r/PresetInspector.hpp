@@ -16,6 +16,16 @@ struct PresetEffectiveValue
     std::string source_preset;
 };
 
+struct PresetSimilarity
+{
+    std::string target_name;
+    float       similarity_percent { 0.0f };
+    size_t      identical_options_count { 0 };
+    size_t      differing_options_count { 0 };
+    std::vector<std::pair<std::string, std::pair<std::string, std::string>>> differences;
+    std::string last_modified_time;
+};
+
 struct PresetInspection
 {
     std::string name;
@@ -25,6 +35,7 @@ struct PresetInspection
     std::string provenance;
     std::string vendor;
     std::string file;
+    std::string file_last_modified;
 
     bool        visible { true };
     std::string visibility_reason;
@@ -38,6 +49,7 @@ struct PresetInspection
     std::vector<std::string> orphaned_sidecars;
     std::vector<PresetLoadIssue> load_issues;
     std::vector<PresetEffectiveValue> effective_values;
+    std::vector<PresetSimilarity> similar_presets;
 };
 
 struct PresetRecoveryCopyOptions
@@ -115,8 +127,24 @@ bool is_duplicate_name_load_issue(const PresetLoadIssue &issue);
 // preserved) so it stops being rescanned as a conflicting duplicate on the next load.
 PresetRecoveryActionResult resolve_duplicate_preset(PresetCollection &collection, const PresetLoadIssue &issue);
 
+// Return all loaded base/system presets that can serve as a parent for an orphan or reparenting.
+std::vector<std::string> all_eligible_parent_candidates(const PresetCollection &collection);
+
+// Finds presets in the same collection with high similarity (above min_similarity_percent).
+std::vector<PresetSimilarity> find_similar_presets(
+    const PresetCollection &collection, const Preset &preset, float min_similarity_percent = 65.0f);
+
+// Consolidates two presets: winner settings override loser, or winner replaces loser with backup.
+PresetRecoveryActionResult consolidate_presets(
+    PresetCollection &collection, const std::string &winner_name, const std::string &loser_name, bool delete_loser = false);
+
+// Export a preset's fully resolved configuration to a PrusaSlicer-compatible .ini file.
+PresetRecoveryActionResult export_preset_to_prusa_ini(
+    const PresetCollection &collection, const Preset &preset, const std::string &target_file_path);
+
 std::string format_preset_inspection(const PresetInspection &inspection);
 std::string format_preset_recovery(const PresetInspection &inspection);
 std::string format_preset_load_issue(const PresetLoadIssue &issue);
 
 } // namespace Slic3r
+

@@ -33,3 +33,42 @@ TEST_CASE("deep_diff flags new vector entries that duplicate values[0]", "[Prese
     // specific to new indices rather than flagging the whole vector.
     REQUIRE(std::find(diff.begin(), diff.end(), "nozzle_diameter#0") == diff.end());
 }
+
+#include <boost/filesystem.hpp>
+#include <boost/nowide/fstream.hpp>
+#include "libslic3r/PresetInspector.hpp"
+
+TEST_CASE("all_eligible_parent_candidates returns eligible base presets", "[PresetInspector]")
+{
+    PresetCollection collection(Preset::TYPE_PRINTER, Preset::printer_options(),
+                                static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()));
+
+    std::vector<std::string> candidates = all_eligible_parent_candidates(collection);
+    // Default preset is filtered out
+    REQUIRE(std::find(candidates.begin(), candidates.end(), "- default -") == candidates.end());
+}
+
+TEST_CASE("export_preset_to_prusa_ini translates gcode macros and keys", "[PresetInspector]")
+{
+    PresetCollection collection(Preset::TYPE_PRINTER, Preset::printer_options(),
+                                static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()));
+
+    Preset p(Preset::TYPE_PRINTER, "TestPrinter");
+    p.config.set_key_value("machine_start_gcode", new ConfigOptionString("M190 S[bed_temperature_initial_layer_single]\nM109 S[nozzle_temperature_initial_layer]"));
+    p.config.set_key_value("outer_wall_speed", new ConfigOptionFloat(45.0));
+
+    boost::filesystem::path temp_ini = boost::filesystem::temp_directory_path() / "orca_test_export.ini";
+    auto res = export_preset_to_prusa_ini(collection, p, temp_ini.string());
+    REQUIRE(res.succeeded);
+
+    boost::nowide::ifstream in(temp_ini.string());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    boost::system::error_code ec;
+    boost::filesystem::remove(temp_ini, ec);
+
+    REQUIRE(content.find("start_gcode") != std::string::npos);
+    REQUIRE(content.find("[first_layer_bed_temperature]") != std::string::npos);
+    REQUIRE(content.find("[first_layer_temperature]") != std::string::npos);
+    REQUIRE(content.find("external_perimeter_speed = 45") != std::string::npos);
+}

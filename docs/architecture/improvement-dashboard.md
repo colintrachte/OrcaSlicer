@@ -1,9 +1,10 @@
 # OrcaSlicer improvement dashboard
 
 **Plan:** `research/orcaslicer-improvement-plan.md`
-**Current position:** Phase 3 is complete (rename verified, configuration-schema ADR recorded,
-both 2026-08-25); Phase 4 (`slic3r_config` pilot continuation, U1 Plater state-machine
-characterization) is unblocked and not yet started
+**Current position:** Re-prioritized 2026-08-29. Phase 4 is paused after the verified C3 config-I/O
+seam. Now: finish the owner-requested Windows Release build, then ship the SLA profile-validation fix.
+Next: preset compatibility, recovery, and troubleshooting. The standalone `slic3r_config` target,
+U1 Plater characterization, and all other improvement work are Later.
 **Evidence scope:** Windows x64; macOS/Linux validation deferred by user
 **Source baseline:** `1bf7950d8db39201e6940514e3ab6d138c98d360` with the recorded working patch
 
@@ -18,7 +19,9 @@ not establish physical print safety.
 | Phase 1 — correctness net | Complete | G1, C1, and C2 pass their Windows gates |
 | Phase 2 — build containment | Complete | Direct-edge budget; retained `GUI_App.hpp` seam; rejected/reverted GUI PCH candidate |
 | Phase 3 — configuration/product foundation | Complete | P1, true in-place preset rename, and the configuration-schema ADR (`docs/architecture/configuration-schema-adr.md`) all pass their Windows gates (2026-08-25) |
-| Phase 4 — enforceable boundaries | Unblocked, not started | `slic3r_config` target continuation (`docs/architecture/module-boundaries.md` action items 4-5) and U1 Plater state-machine characterization now have their required behavioral oracles from Phases 1 and 3 |
+| Immediate product gate | In progress | Owner-requested Windows Release build, then the SLA validator fix with focused regression tests and the 67-vendor validation pass; future Release builds occur only for human slicing tests |
+| Preset compatibility/troubleshooting | Next | Resolve rough or unreliable visibility, inheritance, import, recovery, and diagnostic workflows in small owner-testable slices |
+| Phase 4 — enforceable boundaries | Paused | C3's `ConfigIO.cpp` seam is retained and verified; standalone `slic3r_config` and U1 wait behind the product gates |
 | Phases 5–6 — bounded extraction/expansion | Gated | Run only for a boundary whose prerequisite corpus passes |
 
 ## Fixture inventory and provenance

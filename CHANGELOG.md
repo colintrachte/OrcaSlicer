@@ -79,7 +79,7 @@ All four dependency upgrades update the version URL and SHA256 hash in the corre
 ### New Files
 
 - **`run.sh`** — Linux/macOS developer run script.
-- **`run.bat`** / **`run.ps1`** — Windows developer run scripts.
+- **`helper_scripts/orcaslicer_launcher/run.bat`** / **`run.ps1`** — Windows developer run scripts.
 - **`TODO.md`** — Prioritized backlog derived from open GitHub issues and PRs.
 - **`APPROVALS.md`** — Deferred items requiring design review before implementation.
 

@@ -1,8 +1,10 @@
 # OrcaSlicer integrated improvement plan
 
-**Status:** Active; Phase 3 is complete (2026-08-25) with the configuration-schema ADR recorded;
-Phase 4 (`slic3r_config` pilot continuation, U1 Plater state-machine characterization) is
-unblocked and next
+**Status:** Re-prioritized 2026-08-29. Phase 4 architecture work is paused after the
+Windows-verified config-I/O extraction. The active sequence is: provide an optimized production
+build, ship the SLA profile-validation fix, then concentrate on slicing-preset compatibility,
+recovery, and troubleshooting. The standalone `slic3r_config` target, U1 Plater characterization,
+and all other improvement work resume only after that product workflow is dependable.
 
 **Scope:** Core slicing/configuration, GUI/plater/rendering, support generation, and the build and
 test infrastructure required to improve them safely
@@ -27,15 +29,22 @@ It adds two guardrails that the earlier architecture sequence did not make promi
 
 ## Executive decisions
 
+0. **Optimize for usable feedback loops.** Use focused targets and tests during implementation.
+   Build Release only when the owner needs to perform a human slicing test; automated verification,
+   compile checks, and agent-only work do not justify it. Run an owner-requested Release build
+   quietly in the background and check it only at completion or on an explicit failure signal; do
+   not spend an interactive model turn polling compiler output. Optimize expected completion time,
+   not first-attempt success rate: a bounded probe above the proven compiler ceiling may fall back
+   directly to the highest repeatedly proven stable ceiling if memory pressure occurs.
 1. **Preserve behavior before decomposing code.** Add characterization, compatibility, and
    differential tests before moving slicing state, support phases, configuration registration, or
    Plater responsibilities.
 2. **Keep the existing build-loop gains.** Phases 0-2 of the build-iteration plan are complete.
    Continue to use focused targets, Visual Studio project parallelism of one, compiler ceiling two,
    and the bounded single-worker retry on resource failure.
-3. **Run the approved `GUI_App.hpp` pilot next.** Weighted invalidation already selected it over
-   `Model.hpp`, `PrintConfig.hpp`, and `Plater.hpp`. Do not substitute a new candidate without new
-   measurements.
+3. **Pause further architecture pilots.** Retain the measured `GUI_App.hpp` and config-I/O gains,
+   but do not start the standalone `slic3r_config` target or Plater characterization until the SLA
+   fix and preset workflow priorities below are shipped.
 4. **Treat core invalidation as a correctness contract.** The hand-maintained mapping from changed
    configuration keys to print stages must be tested against clean slicing, not merely refactored.
 5. **Treat tree-support fallbacks as observable outcomes.** A slice that continues after losing a
@@ -77,6 +86,30 @@ These build figures are local trend baselines, not portable CI thresholds. `/Bt+
 figures are useful for relative attribution but not absolute wall-time prediction.
 
 ## Prioritized backlog
+
+### Owner priority override — 2026-08-29
+
+This execution order supersedes the formula-ranked architecture backlog below:
+
+1. **Now — owner slicing build:** provide Windows x64 Release when the owner needs to perform an
+   interactive slicing test. Release is not a general implementation gate and must not be rebuilt
+   for agent-only verification. OrcaSlicer's RelWithDebInfo configuration deliberately uses `/Od`,
+   `/Ob0`, and `/RTC1`; it is a debugging build and must never be presented as a substitute for an
+   owner slicing build.
+2. **Now — SLA compatibility fix:** scope numeric nozzle/variant validation to FFF printers while
+   retaining model/variant membership checks for both technologies. Prove the Anycubic Photon D2
+   SLA preset loads and the malformed FFF cases still fail, then run the 67-vendor validator.
+3. **Next — preset compatibility and troubleshooting:** treat preset visibility, inheritance,
+   import collisions, missing-parent repair, compatibility explanations, and actionable error
+   reporting as the dominant workstream. Favor small end-to-end fixes that make real workflows
+   predictable over more architecture extraction.
+4. **Later — everything else:** resume C3/U1 and the formula-ranked support, slicing, GUI, build,
+   and architecture work only after the preset workflow has a reliable acceptance suite and the
+   owner confirms it is usable.
+
+Long-build acceptance is human-test-based: focused deterministic checks during development, then a
+quiet Release build only when the owner is ready to slice and inspect the candidate. A failed broad
+build may be resumed after diagnosis; it must not be restarted merely to obtain progress output.
 
 Priority uses `(impact + risk) x (6 - effort)`, with each input scored 1-5. The formula ranks work
 that is ready to start; prerequisite gates still control schedule order.
@@ -454,6 +487,26 @@ after the read-only mental model is proven.
   (`slic3r_config` pilot completion, U1 Plater state-machine characterization) remains blocked on
   this ADR per the dashboard.
 
+### Execution checkpoint — 2026-08-28
+
+- Phase 4 C3 has started with the bounded extraction proposed by the module-boundary ADR. Six
+  `ConfigBase` implementation spans moved mechanically from `Config.cpp` to `ConfigIO.cpp` inside
+  the existing `libslic3r` target; public signatures, keys, formats, defaults, and migration behavior
+  are unchanged.
+- `Config.cpp` no longer includes or calls the locale utility, general utility, or print-schema
+  dependencies isolated by the 2026-08-25 object analysis. Post-build symbol inspection finds no
+  unresolved project-owned edge from `Config.obj` into those layers, presets, app config, or GUI.
+  The standalone `slic3r_config` target is therefore feasible and remains the next separately
+  measured C3 change.
+- Windows RelWithDebInfo verification rebuilt `libslic3r_tests`; the combined
+  `[Config],[Registry],[Preset]` gate passes 642 assertions in 66 cases at seed 424242, and the full
+  `OrcaSlicer` application target completes its broad rebuild and links. The registry oracle now
+  records 837 options with digest `0x56fed6f0e31ee708`, matching ten settings added by six earlier
+  commits rather than by this extraction.
+- The profile-validator executable builds and loads 67 vendors, but its exact CI-style validation
+  command exposes an existing Anycubic Photon D2 SLA-data mismatch (`printer_variant = default`,
+  empty `nozzle_diameter`). It remains a visible baseline failure outside this architecture patch.
+
 ### Phase 0 - Reconcile and instrument (about 1 week)
 
 - Add this plan to the architecture dashboard.
@@ -495,9 +548,12 @@ without changing persistence.
 
 ### Phase 4 - First enforceable boundaries (3-6 weeks)
 
-- Pilot C3, the read-only `slic3r_config` target.
-- Complete U1 Plater state-machine characterization.
-- Measure focused build/test isolation, binary size, and forbidden edges.
+- **Paused 2026-08-29 behind the owner priority override.** Preserve the verified config-I/O seam,
+  but do not start the standalone `slic3r_config` target or U1 Plater characterization yet.
+- First ship the SLA validation fix, then work through preset compatibility and troubleshooting
+  slices with focused tests and owner-visible acceptance cases.
+- Resume C3/U1 only after the preset workflow is dependable and the owner explicitly moves the
+  architecture program back into Now.
 
 **Exit:** At least one boundary creates a useful focused consumer and passes compatibility/build
 gates. Stop any boundary that only rearranges files.

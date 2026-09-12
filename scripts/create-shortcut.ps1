@@ -22,7 +22,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$launcher = Join-Path $repoRoot 'run.ps1'
+$launcher = Join-Path $repoRoot 'helper_scripts\orcaslicer_launcher\run.ps1'
 $resolveParameters = @{
     ResolveOnly = $true
     Configuration = $Configuration
