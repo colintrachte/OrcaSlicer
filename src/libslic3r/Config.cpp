@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <regex>
@@ -761,7 +762,9 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key, double rati
 {
     // Get stored option value.
     const ConfigOption *raw_opt = this->option(opt_key);
-    assert(raw_opt != nullptr);
+    // Mirror the single-arg overload â€” assert() is a no-op under NDEBUG.
+    if (raw_opt == nullptr)
+        throw ConfigurationError("ConfigBase::get_abs_value(): \"" + opt_key + "\" is not defined");
     if (raw_opt->type() != coFloatOrPercent)
         throw ConfigurationError("ConfigBase::get_abs_value(): opt_key is not of coFloatOrPercent");
     // Compute absolute value.
@@ -786,7 +789,6 @@ void ConfigBase::setenv_() const
     }
 }
 
-//BBS
 
 ConfigSubstitutions ConfigBase::load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
@@ -1166,6 +1168,17 @@ std::optional<PluginCapabilityRef> parse_capability_ref(const std::string& value
 //BBS: add json support
 void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version) const
 {
+    // Serialize first: if that throws (invalid UTF-8), the existing file stays untouched.
+    std::ostringstream ss;
+    this->save_to_json(ss, name, from, version);
+    if (const std::error_code ec = write_file_atomically(file, ss.str()))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to save config to %1%: %2%") % file % ec.message();
+    else
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
+}
+
+void ConfigBase::save_to_json(std::ostream &os, const std::string &name, const std::string &from, const std::string &version, bool replace_invalid_utf8) const
+{
     json j;
     //record the headers
     j[BBL_JSON_KEY_VERSION] = version;
@@ -1211,12 +1224,7 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
             j["plugins"] = unique_refs;
     }
 
-    boost::nowide::ofstream c;
-    c.open(file, std::ios::out | std::ios::trunc);
-    c << j.dump(1, '\t') << std::endl;
-    c.close();
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
+    os << j.dump(1, '\t', false, replace_invalid_utf8 ? json::error_handler_t::replace : json::error_handler_t::strict) << std::endl;
 }
 
 

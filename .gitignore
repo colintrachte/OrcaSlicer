@@ -74,3 +74,4 @@ compile_commands.json
 *.opc
 /.test/
 docs/superpowers/
+ctest_results.xml

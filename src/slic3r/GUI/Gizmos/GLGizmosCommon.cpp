@@ -1,5 +1,6 @@
 #include "GLGizmosCommon.hpp"
 
+#include <algorithm>
 #include <cassert>
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -10,7 +11,18 @@
 
 #include "libslic3r/PresetBundle.hpp"
 
+#include <cstddef>
 #include <glad/gl.h>
+#include "slic3r/GUI/Selection.hpp"
+#include <limits>
+#include "libslic3r/Model.hpp"
+#include <vector>
+#include "slic3r/GUI/MeshUtils.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "slic3r/GUI/3DScene.hpp"
+#include <wx/busycursor.h>
+#include <memory>
+#include <utility>
 
 namespace Slic3r {
 namespace GUI {
@@ -506,6 +518,10 @@ void ObjectClipper::set_position_by_ratio(double pos, bool keep_normal, bool ver
 
 void ObjectClipper::set_range_and_pos(const Vec3d& cpl_normal, double cpl_offset, double pos)
 {
+    // Called every frame by GLGizmoCut3D::on_render(), usually with the plane already set.
+    if (m_clp && *m_clp == ClippingPlane(cpl_normal, cpl_offset) && m_clp_ratio == pos)
+        return;
+
     m_clp.reset(new ClippingPlane(cpl_normal, cpl_offset));
     m_clp_ratio = pos;
     get_pool()->get_canvas()->set_as_dirty();

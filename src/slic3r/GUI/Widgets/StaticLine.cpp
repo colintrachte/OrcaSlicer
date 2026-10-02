@@ -3,8 +3,14 @@
 #include "StateColor.hpp"
 #include "../I18N.hpp"
 
+#include <wx/checklst.h>
+#include <wx/dc.h>
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
+#include <wx/string.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
+#include <wx/utils.h>
 
 #include <utility>
 

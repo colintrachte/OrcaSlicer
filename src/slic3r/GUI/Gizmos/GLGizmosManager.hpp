@@ -10,6 +10,16 @@
 
 #include "libslic3r/ObjectID.hpp"
 
+#include <cstdlib>
+#include "libslic3r/libslic3r.h"
+#include <vector>
+#include <memory>
+#include <utility>
+#include <cstddef>
+#include "libslic3r/Point.hpp"
+#include <string>
+#include <wx/event.h>
+#include <cereal/specialize.hpp>
 #include <wx/timer.h>
 #include <map>
 
@@ -84,6 +94,7 @@ public:
         Seam,
         FuzzySkin,
         MmSegmentation,
+        TextureDisplacement,
         Emboss,
         Svg,
         Measure,
@@ -91,6 +102,12 @@ public:
         Simplify,
         BrimEars,
         SlaSupports,
+#ifdef SLIC3R_CAD
+        // Both need the CAD kernel (GeometryEngine); keep them last so that with
+        // SLIC3R_CAD off the enum matches upstream's numbering exactly.
+        Primitive,
+        Sketch,
+#endif
         // BBS
         //FaceRecognition,
         Hollow,
@@ -257,7 +274,10 @@ public:
     EType get_gizmo_from_name(const std::string& gizmo_name) const;
 
     bool is_running() const;
-    bool handle_shortcut(int key);
+    // Opens the gizmo bound to a Plater-context shortcut; false when no gizmo has it or it cannot open now.
+    bool open_gizmo_by_shortcut(Shortcut shortcut);
+    // Lets the current gizmo consume the delete key; false when it did not.
+    bool on_delete_key();
 
     bool is_dragging() const;
 
@@ -290,6 +310,9 @@ public:
     void render_painter_assemble_view() const;
 
     void render_overlay();
+    void render_overlay_input_window();
+    // Hash of the state render_overlay() draws from: enabled, hover, current and highlight.
+    size_t get_overlay_state_hash() const;
 
     void render_arrow(const GLCanvas3D& parent, EType highlighted_type) const;
 
@@ -323,7 +346,7 @@ private:
     
     void render_background(float left, float top, float right, float bottom, float border_w, float border_h) const;
     
-    void do_render_overlay() const;
+    void do_render_overlay(bool draw_icons) const;
 
     bool generate_icons_texture();
 
