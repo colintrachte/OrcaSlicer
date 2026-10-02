@@ -28,6 +28,16 @@ If Len(powerShellPath) = 0 Then
     WScript.Quit 2
 End If
 
+Dim sharedLauncher
+sharedLauncher = fileSystem.BuildPath(fileSystem.GetParentFolderName(scriptDirectory), "SlicerLaunchPad\launcher.ps1")
+If fileSystem.FileExists(sharedLauncher) And WScript.Arguments.Count = 0 Then
+    command = Quote(powerShellPath) & _
+        " -NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File " & _
+        Quote(sharedLauncher) & " -Slicer OrcaSlicer"
+    exitCode = shell.Run(command, 0, True)
+    WScript.Quit exitCode
+End If
+
 command = Quote(powerShellPath) & _
     " -NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File " & _
     Quote(fileSystem.BuildPath(scriptDirectory, _

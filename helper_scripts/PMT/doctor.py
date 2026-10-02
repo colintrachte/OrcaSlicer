@@ -1,8 +1,8 @@
 """Read-only health checks for an installed Project Management Tools project.
 
 Usage:
-    python helper_scripts/doctor.py [PROJECT]
-    python helper_scripts/doctor.py [PROJECT] --json
+    python helper_scripts/PMT/doctor.py [PROJECT]
+    python helper_scripts/PMT/doctor.py [PROJECT] --json
 
 JSON schema v1 always contains: schema_version, project, kit_version, status, summary,
 and checks. Checks are emitted in stable ID order and contain id, status, message, and
@@ -10,7 +10,7 @@ details. Exit status is 1 when any check is an error, otherwise 0. This command 
 writes; repair behavior is deliberately out of scope.
 
 The installed kit version and mechanics hash catalog come only from
-helper_scripts/pmt_version.json. The unrelated .pmt-manifest.json schema_version is never
+helper_scripts/PMT/pmt_version.json. The unrelated .pmt-manifest.json schema_version is never
 used as a kit version.
 """
 
@@ -93,7 +93,7 @@ def run_checks(root: Path) -> dict:
         manifest = {"files": {}}
         checks.append(_error("installation.manifest", f"manifest is invalid: {exc}"))
 
-    version_path = root / "helper_scripts" / "pmt_version.json"
+    version_path = root / "helper_scripts" / "PMT" / "pmt_version.json"
     try:
         version = _load_json(version_path)
         kit_version = version["kit_version"]
@@ -103,7 +103,7 @@ def run_checks(root: Path) -> dict:
             _ok(
                 "installation.version",
                 f"installed kit version is {kit_version}",
-                source="helper_scripts/pmt_version.json",
+                source="helper_scripts/PMT/pmt_version.json",
             )
         )
     except (OSError, KeyError, ValueError, json.JSONDecodeError) as exc:
@@ -113,7 +113,7 @@ def run_checks(root: Path) -> dict:
             _error(
                 "installation.version",
                 f"kit version is unknown: {exc}",
-                source="helper_scripts/pmt_version.json",
+                source="helper_scripts/PMT/pmt_version.json",
             )
         )
 
@@ -133,7 +133,7 @@ def run_checks(root: Path) -> dict:
     python_errors = []
     python_paths = sorted(
         {root / relative for relative in manifest.get("files", {}) if relative.endswith(".py")}
-        or set((root / "helper_scripts").glob("*.py"))
+        or set((root / "helper_scripts" / "PMT").glob("*.py"))
     )
     for path in python_paths:
         try:
@@ -160,15 +160,28 @@ def run_checks(root: Path) -> dict:
         # shipped prose predating that contract remains readable and need not be rewritten.
         i = 0
         while i < len(lines):
-            if not route_tasks.TASK_RE.match(lines[i]):
+            match = route_tasks.TASK_RE.match(lines[i])
+            if not match:
                 i += 1
                 continue
             end = route_tasks.scan_block_end(lines, i + 1)
             block = lines[i:end]
+            if match.group(1) == "x":
+                # A completed entry is an archive pointer, not an active record.
+                # Projects routinely collapse one to a single line naming its id
+                # in prose and referring to shipped.md for the detail, which is
+                # the convention this check's own comment above allows for.
+                # Holding those to the identity/lifecycle contract makes every
+                # such line an error with nothing actionable behind it.
+                i = end
+                continue
             if route_tasks.task_id_of(block) is None:
                 raise ValueError(f"{block[0].strip()}: missing permanent task ID")
-            if route_tasks.task_status_of(block) is None:
+            status = route_tasks.task_status_of(block)
+            if status is None:
                 raise ValueError(f"{block[0].strip()}: missing lifecycle status")
+            if status not in route_tasks.LIFECYCLE_STATUSES:
+                raise ValueError(f"{block[0].strip()}: unsupported lifecycle status {status!r}")
             i = end
         tasks = parse_tasks(lines, root)
         first = route_tasks.process_roadmap(lines, roadmap, root)
@@ -232,7 +245,7 @@ def run_checks(root: Path) -> dict:
     )
 
     orphaned = []
-    inbox = root / "helper_scripts" / "ai_inbox"
+    inbox = root / "helper_scripts" / "PMT" / "ai_inbox"
     if inbox.is_dir():
         for path in sorted(inbox.glob("*.md")):
             found = TASK_ID_ANY_RE.search(path.read_text(encoding="utf-8"))
@@ -282,9 +295,15 @@ def render_human(result: dict) -> str:
     return "\n".join(lines)
 
 
+def default_project_root() -> Path:
+    if SCRIPT_DIR.parent.name == "helper_scripts":
+        return SCRIPT_DIR.parents[1]
+    return SCRIPT_DIR.parent
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("project", nargs="?", type=Path, default=SCRIPT_DIR.parent)
+    parser.add_argument("project", nargs="?", type=Path, default=default_project_root())
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     result = run_checks(args.project)

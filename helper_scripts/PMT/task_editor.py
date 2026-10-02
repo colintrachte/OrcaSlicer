@@ -6,26 +6,29 @@ apply boundary delegates the guarded atomic write to route_tasks.write_roadmap()
 """
 
 import difflib
-import re
+import sys
 import tkinter as tk
 import uuid
 from pathlib import Path
-from tkinter import filedialog, messagebox, scrolledtext, simpledialog, ttk
+from tkinter import filedialog, scrolledtext, ttk
 from typing import TYPE_CHECKING
 
 import gui_theme
 import route_tasks
 from task_records import (
-    CHARS_VALUE_RE,
-    FENCE_END_RE,
-    FENCE_START_RE,
-    FILE_LIST_RE,
-    HEADER_ATTR_RE,
-    HEADER_RE,
-    ROUTE_VALUE_RE,
+    FILE_FIELD_DISPLAY,
+    FILE_FIELD_LABELS,
+    SECTION_BOUNDARY_RE,
     SECTION_RE,
     Task,
+    parse_task_fields,
+    readiness_diagnostics,
 )
+
+# The field view and readiness rule moved to task_records (tk-free, shared with PMT2);
+# these names stay importable from here for existing callers.
+from task_records import derive_task_readiness as derive_task_readiness
+from task_records import task_statuses as task_statuses
 
 if TYPE_CHECKING:
     from pack_task import App
@@ -47,185 +50,28 @@ def _wrap_with_parent(label, parent, inset=0):
 # rule for any docs/roadmap.md write path requires a round-trip test, and a function tied
 # to live widgets can't be driven without a display.
 
-FILE_FIELD_LABELS = ("Implement", "Context", "Write", "Read", "Evidence")
-FILE_FIELD_DISPLAY = {
-    "Implement": "Mutable",
-    "Context": "Input",
-    "Write": "Output",
-    "Read": "Input (additional)",
-    "Evidence": "Evidence",
-}
-_LABEL_CANON = {label.lower(): label for label in FILE_FIELD_LABELS}
-# A file-list line using a parenthetical suffix, e.g. "**Implement (Class 3 — ...):**"
-# (see ROADMAP.template.md's format convention) -- a real, exercised case this editor's
-# flat per-label model can't preserve; parse_task_fields() flags it so the dialog can warn
-# instead of silently dropping the annotation on save.
-FIELD_SUFFIX_RE = re.compile(
-    r"^\s+\*\*(?:Implement|Write|Context|Read|Evidence)\s*\(", re.IGNORECASE
-)
-MANUAL_ROUTE_SUFFIX_RE = re.compile(r"^(.*?)\s*\(manual\)\s*$")
-SECTION_BOUNDARY_RE = re.compile(r"^#{2,4}\s|^---\s*$")
-TEXT_FIELD_RE = re.compile(
-    r"^\s+\*\*(Outcome|Rationale|Acceptance|Expected evidence|Work mode|Execution mode|Execution size|Uncertainty|"
-    r"Capability|Constraint|Protected behavior|Dependency|Blocked by|Prefer after|Parent|Supersedes|Related):\*\*\s*(.*)$",
-    re.IGNORECASE,
-)
-TEXT_FIELD_KEYS = {
-    "outcome": "outcome",
-    "rationale": "rationale",
-    "acceptance": "acceptance_conditions",
-    "expected evidence": "acceptance_evidence",
-    "work mode": "work_mode",
-    "execution mode": "execution_mode",
-    "execution size": "execution_size",
-    "uncertainty": "uncertainty",
-    "capability": "capabilities",
-    "constraint": "constraints",
-    "protected behavior": "protected_behaviors",
-    "dependency": "dependencies",
-    "blocked by": "dependencies",
-    "prefer after": "preferred_after",
-    "parent": "parents",
-    "supersedes": "supersedes",
-    "related": "related",
-}
-LIST_TASK_FIELDS = {
-    "acceptance_conditions",
-    "acceptance_evidence",
-    "capabilities",
-    "constraints",
-    "protected_behaviors",
-    "dependencies",
-    "preferred_after",
-    "parents",
-    "supersedes",
-    "related",
-}
 
+def task_field_suggestions(sources: list[list[str]]) -> dict[str, tuple[str, ...]]:
+    """Collect reusable field-level suggestions from current and shipped task records.
 
-def parse_task_fields(block_lines: list[str]) -> dict:
-    """Parse a task block (header line first, e.g. roadmap_lines[task.start:task.end])
-    into an editable field-dict -- the inverse of build_task_lines(). Unlike
-    parse_tasks()/Task.files, file-list values are kept as raw backtick strings bucketed
-    per label rather than resolved Paths, since **Write:** targets and `<name>/...`
-    external refs often don't exist on disk yet and still need to round-trip through the
-    editor. Returns {score, task_class, title, body, is_fenced, file_fields, manual_route,
-    has_field_suffix} -- callers fill in "section" themselves (Task.section, not
-    derivable from the block alone)."""
-    header_m = HEADER_RE.match(block_lines[0])
-    attr_m = HEADER_ATTR_RE.match(header_m.group(2)) if header_m else None
-    class_m = route_tasks.CLASS_RE.search(block_lines[0])
-
-    file_fields = {label: [] for label in FILE_FIELD_LABELS}
-    task_id = None
-    status = None
-    logical = {
-        "outcome": "",
-        "rationale": "",
-        "acceptance_conditions": [],
-        "acceptance_evidence": [],
-        "work_mode": "",
-        "execution_mode": "",
-        "execution_size": "",
-        "uncertainty": "",
-        "capabilities": [],
-        "constraints": [],
-        "protected_behaviors": [],
-        "dependencies": [],
-        "preferred_after": [],
-        "parents": [],
-        "supersedes": [],
-        "related": [],
-    }
-    manual_route = None
-    has_field_suffix = False
-    in_fence = False
-    fence_lines = []
-    body_lines = []
-
-    for bl in block_lines[1:]:
-        idm = route_tasks.ID_RE.match(bl)
-        if idm:
-            task_id = idm.group(1)
-            continue
-        statusm = route_tasks.STATUS_RE.match(bl)
-        if statusm:
-            status = route_tasks.task_status_of([bl])
-            continue
-        tm = TEXT_FIELD_RE.match(bl)
-        if tm:
-            key = TEXT_FIELD_KEYS[tm.group(1).lower()]
-            value = tm.group(2).strip()
-            if key in LIST_TASK_FIELDS:
-                if key in {
-                    "dependencies",
-                    "preferred_after",
-                    "parents",
-                    "supersedes",
-                    "related",
-                }:
-                    logical[key].extend(
-                        reference for reference in re.split(r"\s*·\s*", value) if reference
-                    )
-                else:
-                    logical[key].append(value)
-            else:
-                logical[key] = value
-            continue
-        rm = ROUTE_VALUE_RE.match(bl)
-        if rm:
-            mm = MANUAL_ROUTE_SUFFIX_RE.match(rm.group(1))
-            if mm and rm.group(1).endswith("(manual)"):
-                manual_route = mm.group(1).strip()
-            continue
-        if (
-            route_tasks.EFFORT_RE.match(bl)
-            or route_tasks.CONTEXT_LOAD_RE.match(bl)
-            or CHARS_VALUE_RE.match(bl)
-        ):
-            continue
-        fm = FILE_LIST_RE.match(bl)
-        if fm:
-            if FIELD_SUFFIX_RE.match(bl):
-                has_field_suffix = True
-            label = _LABEL_CANON[fm.group(1).lower()]
-            file_fields[label].extend(route_tasks.BACKTICK_RE.findall(fm.group(2)))
-            continue
-        if FENCE_START_RE.match(bl):
-            in_fence = True
-            continue
-        if in_fence and FENCE_END_RE.match(bl):
-            in_fence = False
-            continue
-        if in_fence:
-            fence_lines.append(bl)
-        else:
-            body_lines.append(bl)
-
-    fenced_body = "".join(fence_lines).strip()
-    is_fenced = bool(fenced_body)
-    if is_fenced:
-        body = fenced_body
-    else:
-        # header_tail mirrors parse_tasks()'s own fallback (see its comment above) --
-        # build_task_lines() never emits one, so on a round-trip this is always "".
-        header_tail = block_lines[0][header_m.end() :].strip(" \t\n-—") if header_m else ""
-        desc = "".join(body_lines).strip()
-        body = f"{header_tail} {desc}".strip() if header_tail else desc
-
-    return {
-        "score": attr_m.group("score") if attr_m else "",
-        "task_class": class_m.group(1) if class_m else "",
-        "title": (attr_m.group("title") if attr_m else header_m.group(2) if header_m else ""),
-        "body": body,
-        "is_fenced": is_fenced,
-        "file_fields": file_fields,
-        "manual_route": manual_route,
-        "has_field_suffix": has_field_suffix,
-        "id": task_id,
-        "status": status,
-        **logical,
-    }
+    Values remain suggestions rather than defaults: historical task-specific details may
+    be stale, while an editable combobox still makes recurring phrasing cheap to reuse.
+    """
+    suggestions = {"title": [], "outcome": [], "rationale": []}
+    for lines in sources:
+        i = 0
+        while i < len(lines):
+            if not route_tasks.TASK_RE.match(lines[i]):
+                i += 1
+                continue
+            end = route_tasks.scan_block_end(lines, i + 1)
+            fields = parse_task_fields(lines[i:end])
+            for key in suggestions:
+                value = fields[key].strip()
+                if value and value not in suggestions[key]:
+                    suggestions[key].append(value)
+            i = end
+    return {key: tuple(values) for key, values in suggestions.items()}
 
 
 def build_task_lines(fields: dict) -> list[str]:
@@ -247,6 +93,8 @@ def build_task_lines(fields: dict) -> list[str]:
         lines.append(f"  **ID:** {fields['id']}\n")
     if fields.get("status"):
         lines.append(f"  **Status:** {fields['status']}\n")
+    if fields.get("pack_override"):
+        lines.append("  **Pack Override:** true\n")
     for label, key in (("Outcome", "outcome"), ("Rationale", "rationale")):
         if fields.get(key):
             lines.append(f"  **{label}:** {fields[key].strip()}\n")
@@ -303,9 +151,31 @@ def build_task_lines(fields: dict) -> list[str]:
     return lines
 
 
-def validate_task_fields(fields: dict, existing_ids: set[str] | None = None) -> str | None:
+def validate_task_fields(
+    fields: dict, existing_ids: set[str] | None = None, allow_empty_files: bool = False
+) -> str | None:
     """Save-button validation, per ROADMAP.template.md's format convention. Returns the
-    first violation's user-facing message, or None if the fields are savable."""
+    first violation's user-facing message, or None if the fields are savable.
+
+    When pack_override or allow_empty_files is set, minimal structural checks remain —
+    file list etc are allowed to be missing so you can quickly capture draft tasks.
+    """
+    if fields.get("pack_override"):
+        if not fields.get("title", "").strip():
+            return "Title cannot be empty (even with pack override)."
+        if fields.get("score") not in {"1", "2", "3", "4", "5"}:
+            return "Score must be 1-5."
+        if fields.get("task_class") not in {"1", "2", "3"}:
+            return "Class must be 1-3."
+        if not fields.get("section", "").strip():
+            return "Choose a section to file this task under."
+        task_id = fields.get("id")
+        if task_id and not route_tasks.TASK_ID_RE.fullmatch(task_id):
+            return "ID must be task_ followed by 32 lowercase hexadecimal characters."
+        if task_id and existing_ids is not None and task_id in existing_ids:
+            return f"Task ID {task_id} already exists."
+        return None
+
     if not fields.get("title", "").strip():
         return "Title cannot be empty."
     if fields.get("score") not in {"1", "2", "3", "4", "5"}:
@@ -320,9 +190,9 @@ def validate_task_fields(fields: dict, existing_ids: set[str] | None = None) -> 
     if task_id and existing_ids is not None and task_id in existing_ids:
         return f"Task ID {task_id} already exists."
     status = fields.get("status")
-    if status and status not in route_tasks.LIFECYCLE_STATUSES:
-        return "Status is not a supported lifecycle value."
-    if status == "Shipped":
+    # Status is free-form: a leading canonical word drives routing/unblocking,
+    # anything else is just an author note. Only Shipped is reserved.
+    if status and status.strip().casefold().startswith("shipped"):
         return "Use Mark Complete to move a task into Shipped history."
     work_mode = fields.get("work_mode", "")
     if work_mode and work_mode not in route_tasks.WORK_MODES:
@@ -340,78 +210,11 @@ def validate_task_fields(fields: dict, existing_ids: set[str] | None = None) -> 
                 return f"{label} reference {reference!r} is invalid."
             if reference == task_id:
                 return f"A task cannot reference itself in {relationship_field.replace('_', ' ')}."
-    if not any(fields.get("file_fields", {}).get(label) for label in FILE_FIELD_LABELS):
+    if not allow_empty_files and not any(
+        fields.get("file_fields", {}).get(label) for label in FILE_FIELD_LABELS
+    ):
         return "At least one file path is required (Implement/Context/Write/Read)."
     return None
-
-
-def readiness_diagnostics(fields: dict, root: Path, task_status_map: dict[str, str] | None = None):
-    """Return every readiness gap. Drafts may be saved with gaps; Ready may not."""
-    gaps = []
-    if not fields.get("outcome", "").strip():
-        gaps.append("Outcome is required before Ready.")
-    if not any(value.strip() for value in fields.get("acceptance_conditions", [])):
-        gaps.append("At least one acceptance condition is required before Ready.")
-    if not any(value.strip() for value in fields.get("acceptance_evidence", [])):
-        gaps.append("Expected acceptance evidence is required before Ready.")
-    if fields.get("work_mode") == "Forge + Steward" and not any(
-        value.strip() for value in fields.get("protected_behaviors", [])
-    ):
-        gaps.append("Forge + Steward requires at least one protected behavior.")
-    for label in ("Implement", "Context", "Read"):
-        for ref in fields.get("file_fields", {}).get(label, []):
-            files, missing = route_tasks.resolve_file_list(f"`{ref}`", root)
-            if not files and missing:
-                gaps.append(
-                    f"Required {FILE_FIELD_DISPLAY[label].lower()} artifact is unresolved: {ref}"
-                )
-    if fields.get("status") == "Blocked":
-        gaps.append("A Blocked task cannot be Ready.")
-    if task_status_map is not None:
-        for dependency in fields.get("dependencies", []):
-            dep_status = task_status_map.get(dependency)
-            if dep_status is None:
-                gaps.append(f"Dependency does not resolve: {dependency}")
-            elif dep_status != "Shipped":
-                gaps.append(f"Dependency is not Shipped: {dependency} ({dep_status})")
-    return gaps
-
-
-def derive_task_readiness(
-    tasks: list[Task], lines: list[str], root: Path, status_map: dict[str, str]
-) -> None:
-    """Attach the editor's mechanical readiness diagnostics to parsed tasks.
-
-    The result is display/filter state only. Authored status and relationship fields remain
-    untouched, so Quest Board can explain an inconsistency without silently rewriting it.
-    """
-    for task in tasks:
-        if not task.status:
-            task.readiness_gaps = []
-            continue
-        fields = parse_task_fields(lines[task.start : task.end])
-        task.readiness_gaps = readiness_diagnostics(fields, root, status_map)
-
-
-def task_statuses(lines: list[str]) -> dict[str, str]:
-    """Map permanent IDs to explicit status, treating checked history as Shipped."""
-    result = {}
-    i = 0
-    while i < len(lines):
-        match = route_tasks.TASK_RE.match(lines[i])
-        if not match:
-            i += 1
-            continue
-        end = route_tasks.scan_block_end(lines, i + 1)
-        task_id = route_tasks.task_id_of(lines[i:end])
-        if task_id:
-            result[task_id] = (
-                "Shipped"
-                if match.group(1) == "x"
-                else route_tasks.task_status_of(lines[i:end]) or "Legacy"
-            )
-        i = end
-    return result
 
 
 def roadmap_diff(before: list[str], after: list[str], path: str = "docs/roadmap.md") -> str:
@@ -509,42 +312,43 @@ def move_task_block(
     return insert_task_block(remaining, new_section, block_lines)
 
 
-class TaskEditorDialog(tk.Toplevel):
-    """Modal create/edit dialog behind the picker screen's "+ New Task"/"Edit" buttons.
+class TaskEditorDialog(ttk.Frame):
+    """Create/edit panel behind the picker screen's "+ New Task"/"Edit" buttons.
     A class (deviating from the file's usual inline-function dialog pattern, e.g.
     _show_response) given the field/widget count. Builds a field-dict via the pure
     parse_task_fields()/build_task_lines()/validate_task_fields() helpers above and writes
     through route_tasks.write_roadmap() -- the same guarded atomic-write path
     refresh_routes()/_on_mark_complete() already use, per REVIEW_TIERS.md's Class 3 rule
-    for any docs/roadmap.md write path. Modal (transient + grab_set) so app.roadmap_lines
-    can't be mutated by another picker action while open -- what makes using it directly
-    as write_roadmap()'s original_lines safe."""
+    for any docs/roadmap.md write path. It opens as an in-window panel (never a popup) in
+    place of the picker, so no picker action can reload app.roadmap_lines while it's open;
+    _candidate() still refuses if they changed (_base_lines), since the task's line spans
+    are only valid against the lines it opened with."""
 
     SCORE_VALUES = ("1", "2", "3", "4", "5")
     CLASS_VALUES = ("1", "2", "3")
     FILE_GROUP_BREAKPOINT = 680
 
     def __init__(self, app: "App", task: Task | None, clone: bool = False):
-        super().__init__(app)
+        sections = _section_headings(app.roadmap_lines)
+        if not sections:
+            super().__init__(app)  # never shown
+            self.app = app
+            app._notify_error(
+                "No sections found",
+                "roadmap.md has no ##/### section headings to file a task under -- "
+                "add one by hand first.",
+            )
+            return
+        title = "Clone Task" if clone else "Edit Task" if task is not None else "New Task"
+        super().__init__(app._show_panel(title))
+        self.pack(fill="both", expand=True)
         self.app = app
         self.task = None if clone else task
         self.source_task = task
         self.clone = clone
         self._manual_route = None  # round-tripped from an existing task, not settable here
-        self.title("Clone Task" if clone else "Edit Task" if task is not None else "New Task")
-        self.geometry("860x760")  # initial size only
-        self.resizable(True, True)
-
-        sections = _section_headings(app.roadmap_lines)
-        if not sections:
-            messagebox.showerror(
-                "No sections found",
-                "roadmap.md has no ##/### section headings to file a task under -- "
-                "add one by hand first.",
-                parent=app,
-            )
-            self.destroy()
-            return
+        self._base_lines = list(app.roadmap_lines)
+        self.path_entries = {}
 
         self.file_lists = {label: [] for label in FILE_FIELD_LABELS}
         self.listboxes = {}
@@ -565,7 +369,16 @@ class TaskEditorDialog(tk.Toplevel):
         self.execution_size_var = tk.StringVar()
         self.uncertainty_var = tk.StringVar()
         self.is_fenced_var = tk.BooleanVar(value=False)
+        self.pack_override_var = tk.BooleanVar(value=False)
+        self._force_override = False
         self.context_load_var = tk.StringVar()
+
+        suggestion_sources = [app.roadmap_lines]
+        if app.SHIPPED_PATH.is_file():
+            suggestion_sources.append(
+                app.SHIPPED_PATH.read_text(encoding="utf-8").splitlines(keepends=True)
+            )
+        self.field_suggestions = task_field_suggestions(suggestion_sources)
 
         self._build_widgets(sections)
         if task is not None:
@@ -576,8 +389,8 @@ class TaskEditorDialog(tk.Toplevel):
                 self._manual_route = None
         self._refresh_context_load_preview()
 
-        self.transient(app)
-        self.grab_set()
+    def _close(self):
+        self.app._close_panel()
 
     # ── layout ──
 
@@ -597,17 +410,37 @@ class TaskEditorDialog(tk.Toplevel):
             justify="left",
         )
         effort_label.grid(row=0, column=0, sticky="ew")
-        ttk.Button(bottom, text="Validate", command=self._on_validate_clicked).grid(
-            row=0, column=1, padx=(6, 0)
+        self.force_btn = ttk.Button(
+            bottom,
+            text="⚑ Mark Ready Without Validation",
+            command=self._on_force_ready_clicked,
         )
-        ttk.Button(bottom, text="Preview Diff", command=self._on_preview_clicked).grid(
+        self.force_btn.grid(row=0, column=1, padx=(6, 0))
+        ttk.Button(bottom, text="Validate", command=self._on_validate_clicked).grid(
             row=0, column=2, padx=(6, 0)
         )
-        ttk.Button(bottom, text="Preview & Save", command=self._on_save_clicked).grid(
+        ttk.Button(bottom, text="Preview Diff", command=self._on_preview_clicked).grid(
             row=0, column=3, padx=(6, 0)
         )
-        ttk.Button(bottom, text="Cancel", command=self.destroy).grid(row=0, column=4, padx=(6, 0))
-        _wrap_with_parent(effort_label, bottom, inset=350)
+        ttk.Button(bottom, text="Preview & Save", command=self._on_save_clicked).grid(
+            row=0, column=4, padx=(6, 0)
+        )
+        ttk.Button(bottom, text="Cancel", command=self._close).grid(row=0, column=5, padx=(6, 0))
+        _wrap_with_parent(effort_label, bottom, inset=500)
+
+        override_row = ttk.Frame(f)
+        override_row.pack(side="bottom", fill="x", pady=(6, 0))
+        self.override_check = ttk.Checkbutton(
+            override_row,
+            text="Pack Override — allow Ready even if Outcome, Acceptance, Files etc are missing (adds **Pack Override: true**)",
+            variable=self.pack_override_var,
+        )
+        self.override_check.pack(side="left")
+        ttk.Label(
+            override_row,
+            text="  Use to pack incomplete tasks for AI runs",
+            foreground=gui_theme.COLOR_MUTED,
+        ).pack(side="left", padx=(8, 0))
 
         tabs = ttk.Notebook(f)
         self.tabs = tabs
@@ -650,7 +483,7 @@ class TaskEditorDialog(tk.Toplevel):
             top,
             textvariable=self.status_var,
             values=tuple(s for s in route_tasks.LIFECYCLE_STATUSES if s != "Shipped"),
-            state="readonly",
+            state="normal",
         ).grid(row=2, column=1, sticky="ew", padx=(6, 0), pady=(6, 0))
         ttk.Label(top, text="ID:").grid(row=3, column=0, sticky="w", pady=(6, 0))
         ttk.Entry(top, textvariable=self.id_var, state="readonly").grid(
@@ -660,9 +493,23 @@ class TaskEditorDialog(tk.Toplevel):
         title_row = ttk.Frame(record_tab)
         title_row.pack(fill="x", pady=(0, 8))
         ttk.Label(title_row, text="Title:").pack(side="left")
-        ttk.Entry(title_row, textvariable=self.title_var).pack(
-            side="left", fill="x", expand=True, padx=(6, 0)
+        ttk.Combobox(
+            title_row,
+            textvariable=self.title_var,
+            values=self.field_suggestions["title"],
+        ).pack(side="left", fill="x", expand=True, padx=(6, 0))
+
+        history_help = ttk.Label(
+            record_tab,
+            text=(
+                "Type freely, or use each field's arrow to reuse wording from open and "
+                "shipped tasks."
+            ),
+            foreground=gui_theme.COLOR_MUTED,
+            justify="left",
         )
+        history_help.pack(fill="x", pady=(0, 6))
+        _wrap_with_parent(history_help, record_tab)
 
         if self.source_task is not None:
             self.suffix_warning = ttk.Label(record_tab, text="", foreground="#a00", justify="left")
@@ -673,7 +520,11 @@ class TaskEditorDialog(tk.Toplevel):
             row = ttk.Frame(record_tab)
             row.pack(fill="x", pady=(0, 6))
             ttk.Label(row, text=f"{label}:", width=10).pack(side="left")
-            ttk.Entry(row, textvariable=variable).pack(side="left", fill="x", expand=True)
+            ttk.Combobox(
+                row,
+                textvariable=variable,
+                values=self.field_suggestions[label.lower()],
+            ).pack(side="left", fill="x", expand=True)
 
         record_lists = ttk.PanedWindow(record_tab, orient="horizontal")
         record_lists.pack(fill="both", expand=True, pady=(0, 6))
@@ -828,6 +679,17 @@ class TaskEditorDialog(tk.Toplevel):
         ttk.Button(btns, text="Remove Selected", command=lambda: self._remove_selected(label)).pack(
             side="left"
         )
+        # Typed paths are entered inline here (shown by "Add Path..."), not in a popup.
+        entry_row = ttk.Frame(box)
+        path_var = tk.StringVar()
+        entry = ttk.Entry(entry_row, textvariable=path_var)
+        entry.pack(side="left", fill="x", expand=True)
+        entry.bind("<Return>", lambda _e: self._commit_path(label))
+        entry.bind("<Escape>", lambda _e: entry_row.pack_forget())
+        ttk.Button(entry_row, text="Add", command=lambda: self._commit_path(label)).pack(
+            side="left", padx=(4, 0)
+        )
+        self.path_entries[label] = (entry_row, path_var, entry)
 
     def _resize_file_view(self, event):
         self.file_canvas.itemconfigure(self.file_grid_window, width=event.width)
@@ -882,6 +744,7 @@ class TaskEditorDialog(tk.Toplevel):
         self.execution_mode_var.set(fields["execution_mode"])
         self.execution_size_var.set(fields["execution_size"])
         self.uncertainty_var.set(fields["uncertainty"])
+        self.pack_override_var.set(bool(fields.get("pack_override")))
         self._set_lines(self.acceptance_text, fields["acceptance_conditions"])
         self._set_lines(self.acceptance_evidence_text, fields["acceptance_evidence"])
         self._set_lines(self.capabilities_text, fields["capabilities"])
@@ -931,27 +794,28 @@ class TaskEditorDialog(tk.Toplevel):
 
     def _add_files(self, label):
         paths = filedialog.askopenfilenames(
-            initialdir=str(self.app.root_dir), title=f"Add {label} files", parent=self
+            parent=self, title=f"Select {FILE_FIELD_DISPLAY[label]} files"
         )
-        if not paths:
-            return
         for p in paths:
             rel = self._relativize(p)
-            if rel not in self.file_lists[label]:
+            if rel and rel not in self.file_lists[label]:
                 self.file_lists[label].append(rel)
         self._refresh_listbox(label)
         self._refresh_context_load_preview()
 
     def _add_path(self, label):
-        raw = simpledialog.askstring(
-            f"Add {label} path",
-            "Path relative to the repo root (or <name>/... for an external reference) -- "
-            "for a not-yet-created file a file picker can't select:",
-            parent=self,
-        )
+        """Show this group's inline path entry (repo-relative, glob, or a new file)."""
+        row, _var, entry = self.path_entries[label]
+        row.pack(fill="x", pady=(4, 0))
+        entry.focus_set()
+
+    def _commit_path(self, label):
+        row, var, _entry = self.path_entries[label]
+        raw = var.get().strip()
+        var.set("")
+        row.pack_forget()
         if not raw:
             return
-        raw = raw.strip()
         if raw and raw not in self.file_lists[label]:
             self.file_lists[label].append(raw)
         self._refresh_listbox(label)
@@ -998,10 +862,21 @@ class TaskEditorDialog(tk.Toplevel):
             "parents": self._get_lines(self.parents_text),
             "supersedes": self._get_lines(self.supersedes_text),
             "related": self._get_lines(self.related_text),
+            "pack_override": bool(self.pack_override_var.get() or self._force_override),
         }
 
-    def _candidate(self):
+    def _candidate(self, force_override: bool = False):
+        if self.app.roadmap_lines != self._base_lines:
+            raise ValueError(
+                "The task list was reloaded since this editor opened, so its position in "
+                "roadmap.md may have moved. Close the editor and open the task again."
+            )
         fields = self._collect_fields()
+        if force_override:
+            fields["pack_override"] = True
+            if fields["status"] in ("Draft", "Legacy", "", None):
+                fields["status"] = "Ready"
+
         lifecycle_lines = list(self.app.roadmap_lines)
         if self.app.SHIPPED_PATH.is_file():
             lifecycle_lines.extend(
@@ -1010,12 +885,13 @@ class TaskEditorDialog(tk.Toplevel):
         existing_ids = route_tasks.collect_task_ids(lifecycle_lines)
         if self.task is not None and fields["id"]:
             existing_ids.discard(fields["id"])
-        err = validate_task_fields(fields, existing_ids)
+        # A Ready task without files is a readiness heads-up, not a validation error.
+        err = validate_task_fields(fields, existing_ids, allow_empty_files=True)
         if err:
             raise ValueError(err)
+        # Readiness gaps are heads-ups shown in the save preview, never a refusal: the
+        # maintainer may mark a task Ready whenever they judge it is.
         gaps = readiness_diagnostics(fields, self.app.root_dir, task_statuses(lifecycle_lines))
-        if fields["status"] == "Ready" and gaps:
-            raise ValueError("Cannot mark Ready:\n\n" + "\n".join(f"- {gap}" for gap in gaps))
 
         block = build_task_lines(fields)
         if self.task is None:
@@ -1051,48 +927,70 @@ class TaskEditorDialog(tk.Toplevel):
 
     def _on_validate_clicked(self):
         try:
-            fields, gaps, _result = self._candidate()
+            fields, gaps, _result = self._candidate(force_override=self.pack_override_var.get())
         except ValueError as exc:
-            messagebox.showerror("Validation failed", str(exc), parent=self)
+            self.app._notify_error("Validation failed", str(exc), parent=self)
             return
-        if gaps:
-            messagebox.showinfo(
+        if gaps and not fields.get("pack_override"):
+            self.app._notify_info(
                 "Valid Draft; not Ready",
                 "The record is structurally valid and nothing was written. Readiness gaps:\n\n"
                 + "\n".join(f"- {gap}" for gap in gaps),
                 parent=self,
             )
         else:
-            messagebox.showinfo(
+            override_note = (
+                " (Pack Override active — gaps bypassed)" if fields.get("pack_override") else ""
+            )
+            self.app._notify_info(
                 "Validation passed",
-                f"This {fields['status']} record is structurally valid and Ready-complete. "
+                f"This {fields['status']} record is structurally valid and Ready-complete{override_note}. "
                 "Nothing was written.",
                 parent=self,
             )
 
     def _on_preview_clicked(self):
         try:
-            _fields, gaps, result = self._candidate()
+            _fields, gaps, result = self._candidate(force_override=self.pack_override_var.get())
         except ValueError as exc:
-            messagebox.showerror("Cannot preview", str(exc), parent=self)
+            self.app._notify_error("Cannot preview", str(exc), parent=self)
             return
         diff = roadmap_diff(self.app.roadmap_lines, result, self.app.ROADMAP_PATH.as_posix())
         DiffPreviewDialog(self, diff, gaps)
 
-    def _on_save_clicked(self):
+    def _on_save_clicked(self, force: bool = False):
         try:
-            _fields, gaps, result = self._candidate()
+            _fields, gaps, result = self._candidate(
+                force_override=force or self.pack_override_var.get() or self._force_override
+            )
         except ValueError as exc:
-            messagebox.showerror("Cannot save", str(exc), parent=self)
+            self.app._notify_error("Cannot save", str(exc), parent=self)
             return
         diff = roadmap_diff(self.app.roadmap_lines, result, self.app.ROADMAP_PATH.as_posix())
         DiffPreviewDialog(self, diff, gaps, on_apply=lambda: self._apply_candidate(result))
+
+    def _on_force_ready_clicked(self):
+        """Mark ready without validation by enabling pack override."""
+        self.app.messages.ask(
+            "Mark Ready without validation? This sets Status to Ready and adds "
+            "**Pack Override: true**, bypassing the Outcome, Acceptance, Evidence, Work mode "
+            "and file checks, so the task shows in Ready View and can be packed as is.",
+            [("Mark Ready", self._force_ready)],
+        )
+
+    def _force_ready(self):
+        if not self.winfo_exists():
+            return
+        self._force_override = True
+        self.pack_override_var.set(True)
+        self.status_var.set("Ready")
+        self._on_save_clicked(force=True)
 
     def _apply_candidate(self, result):
         try:
             current = self.app.ROADMAP_PATH.read_text(encoding="utf-8").splitlines(keepends=True)
             if current != self.app.roadmap_lines:
-                messagebox.showerror(
+                self.app._notify_error(
                     "Roadmap changed",
                     "roadmap.md changed after this editor opened. Reload and preview again; "
                     "nothing was written.",
@@ -1101,28 +999,31 @@ class TaskEditorDialog(tk.Toplevel):
                 return False
             route_tasks.write_roadmap(self.app.ROADMAP_PATH, self.app.roadmap_lines, result)
         except (OSError, RuntimeError) as exc:
-            messagebox.showerror("Save failed", str(exc), parent=self)
+            self.app._notify_error("Save failed", str(exc), parent=self)
             return False
         self.app._load_tasks()
-        self.destroy()
+        self._close()
         return True
 
 
-class DiffPreviewDialog(tk.Toplevel):
+class DiffPreviewDialog(ttk.Frame):
     """Exact roadmap diff gate. Apply is available only when a save requested it."""
 
     def __init__(self, parent, diff, readiness_gaps, on_apply=None):
-        super().__init__(parent)
+        # Shown in place of the editor, inside the same in-window panel; "Back to editing"
+        # brings the editor back exactly as it was.
+        super().__init__(parent.master)
+        self._editor = parent
         self.on_apply = on_apply
-        self.title("Exact roadmap diff")
-        self.geometry("900x650")
-        self.resizable(True, True)
+        parent.pack_forget()
+        self.pack(fill="both", expand=True)
         frame = ttk.Frame(self, padding=10)
         frame.pack(fill="both", expand=True)
+        ttk.Label(frame, text="Exact roadmap diff", font=gui_theme.FONT_BOLD).pack(anchor="w")
         if readiness_gaps:
             ttk.Label(
                 frame,
-                text="Draft readiness gaps: " + "; ".join(readiness_gaps),
+                text="Readiness heads-up (saving anyway is fine): " + "; ".join(readiness_gaps),
                 foreground="#a65b00",
                 justify="left",
                 wraplength=850,
@@ -1133,14 +1034,238 @@ class DiffPreviewDialog(tk.Toplevel):
         view.configure(state="disabled")
         actions = ttk.Frame(frame)
         actions.pack(fill="x", pady=(8, 0))
-        ttk.Button(actions, text="Close", command=self.destroy).pack(side="right")
+        ttk.Button(actions, text="Back to editing", command=self.close).pack(side="right")
         if on_apply is not None and diff:
             ttk.Button(actions, text="Apply This Diff", command=self._apply).pack(
                 side="right", padx=(0, 6)
             )
-        self.transient(parent)
-        self.grab_set()
+
+    def close(self):
+        if self.winfo_exists():
+            self.destroy()
+        if self._editor.winfo_exists():
+            self._editor.pack(fill="both", expand=True)
 
     def _apply(self):
+        # A successful apply closes the whole panel (editor and this preview with it).
         if self.on_apply and self.on_apply() and self.winfo_exists():
-            self.destroy()
+            self.close()
+
+
+class SimpleTaskDialog(ttk.Frame):
+    """Compact task creation dialog requiring only a Title.
+
+    Defaults to Score 3 🥈, Class 1, Status Draft, and the current or first section.
+    Allows quick note/outcome capture, and provides a "More Details…" button to
+    transition into the full TaskEditorDialog if complex fields are desired.
+    """
+
+    SCORE_VALUES = ("1", "2", "3", "4", "5")
+    CLASS_VALUES = ("1", "2", "3")
+    STATUS_VALUES = (
+        "Draft",
+        "Defined",
+        "Ready",
+        "In Progress",
+        "Blocked",
+        "Held",
+        "Deferred",
+    )
+
+    def __init__(self, app: "App", initial_section: str | None = None):
+        sections = _section_headings(app.roadmap_lines)
+        if not sections:
+            super().__init__(app)  # never shown
+            self.app = app
+            app._notify_error(
+                "No sections found", "roadmap.md has no ##/### sections to file a task under."
+            )
+            return
+        super().__init__(app._show_panel("New Task"))
+        self.pack(fill="both", expand=True)
+        self.app = app
+
+        default_section = (
+            initial_section if initial_section and initial_section in sections else sections[0]
+        )
+
+        self.title_var = tk.StringVar()
+        self.section_var = tk.StringVar(value=default_section)
+        self.status_var = tk.StringVar(value="Draft")
+        self.score_var = tk.StringVar(value="3")
+        self.class_var = tk.StringVar(value="1")
+
+        self._build_widgets(sections)
+
+    def _build_widgets(self, sections):
+        f = ttk.Frame(self, padding=12)
+        f.pack(fill="both", expand=True)
+
+        title_font = (
+            ("Segoe UI", 10, "bold") if sys.platform == "win32" else ("sans-serif", 10, "bold")
+        )
+        ttk.Label(f, text="Title:", font=title_font).pack(anchor="w", pady=(0, 2))
+        self.title_entry = ttk.Entry(f, textvariable=self.title_var)
+        self.title_entry.pack(fill="x", pady=(0, 10))
+        self.title_entry.focus_set()
+        self.title_entry.bind("<Return>", lambda e: self._on_save_clicked())
+
+        sec_frame = ttk.Frame(f)
+        sec_frame.pack(fill="x", pady=(0, 8))
+        ttk.Label(sec_frame, text="Section:", width=8).pack(side="left")
+        ttk.Combobox(
+            sec_frame,
+            textvariable=self.section_var,
+            values=sections,
+            state="readonly",
+        ).pack(side="left", fill="x", expand=True)
+
+        meta_frame = ttk.Frame(f)
+        meta_frame.pack(fill="x", pady=(0, 8))
+
+        ttk.Label(meta_frame, text="Status:").pack(side="left")
+        status_cb = ttk.Combobox(
+            meta_frame,
+            textvariable=self.status_var,
+            values=self.STATUS_VALUES,
+            width=12,
+        )
+        status_cb.pack(side="left", padx=(4, 12))
+
+        ttk.Label(meta_frame, text="Score:").pack(side="left")
+        ttk.Combobox(
+            meta_frame,
+            textvariable=self.score_var,
+            values=self.SCORE_VALUES,
+            state="readonly",
+            width=4,
+        ).pack(side="left", padx=(4, 12))
+
+        ttk.Label(meta_frame, text="Class:").pack(side="left")
+        ttk.Combobox(
+            meta_frame,
+            textvariable=self.class_var,
+            values=self.CLASS_VALUES,
+            state="readonly",
+            width=4,
+        ).pack(side="left", padx=(4, 0))
+
+        ttk.Label(f, text="Outcome / Notes (optional):").pack(anchor="w", pady=(4, 2))
+        self.notes_text = scrolledtext.ScrolledText(f, height=4, wrap="word")
+        self.notes_text.pack(fill="both", expand=True, pady=(0, 12))
+
+        bottom = ttk.Frame(f)
+        bottom.pack(side="bottom", fill="x")
+
+        ttk.Button(
+            bottom,
+            text="More Details…",
+            command=self._on_more_details,
+        ).pack(side="left")
+
+        ttk.Button(bottom, text="Cancel", command=self.app._close_panel).pack(
+            side="right", padx=(6, 0)
+        )
+        save_btn = ttk.Button(
+            bottom,
+            text="+ Add Task",
+            command=self._on_save_clicked,
+        )
+        save_btn.pack(side="right")
+
+    def _on_more_details(self):
+        title = self.title_var.get().strip()
+        section = self.section_var.get().strip()
+        score = self.score_var.get().strip() or "3"
+        task_class = self.class_var.get().strip() or "1"
+        status = self.status_var.get().strip() or "Draft"
+        outcome = self.notes_text.get("1.0", "end-1c").strip()
+
+        app = self.app
+        # Opening the full editor replaces this panel (and destroys this frame).
+        dlg = TaskEditorDialog(app, task=None)
+        if title:
+            dlg.title_var.set(title)
+        if section:
+            dlg.section_var.set(section)
+        dlg.score_var.set(score)
+        dlg.class_var.set(task_class)
+        dlg.status_var.set(status)
+        if outcome:
+            dlg.outcome_var.set(outcome)
+
+    def _on_save_clicked(self):
+        title = self.title_var.get().strip()
+        if not title:
+            self.app._notify_warning("Title required", "Please enter a task title.", parent=self)
+            self.title_entry.focus_set()
+            return
+
+        section = self.section_var.get().strip()
+        if not section:
+            self.app._notify_warning("Section required", "Please choose a section.", parent=self)
+            return
+
+        outcome = self.notes_text.get("1.0", "end-1c").strip()
+        task_id = f"task_{uuid.uuid4().hex}"
+        score = self.score_var.get().strip() or "3"
+        task_class = self.class_var.get().strip() or "1"
+        status = self.status_var.get().strip() or "Draft"
+
+        fields = {
+            "score": score,
+            "task_class": task_class,
+            "title": title,
+            "id": task_id,
+            "status": status,
+            "outcome": outcome,
+            "rationale": "",
+            "acceptance_conditions": [],
+            "acceptance_evidence": [],
+            "execution_mode": "",
+            "work_mode": "",
+            "execution_size": "",
+            "uncertainty": "",
+            "capabilities": [],
+            "constraints": [],
+            "protected_behaviors": [],
+            "dependencies": [],
+            "preferred_after": [],
+            "parents": [],
+            "supersedes": [],
+            "related": [],
+            "file_fields": {"Implement": [], "Context": [], "Write": [], "Read": []},
+            "manual_route": None,
+            "body": "",
+            "is_fenced": False,
+            "pack_override": False,
+        }
+
+        block_lines = build_task_lines(fields)
+        try:
+            current = self.app.ROADMAP_PATH.read_text(encoding="utf-8").splitlines(keepends=True)
+            if current != self.app.roadmap_lines:
+                self.app._notify_error(
+                    "Roadmap changed",
+                    "roadmap.md changed on disk. Reloading; nothing was written.",
+                    parent=self,
+                )
+                self.app._load_tasks()
+                self.app._close_panel()
+                return
+            new_lines = insert_task_block(self.app.roadmap_lines, section, block_lines)
+            route_tasks.write_roadmap(self.app.ROADMAP_PATH, self.app.roadmap_lines, new_lines)
+        except (OSError, RuntimeError, ValueError) as exc:
+            self.app._notify_error("Save failed", str(exc), parent=self)
+            return
+
+        self.app._load_tasks()
+        # Find newly added task and select it in tree
+        for iid in self.app.tree.get_children():
+            idx = int(iid)
+            if idx < len(self.app.filtered_tasks) and self.app.filtered_tasks[idx].id == task_id:
+                self.app.tree.selection_set(iid)
+                self.app.tree.focus(iid)
+                self.app.tree.see(iid)
+                break
+        self.app._close_panel()

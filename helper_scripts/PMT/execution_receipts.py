@@ -1,9 +1,9 @@
 """Record local PMT execution receipts and produce deterministic calibration reports.
 
 Usage:
-    python helper_scripts/execution_receipts.py record --task-id task_<32 hex> \
+    python helper_scripts/PMT/execution_receipts.py record --task-id task_<32 hex> \
         --executor codex --outcome success --verified-by human
-    python helper_scripts/execution_receipts.py report [--json]
+    python helper_scripts/PMT/execution_receipts.py report [--json]
 
 Receipts contain observed facts, hashes, and human/tool verification only. Model response
 bodies and credentials are rejected or redacted; the roadmap remains the task database.

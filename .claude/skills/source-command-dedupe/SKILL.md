@@ -36,9 +36,9 @@ Found 3 possible duplicate issues:
 
 This issue will be automatically closed as a duplicate in 3 days.
 
-- If your issue is a duplicate, please close it and ğŸ‘ the existing issue instead
-- To prevent auto-closure, add a comment or ğŸ‘ this comment
+- If your issue is a duplicate, please close it and =ƒæì the existing issue instead
+- To prevent auto-closure, add a comment or =ƒæÄ this comment
 
-ğŸ¤– OrcaSlicer bot
+=ƒñû OrcaSlicer bot
 
 ---

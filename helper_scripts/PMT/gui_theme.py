@@ -4,7 +4,7 @@ Board, setup_wizard_gui.py's Project Wizard Manager).
 
 Stdlib-only: restyles ttk's built-in 'clam' theme rather than pulling in a theme
 package, so it stays safe to copy into every target project alongside the rest of
-helper_scripts/ (see profiles.json's "helper_gui_theme" entry).
+helper_scripts/PMT/ (see profiles.json's "helper_gui_theme" entry).
 
 Usage:
     import gui_theme
@@ -132,3 +132,97 @@ def configure_style(root: tk.Tk) -> ttk.Style:
     )
 
     return style
+
+
+# ── in-window messages (the kit's GUIs never open popups) ──
+
+MESSAGE_COLORS = {
+    "info": ("#e8f0fe", "#1a3d7c"),
+    "success": ("#e6f4ea", "#1a6e2e"),
+    "warning": ("#fff4e5", "#8a4b00"),
+    "error": ("#fdecea", "#a4262c"),
+}
+
+
+class MessageBar(tk.Frame):
+    """A message strip inside the window: the replacement for every message box.
+
+    show(text, level, actions) displays a message; actions is a sequence of
+    (label, callback) buttons, so a question ("Install now?") becomes a message whose
+    buttons continue the work instead of a modal yes/no that blocks. Clicking an action
+    hides the bar, then runs the callback. Info/success messages without actions fade
+    after a few seconds; warnings, errors and questions stay until answered or closed.
+    A newer message replaces an unanswered one, which counts as declining it.
+
+    The bar places itself with the geometry manager and options given at construction
+    (layout="pack" or "grid") and removes itself again when hidden.
+    """
+
+    def __init__(self, parent, layout: str = "pack", on_message=None, **placement):
+        # Compact on purpose: a message must not squeeze small windows' pages.
+        super().__init__(parent, padx=10, pady=2)
+        self._layout = layout
+        self._placement = placement or ({"side": "bottom", "fill": "x"} if layout == "pack" else {})
+        self._on_message = on_message  # e.g. also write the text to a log pane
+        self._hide_job = None
+        self.label = tk.Label(self, anchor="w", justify="left")
+        self.label.pack(side="left", fill="x", expand=True)
+        self.actions = tk.Frame(self)
+        self.actions.pack(side="right")
+
+    def show(self, text: str, level: str = "info", actions=()) -> None:
+        if self._on_message:
+            self._on_message(text)
+        bg, fg = MESSAGE_COLORS.get(level, MESSAGE_COLORS["info"])
+        self._cancel_hide()
+        for child in self.actions.winfo_children():
+            child.destroy()
+        self.configure(background=bg)
+        self.actions.configure(background=bg)
+        width = self.master.winfo_width()
+        self.label.configure(
+            text=text, background=bg, foreground=fg, wraplength=max(width - 360, 300)
+        )
+        for label, callback in actions:
+            self._button(label, lambda cb=callback: (self.hide(), cb()), fg).pack(
+                side="left", padx=(6, 0)
+            )
+        self._button("✕", self.hide, fg).pack(side="left", padx=(6, 0))
+        if self._layout == "grid":
+            self.grid(**self._placement)
+        else:
+            self.pack(**self._placement)
+        self.lift()
+        if level in ("info", "success") and not actions:
+            self._hide_job = self.after(6000, self.hide)
+
+    def _button(self, text, command, fg):
+        return tk.Button(
+            self.actions,
+            text=text,
+            command=command,
+            relief="flat",
+            bd=0,
+            padx=8,
+            pady=1,
+            cursor="hand2",
+            background=COLOR_SURFACE,
+            foreground=fg,
+            activebackground=COLOR_ROW_ALT,
+        )
+
+    def ask(self, text: str, actions, level: str = "warning") -> None:
+        """A question: the message plus answer buttons (Cancel is always the ✕)."""
+        self.show(text, level, actions)
+
+    def hide(self) -> None:
+        self._cancel_hide()
+        if self._layout == "grid":
+            self.grid_remove()
+        else:
+            self.pack_forget()
+
+    def _cancel_hide(self) -> None:
+        if self._hide_job is not None:
+            self.after_cancel(self._hide_job)
+            self._hide_job = None

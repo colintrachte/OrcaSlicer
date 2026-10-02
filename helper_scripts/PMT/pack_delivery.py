@@ -17,15 +17,22 @@ import executor_registry
 import route_tasks
 from task_records import Task, split_header
 
-# Offline seed/fallback for the OpenRouter model combobox: the "Fetch free models" button
-# (query_model._openrouter_free_models) pulls the live ':free' list at runtime, so this
-# list only matters when offline or before a fetch. Verified live 2026-07-05 (the previous
-# llama-3.1-8b / qwen-2.5-72b / gemma-2-9b IDs were all retired).
+# Offline seed/fallback for the OpenRouter model combobox. "Fetch free models" refreshes
+# the live ':free' entries while openrouter_model_choices() preserves curated routers.
+# Free model IDs verified live 2026-07-05 (the previous llama-3.1-8b / qwen-2.5-72b /
+# gemma-2-9b IDs were all retired).
 OPENROUTER_MODELS = [
-    "openrouter/qwen/qwen3-coder:free",
-    "openrouter/deepseek/deepseek-r1:free",
-    "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+    "qwen/qwen3-coder:free",
+    "deepseek/deepseek-r1:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "openrouter/fusion",
 ]
+OPENROUTER_FUSION_DOC_URL = "https://openrouter.ai/docs/guides/routing/routers/fusion-router"
+
+
+def openrouter_model_choices(free_models: list[str]) -> list[str]:
+    """Keep non-free curated router choices when refreshing the live free-model list."""
+    return list(dict.fromkeys([*free_models, "openrouter/fusion"]))
 
 
 # Opt-in OpenRouter key persistence. Stored in the user's home dir — deliberately OUTSIDE
@@ -227,9 +234,28 @@ def task_slug(title: str) -> str:
 
 
 def response_work_dirs(root: Path) -> tuple[Path, Path]:
-    """Return the inbox and assimilated directories beside the helper scripts."""
-    helper_dir = root / "helper_scripts"
-    return helper_dir / AI_INBOX_DIRNAME, helper_dir / ASSIMILATED_DIRNAME
+    """Return the inbox and assimilated directories for a project.
+
+    Checks in priority order:
+      1. root / "PMT_inbox" (clean project data directory)
+      2. root / "inbox"
+      3. root / "helper_scripts" / "PMT" / "ai_inbox" (legacy location)
+    If none exist yet, defaults to root / "helper_scripts" / "PMT" / "ai_inbox"
+    to preserve backward compatibility and existing project expectations.
+    """
+    for candidate_inbox, candidate_assim in [
+        (root / "PMT_inbox", root / "PMT_assimilated"),
+        (root / "inbox", root / "assimilated"),
+        (
+            root / "helper_scripts" / "PMT" / "ai_inbox",
+            root / "helper_scripts" / "PMT" / "assimilated",
+        ),
+    ]:
+        if candidate_inbox.is_dir():
+            return candidate_inbox, candidate_assim
+
+    legacy_dir = root / "helper_scripts" / "PMT"
+    return legacy_dir / AI_INBOX_DIRNAME, legacy_dir / ASSIMILATED_DIRNAME
 
 
 def ensure_response_work_dirs(root: Path) -> tuple[Path, Path]:
@@ -439,3 +465,47 @@ def append_inbox_response(
         block += "\n"
     route_tasks._atomic_write(path, existing + block)
     return removed
+
+
+_SAVED_MARKER_RE = re.compile(r"^<!-- saved [^\n]*-->\n", re.MULTILINE)
+
+
+def read_inbox_responses(path: Path) -> list[str]:
+    """The responses saved in a task's inbox file, oldest first (without their markers)."""
+    if not path.is_file():
+        return []
+    parts = _SAVED_MARKER_RE.split(path.read_text(encoding="utf-8"))[1:]
+    return [part.strip() for part in parts if part.strip()]
+
+
+def build_fusion_prompt(
+    title: str, responses: list[str], *, prompt: str = "", outcome: str = "", acceptance=()
+) -> str:
+    """One prompt for the fusion pass: the task plus every saved response, unlabelled.
+
+    Which model wrote which response is deliberately not asked for or shown: the fusing
+    model is told to think critically and keep only the best ideas.
+    """
+    lines = [
+        f"Several AI assistants answered the same task independently. There are "
+        f"{len(responses)} answers below, in the order they were saved; which assistant "
+        "wrote which doesn't matter.",
+        "",
+        "Think critically. Keep only the best, correct ideas; drop anything wrong, "
+        "redundant, vague or unsupported; where answers conflict, decide and say why in "
+        "one line. Then give me:",
+        "1. The fused result — the single best answer or plan.",
+        "2. Proposed changes to the task, if any (outcome, acceptance checks, files, or "
+        "subtasks to split out), as a short list.",
+        "3. Open questions only I can answer.",
+        "",
+        f"## Task: {title}",
+    ]
+    if outcome:
+        lines.append(f"Outcome: {outcome}")
+    lines += [f"Acceptance: {a}" for a in acceptance]
+    if prompt:
+        lines += ["", prompt]
+    for n, response in enumerate(responses, 1):
+        lines += ["", f"## Answer {n}", "", response]
+    return "\n".join(lines).rstrip() + "\n"

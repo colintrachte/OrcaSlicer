@@ -6,9 +6,9 @@ and inserts or updates a **Route:** metadata line on each open task item.
 Completed tasks (- [x]) and tasks with no parseable file lists are skipped.
 
 Usage:
-    python helper_scripts/route_tasks.py [--dry-run] [--check] [--roadmap PATH]
-    python helper_scripts/route_tasks.py --migrate-ids [--dry-run] [--include-shipped]
-    python helper_scripts/route_tasks.py --complete "ID" [--shipped PATH] [--dry-run]
+    python helper_scripts/PMT/route_tasks.py [--dry-run] [--check] [--roadmap PATH]
+    python helper_scripts/PMT/route_tasks.py --migrate-ids [--dry-run] [--include-shipped]
+    python helper_scripts/PMT/route_tasks.py --complete "ID" [--shipped PATH] [--dry-run]
 
 With --dry-run, prints the annotated roadmap to stdout instead of updating the file.
 With --check, exits non-zero (and prints nothing to the file) if any generated annotation
@@ -84,6 +84,8 @@ independently.
 """
 
 import argparse
+import contextlib
+import contextvars
 import hashlib
 import json
 import re
@@ -103,8 +105,24 @@ for _stream in (sys.stdout, sys.stderr):
 # Matches any task list item (open or closed)
 TASK_RE = re.compile(r"^- \[([ x])\]")
 
-# Class extracted from the header line only
-CLASS_RE = re.compile(r"Class\s+([123])")
+# Class extracted from the header line only. A task may name more than one class
+# ("Class 2/3") when it spans a boundary; the whole spec is captured so callers
+# can take the strictest part rather than whichever digit came first.
+CLASS_RE = re.compile(r"Class\s+([123](?:\s*/\s*[123])*)")
+
+
+def header_class(text):
+    """The strictest class named in a task header, or None.
+
+    "Class 2/3" is a Class 3 task for routing: the highest class a task touches
+    sets its bar, and routing uses this to keep Class 3 work off free-tier
+    models. Taking the first digit instead would route such a task as Class 2,
+    which is the fail-open direction.
+    """
+    match = CLASS_RE.search(text)
+    if not match:
+        return None
+    return max(re.findall(r"[123]", match.group(1)))
 
 # Score extracted from the header line only
 SCORE_RE = re.compile(r"Score\s+([1-5])")
@@ -118,7 +136,7 @@ FILE_META_RE = re.compile(
 
 # Authored task-record fields. IDs are permanent once assigned; status and the other
 # lifecycle fields are edited by a human-facing frontend and never mechanically restamped.
-TASK_ID_RE = re.compile(r"^task_[0-9a-f]{32}$")
+TASK_ID_RE = re.compile(r"^task_[0-9a-f]{8,32}$", re.IGNORECASE)
 ID_RE = re.compile(r"^\s+\*\*ID:\*\*\s*(\S+)\s*$", re.IGNORECASE)
 STATUS_RE = re.compile(r"^\s+\*\*Status:\*\*\s*(.+?)\s*$", re.IGNORECASE)
 EXECUTION_MODE_RE = re.compile(r"^\s+\*\*Execution mode:\*\*\s*(.+?)\s*$", re.IGNORECASE)
@@ -144,6 +162,8 @@ LIFECYCLE_STATUSES = (
     "Ready",
     "In Progress",
     "Blocked",
+    "Held",
+    "Deferred",
     "Verification",
     "Shipped",
 )
@@ -195,7 +215,56 @@ def _external_refs() -> dict:
         return {}
 
 
+# Facts about files on disk, memoized for one process_roadmap() call only. Its fixed-point
+# loop re-scans every task up to three times, and each scan resolved, binary-sniffed and
+# fully read the same files again; nothing on disk changes mid-run. A ContextVar keeps
+# concurrent callers (threads) from ever sharing one run's cache.
+_RUN_CACHE: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
+    "route_tasks_run_cache", default=None
+)
+
+
+def _run_cached(kind, key, compute):
+    cache = _RUN_CACHE.get()
+    if cache is None:
+        return compute()
+    slot = (kind, key)
+    if slot not in cache:
+        cache[slot] = compute()
+    return cache[slot]
+
+
+@contextlib.contextmanager
+def disk_facts_cached():
+    """Memoize file resolution, binary sniffing and sizes for the duration of the block.
+
+    For one pass over a roadmap whose files do not change meanwhile — process_roadmap()'s
+    fixed-point loop, or one Quest Board/PMT2 load, which resolves every task's file
+    lists once to parse and again for readiness. Re-entrant: an inner block reuses the
+    outer cache."""
+    if _RUN_CACHE.get() is not None:
+        yield
+        return
+    token = _RUN_CACHE.set({})
+    try:
+        yield
+    finally:
+        _RUN_CACHE.reset(token)
+
+
+def _resolved(path: Path) -> Path:
+    return _run_cached("resolve", path, path.resolve)
+
+
+def _is_binary(path: Path) -> bool:
+    return _run_cached("binary", path, lambda: context_pack.is_binary(path))
+
+
 def _external_ref_paths() -> dict[str, str]:
+    return _run_cached("external_ref_paths", None, _read_external_ref_paths)
+
+
+def _read_external_ref_paths() -> dict[str, str]:
     paths: dict[str, str] = {}
     try:
         text = EXTERNAL_REF_PATHS_FILE.read_text(encoding="utf-8")
@@ -241,6 +310,15 @@ def resolve_file_list(value_text, root):
     everything else (new/placeholder paths named ahead of creation, or non-path identifiers
     already filtered out by PATH_LIKE_RE).
     """
+    # Within one process_roadmap() run the answer can't change; hand back copies so a
+    # caller can't alter the cached lists.
+    files, missing = _run_cached(
+        "file_list", (value_text, root), lambda: _resolve_file_list(value_text, root)
+    )
+    return list(files), list(missing)
+
+
+def _resolve_file_list(value_text, root):
     ref_paths = _external_ref_paths()
     files = []
     missing = []
@@ -259,8 +337,9 @@ def resolve_file_list(value_text, root):
             and local_rel.parts
             and local_rel.parts[0].casefold() == root.name.casefold()
         ):
-            # Prompts sometimes qualify local paths with this checkout's directory name.
-            # Root already points inside that directory, so remove that one component.
+            # Roadmap prompts sometimes qualify local paths with this checkout's
+            # directory name. root already points inside that directory, so remove
+            # exactly that one redundant component before testing the path on disk.
             local_rel = Path(*local_rel.parts[1:])
         m = EXTERNAL_REF_TOKEN_RE.match(clean)
         name = rel = None
@@ -318,30 +397,46 @@ def scan_block_end(lines, start):
 
 
 def task_id_of(block: list[str]) -> str | None:
-    """Return one valid task ID, None for a legacy ID-less block, or raise for an
-    invalid/multiple ID field. Failing closed keeps identity mistakes from silently
-    becoming title-based lookups again."""
+    """Return the canonical explicit task ID, or None for a legacy task."""
     values = [m.group(1) for line in block if (m := ID_RE.match(line))]
     if not values:
+        if block:
+            m_inline = re.search(r"\(task_([0-9a-f]{8,32})\)", block[0], re.IGNORECASE)
+            if m_inline:
+                return f"task_{m_inline.group(1).lower()}"
         return None
     if len(values) != 1:
         raise ValueError("task has multiple **ID:** fields")
     if not TASK_ID_RE.fullmatch(values[0]):
-        raise ValueError(f"invalid task ID {values[0]!r}; expected task_ plus 32 hex characters")
+        raise ValueError(
+            f"invalid task ID {values[0]!r}; expected task_ plus 8 to 32 hex characters"
+        )
     return values[0]
 
 
 def task_status_of(block: list[str]) -> str | None:
-    """Return the canonical explicit lifecycle status, or None for a legacy task."""
+    """Return the task's lifecycle status, or None for a legacy (status-less) task.
+
+    Status text is free-form. An exact canonical ``LIFECYCLE_STATUSES`` value,
+    optionally followed by a supported explanatory delimiter (`` — ``, `` - ``,
+    or ``: ``), is normalised to that value. Other text is returned verbatim so
+    misleading prefixes such as ``Ready-ish`` never enter the execution queue.
+    Only a task carrying two ``**Status:**`` fields is an error.
+    """
     values = [m.group(1) for line in block if (m := STATUS_RE.match(line))]
     if not values:
         return None
     if len(values) != 1:
         raise ValueError("task has multiple **Status:** fields")
+    raw = values[0].strip()
     for status in LIFECYCLE_STATUSES:
-        if status.lower() == values[0].lower():
+        if raw.casefold() == status.casefold():
             return status
-    raise ValueError(f"unsupported task status {values[0]!r}")
+        for delimiter in (" — ", " - ", ": "):
+            prefix = f"{status}{delimiter}"
+            if raw.casefold().startswith(prefix.casefold()) and raw[len(prefix) :].strip():
+                return status
+    return raw
 
 
 def collect_task_ids(lines: list[str]) -> set[str]:
@@ -489,16 +584,20 @@ def _char_sizes(files, root, text_overrides=None):
     text_overrides = text_overrides or {}
     sizes = []
     for f in files:
-        if context_pack.is_binary(f):
+        if _is_binary(f):
             continue
-        resolved = f.resolve()
+        resolved = _resolved(f)
         text = text_overrides.get(resolved)
-        if text is None:
-            text = f.read_text(encoding="utf-8", errors="replace")
+        if text is not None:
+            chars = len(text)
+        else:
+            chars = _run_cached(
+                "chars", resolved, lambda f=f: len(f.read_text(encoding="utf-8", errors="replace"))
+            )
         rel = (
             resolved.relative_to(root).as_posix() if resolved.is_relative_to(root) else f.as_posix()
         )
-        sizes.append((rel, len(text)))
+        sizes.append((rel, chars))
     return sizes
 
 
@@ -621,13 +720,39 @@ def _recommend(
     return rec
 
 
+def newline_of(path: Path) -> str:
+    """The line ending to write `path` with: CRLF when the existing file is purely CRLF,
+    otherwise LF. Callers hold "\\n"-joined text (read_text() folds CRLF to "\\n"), and a
+    bare write_text() would then emit the platform's ending — on Windows, turning an LF
+    roadmap into an every-line diff on its first write."""
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return "\n"
+    crlf = data.count(b"\r\n")
+    return "\r\n" if crlf and crlf == data.count(b"\n") else "\n"
+
+
 def _atomic_write(path: Path, text: str):
     """Temp-file-then-atomic-rename write — the one primitive every write of a
     canonical planning file builds on, so a crash mid-write can never leave one
-    half-written."""
+    half-written. Keeps the file's existing line-ending style (see newline_of)."""
     tmp_path = path.with_suffix(path.suffix + ".new")
-    tmp_path.write_text(text, encoding="utf-8")
+    tmp_path.write_text(text, encoding="utf-8", newline=newline_of(path))
     tmp_path.replace(path)
+
+
+def changed_line_count(before: list, after: list) -> int:
+    """Lines added, removed or replaced between two versions (a diff, not a positional
+    comparison, which counted every line after one inserted annotation as changed)."""
+    import difflib
+
+    changed = 0
+    matcher = difflib.SequenceMatcher(None, before, after, autojunk=False)
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag != "equal":
+            changed += max(i2 - i1, j2 - j1)
+    return changed
 
 
 def write_roadmap(path: Path, original_lines: list, result_lines: list) -> int:
@@ -643,8 +768,7 @@ def write_roadmap(path: Path, original_lines: list, result_lines: list) -> int:
     see complete_and_ship().)
     """
     output = "".join(result_lines)
-    changed = sum(1 for a, b in zip(original_lines, result_lines, strict=False) if a != b)
-    changed += abs(len(result_lines) - len(original_lines))
+    changed = changed_line_count(original_lines, result_lines)
     if not changed:
         return 0
     if not output.strip() or len(result_lines) < len(original_lines) * 0.5:
@@ -836,8 +960,7 @@ def _process(lines, root=None, verbose=False, text_overrides=None):
             raise ValueError(f"{block[0].strip()}: {exc}") from exc
 
         # Extract class from header line only
-        header_m = CLASS_RE.search(block[0])
-        task_class = header_m.group(1) if header_m else None
+        task_class = header_class(block[0])
 
         # Self-heal the header's medal glyph against its Score — the Score number
         # is the source of truth, the medal is always re-derived from it, never
@@ -845,7 +968,10 @@ def _process(lines, root=None, verbose=False, text_overrides=None):
         score_m = SCORE_RE.search(block[0])
         if score_m:
             correct_medal = _medal(score_m.group(1))
-            token_m = re.search(r"Score\s+[1-5]\s+(\S+)", block[0])
+            # The token after the score is a medal only if it isn't the "·"/"-" separator:
+            # a medal-less header ("Score 2 · Class 1") must stay as written, or healing
+            # would replace its separator and the header would stop parsing.
+            token_m = re.search(r"Score\s+[1-5]\s+(?![·\-—]\s)(\S+)", block[0])
             if token_m and token_m.group(1) != correct_medal:
                 block[0] = block[0][: token_m.start(1)] + correct_medal + block[0][token_m.end(1) :]
 
@@ -872,7 +998,7 @@ def _process(lines, root=None, verbose=False, text_overrides=None):
                     if f not in seen_paths:
                         seen_paths.add(f)
                         resolved_files.append(f)
-                    if f.resolve().is_relative_to(root.resolve()):
+                    if _resolved(f).is_relative_to(_resolved(root)):
                         has_local_project = True
                 for m in missing:
                     if m not in unresolved:
@@ -883,11 +1009,11 @@ def _process(lines, root=None, verbose=False, text_overrides=None):
         sizes = _char_sizes(resolved_files, root, text_overrides)
         binary_files = []
         for file_path in resolved_files:
-            if context_pack.is_binary(file_path):
-                resolved = file_path.resolve()
+            if _is_binary(file_path):
+                resolved = _resolved(file_path)
                 rel = (
-                    resolved.relative_to(root.resolve()).as_posix()
-                    if resolved.is_relative_to(root.resolve())
+                    resolved.relative_to(_resolved(root)).as_posix()
+                    if resolved.is_relative_to(_resolved(root))
                     else file_path.as_posix()
                 )
                 binary_files.append(rel)
@@ -977,18 +1103,23 @@ def process_roadmap(lines, path: Path, root=None, verbose=False):
     """
     if root is None:
         root = Path.cwd()
+    # Ideas typed by hand get their permanent ID here, automatically: migrate_task_ids
+    # only inserts an **ID:** line into ID-less task blocks (deterministic, idempotent,
+    # everything else byte-for-byte), so nobody — person or AI — has to mint IDs.
+    lines, _ = migrate_task_ids(list(lines))
     candidate = list(lines)
     resolved_path = path.resolve()
-    for _attempt in range(10):
-        result = _process(
-            lines,
-            root=root,
-            verbose=verbose,
-            text_overrides={resolved_path: "".join(candidate)},
-        )
-        if result == candidate:
-            return result
-        candidate = result
+    with disk_facts_cached():
+        for _attempt in range(10):
+            result = _process(
+                lines,
+                root=root,
+                verbose=verbose,
+                text_overrides={resolved_path: "".join(candidate)},
+            )
+            if result == candidate:
+                return result
+            candidate = result
     raise RuntimeError("roadmap annotations did not converge after 10 in-memory passes")
 
 
@@ -999,8 +1130,10 @@ def main():
     )
     # --- NEW: compute defaults relative to this file, not cwd ---
     SCRIPT_DIR = Path(__file__).resolve().parent
-    DEFAULT_ROADMAP = (SCRIPT_DIR.parent / "docs" / "roadmap.md").resolve()
-    DEFAULT_SHIPPED = (SCRIPT_DIR.parent / "docs" / "shipped.md").resolve()
+    PROJECT_ROOT = (
+        SCRIPT_DIR.parent if SCRIPT_DIR.parent.name != "helper_scripts" else SCRIPT_DIR.parents[1]
+    )
+    DEFAULT_ROADMAP = (PROJECT_ROOT / "docs" / "roadmap.md").resolve()
 
     ap.add_argument(
         "--dry-run",
@@ -1029,8 +1162,9 @@ def main():
     )
     ap.add_argument(
         "--shipped",
-        default=str(DEFAULT_SHIPPED),
-        help="Path to the shipped-items file used by --complete (default: <repo>/docs/shipped.md).",
+        default=None,
+        help="Path to the shipped-items file used by --complete (default: shipped.md beside "
+        "the roadmap).",
     )
     ap.add_argument(
         "--migrate-ids",
@@ -1042,6 +1176,11 @@ def main():
         action="store_true",
         help="With --migrate-ids, also migrate --shipped using the same collision set.",
     )
+    ap.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="Update auto-populated executive dashboard in DASHBOARD.md alongside roadmap changes.",
+    )
     args = ap.parse_args()
 
     path = Path(args.roadmap).expanduser()
@@ -1051,6 +1190,12 @@ def main():
 
     original = path.read_text(encoding="utf-8")
     lines = original.splitlines(keepends=True)
+    # The project is the one that owns this roadmap (<root>/docs/roadmap.md), not the one
+    # this script happens to live in: the kit runs its scripts against other projects'
+    # roadmaps, and file lists, shipped history and the dashboard all belong to them.
+    root = path.parent.parent if path.parent.name == "docs" else path.parent
+    if args.shipped is None:
+        args.shipped = str(path.with_name("shipped.md"))
 
     if args.migrate_ids:
         targets = [(path, lines)]
@@ -1111,6 +1256,8 @@ def main():
             shipped_path = shipped_path.resolve()
         complete_and_ship(path, shipped_path, start, end)
         print(f"moved to {args.shipped}: {title[:80]!r}", file=sys.stderr)
+        if not args.dry_run:
+            _refresh_dashboard(root, path, Path(args.shipped), args.dashboard)
         return
 
     try:
@@ -1125,14 +1272,13 @@ def main():
             raise ValueError(
                 "relationship validation failed:\n- " + "\n- ".join(relationship_errors)
             )
-        result = process_roadmap(lines, path, context_pack.repo_root(), verbose=args.verbose)
+        result = process_roadmap(lines, path, root, verbose=args.verbose)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
 
     if args.check:
-        changed = sum(1 for a, b in zip(lines, result, strict=False) if a != b)
-        changed += abs(len(result) - len(lines))
+        changed = changed_line_count(lines, result)
         if changed:
             print(
                 f"{path}: {changed} line(s) stale — run route_tasks.py to update", file=sys.stderr
@@ -1150,7 +1296,45 @@ def main():
     except RuntimeError as e:
         print(f"error: {e}", file=sys.stderr)
         sys.exit(1)
-    print(f"updated {path}: {changed} line(s) changed", file=sys.stderr)
+    # The dashboard lists routes and context loads, and a task may list DASHBOARD.md
+    # itself (whose size feeds its Chars line). Re-stamp until both files agree, so one
+    # run reaches the fixed point and a second run is always a no-op.
+    for _round in range(5):
+        if not _refresh_dashboard(root, path, Path(args.shipped), args.dashboard):
+            break
+        current = path.read_text(encoding="utf-8").splitlines(keepends=True)
+        again = process_roadmap(current, path, root, verbose=args.verbose)
+        if again == current:
+            break
+        changed += write_roadmap(path, current, again)
+    else:
+        print("warning: roadmap and dashboard did not settle after 5 rounds", file=sys.stderr)
+    if changed:
+        print(f"updated {path}: {changed} line(s) changed", file=sys.stderr)
+    else:
+        print(f"{path}: routes already up to date", file=sys.stderr)
+
+
+def _refresh_dashboard(root: Path, roadmap: Path, shipped: Path, forced: bool) -> bool:
+    """Regenerate the project's dashboard if it has one (or --dashboard asked for one).
+    Returns True when the dashboard file's bytes changed."""
+    target = root / "DASHBOARD.md"
+    if not target.is_file() and (root / "01_roadmap.md").is_file():
+        target = root / "01_roadmap.md"
+    if not (forced or target.is_file()):
+        return False
+    before = target.read_bytes() if target.is_file() else b""
+    try:
+        import dashboard
+
+        argv = ["--project-root", str(root), "--roadmap", str(roadmap), "--write", str(target)]
+        if shipped.is_file():
+            argv[4:4] = ["--shipped", str(shipped)]
+        dashboard.main(argv)
+    except Exception as dash_exc:
+        print(f"warning: dashboard update failed: {dash_exc}", file=sys.stderr)
+        return False
+    return (target.read_bytes() if target.is_file() else b"") != before
 
 
 if __name__ == "__main__":

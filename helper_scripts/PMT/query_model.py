@@ -8,25 +8,25 @@ the fusion protocol (docs/ai-harness.md §5) before any output touches the
 codebase — this script eliminates the manual paste step, not the verification step.
 
 Usage:
-    python helper_scripts/query_model.py --model qwen --task "..." FILE [FILE ...]
-    python helper_scripts/query_model.py \\
-        --model openrouter/qwen/qwen3-coder:free \\
+    python helper_scripts/PMT/query_model.py --model qwen --task "..." FILE [FILE ...]
+    python helper_scripts/PMT/query_model.py \\
+        --model qwen/qwen3-coder:free \\
         --task "..." --out response.md FILE [FILE ...]
-    python helper_scripts/query_model.py --model qwen --task-file task.txt FILE [FILE ...]
+    python helper_scripts/PMT/query_model.py --model qwen --task-file task.txt FILE [FILE ...]
 
 Models:
     qwen                         LM Studio on home PC, reached via Tailscale.
                                  No auth key required. The loaded model is queried
                                  automatically via GET /v1/models.
-    openrouter/<model-id>        OpenRouter free tier. Model ID is passed through
-                                 verbatim (e.g. openrouter/meta-llama/llama-3.3-70b-instruct:free).
+    <model-id>                   OpenRouter free tier. Model ID is passed through
+                                 verbatim (e.g. meta-llama/llama-3.3-70b-instruct:free).
 
 Environment variables:
     QWEN_LM_STUDIO_URL           LM Studio base URL including /v1.
                                  Default: http://localhost:1234/v1
                                  Override with your Tailscale address when away from home,
                                  e.g. http://<tailscale-ip>:1234/v1
-    OPENROUTER_API_KEY           Required for openrouter/* models.
+    OPENROUTER_API_KEY           Required for OpenRouter models.
 
 A transient failure (connection error, HTTP 5xx) is retried up to 3 times
 with exponential backoff; a 4xx response is not retried since it means the
@@ -48,7 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import context_pack  # noqa: E402
 
 # System prompt applied to every request. Mirrors the AI_HARNESS.md §4 template guardrails.
-# Project-specific: create helper_scripts/system_prompt.txt (see helper_scripts/README.md)
+# Project-specific: create helper_scripts/PMT/system_prompt.txt (see helper_scripts/PMT/README.md)
 # to state this project's identity, artifact types, hard constraints, evidence rules, and
 # review boundary. Falls back to a domain-neutral guardrail prompt when that file doesn't
 # exist yet — e.g. right after instantiating this toolkit into a new project.
@@ -101,10 +101,11 @@ def _lm_studio_model(base_url):
 
 def _openrouter_free_models(base_url="https://openrouter.ai/api/v1", api_key=None, timeout=10):
     """Return the sorted list of currently-live OpenRouter model ids ending in ':free',
-    each prefixed with 'openrouter/' so it matches the --model form _resolve_endpoint
-    expects. OpenRouter's /models endpoint is public — no API key is required (a key is
-    sent if given, but only as a courtesy). This is what makes the hardcoded free-model
-    list in pack_task.py a mere offline fallback rather than something to hand-verify."""
+    returned verbatim so they match the --model form _resolve_endpoint expects
+    (an OpenRouter model id is passed through with no prefix). OpenRouter's /models
+    endpoint is public — no API key is required (a key is sent if given, but only as a
+    courtesy). This is what makes the hardcoded free-model list in pack_task.py a mere
+    offline fallback rather than something to hand-verify."""
     headers = {}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -118,7 +119,7 @@ def _openrouter_free_models(base_url="https://openrouter.ai/api/v1", api_key=Non
             "Check your network connection and the endpoint URL."
         ) from e
     free = [
-        f"openrouter/{m['id']}"
+        m["id"]
         for m in data.get("data", [])
         if isinstance(m.get("id"), str) and m["id"].endswith(":free")
     ]
@@ -130,19 +131,14 @@ def _resolve_endpoint(model_arg):
     if model_arg == "qwen":
         base_url = os.environ.get("QWEN_LM_STUDIO_URL", "http://localhost:1234/v1").rstrip("/")
         return base_url, _lm_studio_model(base_url), {}
-    if model_arg.startswith("openrouter/"):
-        key = os.environ.get("OPENROUTER_API_KEY", "")
-        if not key:
-            raise RuntimeError(
-                "OPENROUTER_API_KEY environment variable is not set. "
-                "Export it before running: set OPENROUTER_API_KEY=<your-key>"
-            )
-        model_id = model_arg[len("openrouter/") :]
-        return "https://openrouter.ai/api/v1", model_id, {"Authorization": f"Bearer {key}"}
-    raise ValueError(
-        f"Unknown model: {model_arg!r}\n"
-        'Use "qwen" or "openrouter/<model-id>" (e.g. openrouter/meta-llama/llama-3.3-70b-instruct:free).'
-    )
+    # Anything that isn't "qwen" is treated as an OpenRouter model id, passed verbatim.
+    key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not key:
+        raise RuntimeError(
+            "OPENROUTER_API_KEY environment variable is not set. "
+            "Export it before running: set OPENROUTER_API_KEY=<your-key>"
+        )
+    return "https://openrouter.ai/api/v1", model_arg, {"Authorization": f"Bearer {key}"}
 
 
 # ── HTTP call ──
@@ -238,7 +234,7 @@ def main():
     ap.add_argument(
         "--model",
         required=True,
-        help='Target model: "qwen" or "openrouter/<model-id>".',
+        help='Target model: "qwen" or "<model-id>".',
     )
     ap.add_argument(
         "--task",
