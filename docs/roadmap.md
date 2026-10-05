@@ -103,61 +103,61 @@ This order controls pickup even where the severity sections below are ordered di
 
 - [ ] **Score 5 🥇 · Class 2 — Crash switching to Device tab for Klipper printers (#10756)**
   **ID:** task_e240ec1b08f6dea24717589a9e90576e
-  **Status:** Defined
-      — WebView/Klipper UI tab crash on Linux (flatpak, AppImage, NixOS). Reported on 2.3.1+,
-      still open, 135 comments. Likely a WebView2/wxWebView null-guard or deferred-init issue on
-      GTK. Does not touch G-code emission — UI-layer crash.
-
-  **Context:** `src/slic3r/GUI/PrinterWebView.cpp` · `src/slic3r/GUI/PrinterWebView.hpp` · `src/slic3r/GUI/Monitor.cpp`
+  **Status:** Ready
+  **Outcome:** Switching to the Device tab for Klipper/Moonraker printers on Linux safely guards uninitialized wxWebView/WebView2 handles without crashing the UI.
+  **Acceptance:** Navigating between Prepare, Preview, and Device tabs does not crash when the webview backend is deferred or unavailable; null-pointer dereferences during tab transitions are guarded.
+  **Expected evidence:** Reproduction check on Linux host and gdb stack trace proving clean graceful fallback when webview initialization fails.
+  **Implement:** `src/slic3r/GUI/PrinterWebView.cpp` · `src/slic3r/GUI/Monitor.cpp`
+  **Context:** `src/slic3r/GUI/PrinterWebView.hpp`
   **Route:** gemini
-  **Context Load:** 92
-  **Chars:** ~30,740 text total (largest: src/slic3r/GUI/Monitor.cpp ~18,162) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 98
+  **Chars:** ~32,768 text total (largest: src/slic3r/GUI/Monitor.cpp ~19,898) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 2 — Crash on startup due to Pango/freetype2 (#10524)** — Linux
+- [ ] **Score 5 🥇 · Class 2 — Crash on startup due to Pango/freetype2 (#10524)**
   **ID:** task_d5c18c1b4ae41550388d723ec3d17e27
-  **Status:** Defined
-      only, 10 +1, 49 comments. Font/rendering initialization path.
-
-  **Context:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp`
+  **Status:** Ready
+  **Outcome:** Application startup validates font backend and Pango/freetype2 handles before querying glyph dimensions, preventing launch segfaults on Linux distros with non-standard font configurations.
+  **Acceptance:** Font loading path performs null and return-code checks on Pango font map creation; falls back to standard system font if custom font descriptor fails.
+  **Expected evidence:** Application launches cleanly to main window under test environment with missing/minimal system fonts.
+  **Implement:** `src/slic3r/GUI/GUI_App.cpp`
+  **Context:** `src/slic3r/GUI/GUI_App.hpp`
   **Route:** kimi
-  **Context Load:** 894
-  **Chars:** ~447,007 text total (largest: src/slic3r/GUI/GUI_App.cpp ~412,229) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 919
+  **Chars:** ~459,549 text total (largest: src/slic3r/GUI/GUI_App.cpp ~422,281) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
-- [ ] **Score 5 🥇 · Class 2 — Crash opening Preferences (#11641)** — 8 +1, 11 comments.
+- [ ] **Score 5 🥇 · Class 2 — Crash opening Preferences (#11641)**
   **ID:** task_b36098c9450d4325ed7d5b12205b9869
-  **Status:** Defined
-      Investigate preferences dialog initialization.
-
+  **Status:** Ready
+  **Outcome:** Opening the Preferences dialog initializes all widget fields, category panels, and parent pointers cleanly without null-dereferencing stale configuration keys.
+  **Acceptance:** Preferences dialog opens from menu and hotkey without crashing; all setting tabs render default or loaded user values; canceling or closing preserves state.
+  **Expected evidence:** GUI interactive test or automated dialog test verifying Preferences instantiation and clean dismissal.
   **Implement:** `src/slic3r/GUI/Preferences.cpp`
+  **Context:** `src/slic3r/GUI/GUI_App.hpp`
   **Route:** kimi
-  **Context Load:** 101
-  **Chars:** ~100,762 text total (largest: src/slic3r/GUI/Preferences.cpp ~100,762) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 293
+  **Chars:** ~146,259 text total (largest: src/slic3r/GUI/Preferences.cpp ~108,991) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Segfault on startup, Debian 13 / Arch AUR builds (#10434)**
   **ID:** task_789608aa229842fd5f458d3dadd5978e
-  **Status:** Defined
-      — X11 (not Wayland) crash before a printer can even be selected: "Cannot register URI
-      scheme wxfs more than once" followed by SIGSEGV. Distinct signature from #10524
-      (Pango/freetype2) despite both being crash-on-launch — no workaround found in-thread.
-
-  **Context:** `src/slic3r/GUI/Widgets/WebView.cpp` · `src/slic3r/GUI/WebViewDialog.cpp`
+  **Status:** Ready
+  **Outcome:** wxfs URI scheme handler registration checks if the scheme is already registered before attempting re-registration, eliminating duplicate registration segfault on X11 startup.
+  **Acceptance:** URI scheme registration idempotently ignores or unregisters existing handlers; application proceeds to printer selection without SIGSEGV.
+  **Expected evidence:** Clean launch log on X11 environment with zero 'Cannot register URI scheme wxfs more than once' errors.
+  **Implement:** `src/slic3r/GUI/Widgets/WebView.cpp` · `src/slic3r/GUI/WebViewDialog.cpp`
   **Route:** gemini
-  **Context Load:** 101
-  **Chars:** ~50,668 text total (largest: src/slic3r/GUI/WebViewDialog.cpp ~31,956) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
-  (wxfs URI scheme registration — unverified, needs a diff-time confirmation pass)
+  **Context Load:** 104
+  **Chars:** ~51,933 text total (largest: src/slic3r/GUI/WebViewDialog.cpp ~32,505) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Slicing crashes with small-area flow compensation on non-English UI (#12476)**
   **ID:** task_d4a7f65053be3d46da2897c0cc477395
-  **Status:** Defined
-      — High-confidence root cause: `small_area_infill_flow_compensation_model` is stored as
-      `coStrings` (numeric coefficients as text) and likely fails locale-sensitive
-      `atof`/`strtod` parsing under a comma-decimal locale (repros on Russian, Spanish,
-      Ukrainian; not English). Blocks slicing entirely for affected users.
-
-  **Context:** `src/libslic3r/PrintConfig.cpp` (`small_area_infill_flow_compensation_model`, ~line 4427)
+  **Status:** Ready
+  **Outcome:** Small-area flow compensation model string parsing uses locale-independent float conversion (e.g. std::from_chars or boost::lexical_cast with C locale), preventing slice-time crashes under comma-decimal locales (Russian, Spanish, German, Ukrainian).
+  **Acceptance:** Slicing a model with small-area flow compensation enabled succeeds with exit code 0 when LC_ALL/LC_NUMERIC is set to ru_RU.UTF-8 or es_ES.UTF-8.
+  **Expected evidence:** Unit test in tests/libslic3r verifying float coefficient parsing under simulated comma-decimal locale.
+  **Implement:** `src/libslic3r/PrintConfig.cpp`
   **Route:** kimi
-  **Context Load:** 646
-  **Chars:** ~646,429 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 661
+  **Chars:** ~661,198 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -180,8 +180,8 @@ This order controls pickup even where the severity sections below are ordered di
   **Implement:** `src/libslic3r/PresetBundle.cpp` · `tests/libslic3r/test_preset_bundle_loading.cpp`
   **Context:** `resources/profiles/GenericResin.json` · `resources/profiles/GenericResin/machine/Anycubic Photon D2.json` · `.github/workflows/check_profiles.yml`
   **Route:** claude
-  **Context Load:** 4055
-  **Chars:** ~811,088 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 4397
+  **Chars:** ~879,402 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Previously working filaments now show as "incompatible" after profile changes (#12314)**
   **ID:** task_1b2836052a117a77d91ccf364a16eab8
@@ -191,8 +191,8 @@ This order controls pickup even where the severity sections below are ordered di
 
   **Context:** `src/libslic3r/PrintConfig.cpp`
   **Route:** kimi
-  **Context Load:** 646
-  **Chars:** ~646,429 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 661
+  **Chars:** ~661,198 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 **Preset management UX — decomposed 2026-08-25 into the 7 independent sub-items below** (owner
 pain point, 2026-07-05; re-prioritized to High 2026-07-05; decomposed 2026-08-25 per this item's
@@ -303,8 +303,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `src/slic3r/GUI/SavePresetDialog.cpp`
   **Route:** kimi
-  **Context Load:** 2109
-  **Chars:** ~702,851 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2183
+  **Chars:** ~727,607 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Investigate whether `sync_user_preset` cloud sync needs
   **ID:** task_97e5ec4276cce36068df1efcada36a90
@@ -323,8 +323,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp` · `src/slic3r/GUI/Preferences.cpp`
   **Route:** kimi
-  **Context Load:** 1643
-  **Chars:** ~547,769 text total (largest: src/slic3r/GUI/GUI_App.cpp ~412,229) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1706
+  **Chars:** ~568,540 text total (largest: src/slic3r/GUI/GUI_App.cpp ~422,281) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — In-UI preset dependency/inheritance viewer** — `inherits`
   **ID:** task_ec5ce18b6897d642bb790976e2e87745
@@ -339,8 +339,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/slic3r/GUI/PresetComboBoxes.cpp` · `src/slic3r/GUI/Tab.cpp`
   **Route:** kimi
-  **Context Load:** 2311
-  **Chars:** ~770,194 text total (largest: src/slic3r/GUI/Tab.cpp ~455,047) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2364
+  **Chars:** ~788,162 text total (largest: src/slic3r/GUI/Tab.cpp ~465,635) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — "Why isn't this preset showing?" visibility inspector (#12193,
   **ID:** task_554249893a09b53ac5ca7db8a68d608e
@@ -360,8 +360,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/slic3r/GUI/PresetComboBoxes.cpp`
   **Route:** kimi
-  **Context Load:** 630
-  **Chars:** ~315,147 text total (largest: src/libslic3r/Preset.cpp ~220,859) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 645
+  **Chars:** ~322,527 text total (largest: src/libslic3r/Preset.cpp ~227,208) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Fix "detach" edge case: detaching a child preset that itself has
   **ID:** task_24802a5fb087d79bccd76595de8ac84a
@@ -375,8 +375,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/Tab.cpp` · `src/slic3r/GUI/SavePresetDialog.cpp` · `src/slic3r/GUI/SavePresetDialog.hpp` · `src/libslic3r/Preset.cpp`
   **Route:** claude
-  **Context Load:** 2799
-  **Chars:** ~699,793 text total (largest: src/slic3r/GUI/Tab.cpp ~455,047) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2870
+  **Chars:** ~717,531 text total (largest: src/slic3r/GUI/Tab.cpp ~465,635) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Document and validate the user-preset JSON schema; fix the
   **ID:** task_eae1a2f4816e4a05e033f5f058124d29
@@ -392,8 +392,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
   **Route:** kimi
-  **Context Load:** 1366
-  **Chars:** ~682,987 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1414
+  **Chars:** ~707,047 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Chaining a user preset's `inherits` onto another user preset is
   **ID:** task_ae55673ff360df19bfe247ef4f5254ad
@@ -409,8 +409,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/Preset.hpp`
   **Route:** kimi
-  **Context Load:** 578
-  **Chars:** ~288,824 text total (largest: src/libslic3r/Preset.cpp ~220,859) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 600
+  **Chars:** ~300,184 text total (largest: src/libslic3r/Preset.cpp ~227,208) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Travel acceleration incorrectly limited by extrusion acceleration (#8582)**
   **ID:** task_da35e66ea10b8ade21d38d953725f0c4
@@ -423,8 +423,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — AppImage hard dependency on `libbz2.so.1.0` (#12902)**
   **ID:** task_bf7ce5235195ca873762ac9db543877c
@@ -434,8 +434,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `.github/workflows/build_orca.yml`
   **Route:** gemini
-  **Context Load:** 40
-  **Chars:** ~39,900 text total (largest: .github/workflows/build_orca.yml ~39,900) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 43
+  **Chars:** ~42,845 text total (largest: .github/workflows/build_orca.yml ~42,845) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — AppImage missing `libmspack.so.0` (Ubuntu 24.04) (#12918)**
   **ID:** task_1d6608feea7dbbda1075133562db5242
@@ -445,8 +445,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `.github/workflows/build_orca.yml`
   **Route:** gemini
-  **Context Load:** 40
-  **Chars:** ~39,900 text total (largest: .github/workflows/build_orca.yml ~39,900) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 43
+  **Chars:** ~42,845 text total (largest: .github/workflows/build_orca.yml ~42,845) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — "Create printer" fails to find some vendors (#5499)**
   **ID:** task_e4ef66323f1521db0521443ec6349247
@@ -457,8 +457,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/CreatePresetsDialog.cpp`
   **Route:** kimi
-  **Context Load:** 268
-  **Chars:** ~267,986 text total (largest: src/slic3r/GUI/CreatePresetsDialog.cpp ~267,986) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 269
+  **Chars:** ~269,496 text total (largest: src/slic3r/GUI/CreatePresetsDialog.cpp ~269,496) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Wall prints twice as thick with narrow line width, Classic perimeter mode (#10058)**
   **ID:** task_7b5b9959f49d78ecc588bab46b084599
@@ -469,8 +469,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp` (Classic perimeter path — exact function not yet
   **Route:** claude
-  **Context Load:** 174
-  **Chars:** ~173,787 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~173,787) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 180
+  **Chars:** ~179,942 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~179,942) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   pinned down, confirm at diff-read time)
 
 - [ ] **Score 3 🥈 · Class 3 — Start G-code uses non-blocking M104 instead of M109, print starts before hotend at temp (#4337)**
@@ -482,8 +482,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/GCode.cpp` (M104/M109 emission, ~lines 1232, 1324, 4047)
   **Route:** claude
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Color-change sections force fan to 100%, ignoring filament profile min/max (#3677)**
   **ID:** task_75c9851e0bafd1bcf5909f7fc40992c5
@@ -494,8 +494,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/GCode.cpp` (fan-speed/M106 emission)
   **Route:** claude
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Crash when system language is `en` without `en_GB` locale installed (#7649)**
   **ID:** task_a773c53efc9b132ae4d1d11802da1e83
@@ -507,8 +507,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/GUI_App.cpp` (wxLocale handling, ~lines 7290-7460)
   **Route:** kimi
-  **Context Load:** 412
-  **Chars:** ~412,229 text total (largest: src/slic3r/GUI/GUI_App.cpp ~412,229) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 422
+  **Chars:** ~422,281 text total (largest: src/slic3r/GUI/GUI_App.cpp ~422,281) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Blank / non-rendering viewport cluster on Linux (Nvidia, GTK) — investigate once (#11276, #10958)**
   **ID:** task_06393ab6c48f3f2f4592d844d8c061ea
@@ -541,8 +541,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
   **Implement:** `src/libslic3r/Print.cpp` · `src/libslic3r/GCode/ToolOrdering.cpp`
   **Context:** `src/libslic3r/PrintConfig.cpp`
   **Route:** claude
-  **Context Load:** 3419
-  **Chars:** ~1,139,505 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 3558
+  **Chars:** ~1,186,001 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — UI slow to respond when changing settings tabs (#997)**
   **ID:** task_786710166464f043a925b36b4b41daed
@@ -554,8 +554,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/Tab.cpp`
   **Route:** kimi
-  **Context Load:** 455
-  **Chars:** ~455,047 text total (largest: src/slic3r/GUI/Tab.cpp ~455,047) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 466
+  **Chars:** ~465,635 text total (largest: src/slic3r/GUI/Tab.cpp ~465,635) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Connect to printer over USB (#6866)**
   **ID:** task_1a60c291c4e41687094a72c2eb5e0b57
@@ -592,8 +592,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 3 — Binary G-code (`.bgcode`) support (#3564)**
   **ID:** task_8c0eeac8da6378879d8c3243efa9bdee
@@ -603,8 +603,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Add "Pause at layer" option (#6334)**
   **ID:** task_81d09cac942c4f656d5fffb43cf00251
@@ -614,8 +614,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** kimi
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Custom "prepare time" metadata for Klipper (#5796)**
   **ID:** task_073c5fe7a87e375e78743d25eeecd8de
@@ -626,8 +626,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
-  **Context Load:** 2423
-  **Chars:** ~1,211,585 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2479
+  **Chars:** ~1,239,288 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Allow filament to override ALL settings, not only selected ones (#12401)**
   **ID:** task_a663d7e7a1c7f584593f757e08d75f55
@@ -636,8 +636,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/PrintConfig.cpp`
   **Route:** kimi
-  **Context Load:** 646
-  **Chars:** ~646,429 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 661
+  **Chars:** ~661,198 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Multiple dovetail cuts (#6976)**
   **ID:** task_c2c02ed08e004a5b5bddbedb74f5bd9a
@@ -646,8 +646,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/Gizmos/GLGizmoCut.cpp`
   **Route:** kimi
-  **Context Load:** 173
-  **Chars:** ~173,412 text total (largest: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp ~173,412) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 175
+  **Chars:** ~174,753 text total (largest: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp ~174,753) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — Improve Z-coordinate display placement in the UI (#5315)**
   **ID:** task_5c047ce8a66eb8b655e54f5d9c449d77
@@ -656,8 +656,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/GUI/IMSlider.cpp`
   **Route:** gemini
-  **Context Load:** 81
-  **Chars:** ~81,002 text total (largest: src/slic3r/GUI/IMSlider.cpp ~81,002) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 82
+  **Chars:** ~81,729 text total (largest: src/slic3r/GUI/IMSlider.cpp ~81,729) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Organic tree supports print in air, first ~6 layers missing (#4158)**
   **ID:** task_d493936b0408b058d373a81e829f1bb1
@@ -703,8 +703,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
-  **Context Load:** 2423
-  **Chars:** ~1,211,585 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2479
+  **Chars:** ~1,239,288 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Bed temperature can no longer be set to 0°C / disabled (#12855)**
   **ID:** task_e9b350916492320d88f9e282e33badfd
@@ -716,8 +716,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/PrintConfig.cpp`
   **Route:** kimi
-  **Context Load:** 646
-  **Chars:** ~646,429 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 661
+  **Chars:** ~661,198 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Adaptive Cubic Edge infill (#13954)**
   **ID:** task_ed9f608cba06c9771696e8cf88741978
@@ -727,8 +727,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Fill/FillAdaptive.cpp` · `src/libslic3r/Fill/Fill.cpp`
   **Route:** claude
-  **Context Load:** 342
-  **Chars:** ~170,906 text total (largest: src/libslic3r/Fill/Fill.cpp ~95,234) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 397
+  **Chars:** ~198,294 text total (largest: src/libslic3r/Fill/FillAdaptive.cpp ~102,606) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Setting to favor shortest bridge path / manual bridge direction (#11942)**
   **ID:** task_d34e5ea3f5d44127514b2af135a602bd
@@ -740,7 +740,7 @@ Score 3 comprehension/polish items below even though the whole group originated 
   **Context:** `src/libslic3r/Fill/FillBase.cpp` · `src/libslic3r/LayerRegion.cpp`
   **Route:** claude
   **Context Load:** 386
-  **Chars:** ~192,947 text total (largest: src/libslic3r/Fill/FillBase.cpp ~140,276) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~193,082 text total (largest: src/libslic3r/Fill/FillBase.cpp ~140,276) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 2 — Option to stop heating the bed N layers before print end (#12037)**
   **ID:** task_93491efc7b4c7fef27911aad29b16f81
@@ -749,8 +749,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** kimi
-  **Context Load:** 2423
-  **Chars:** ~1,211,585 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2479
+  **Chars:** ~1,239,288 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Variable layer height combined with height-range modifiers (#11549)**
   **ID:** task_118b3f549ed033996a6951e3cd7ab1b8
@@ -761,8 +761,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/libslic3r/Print.cpp`
   **Route:** kimi
-  **Context Load:** 314
-  **Chars:** ~314,005 text total (largest: src/libslic3r/Print.cpp ~314,005) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 342
+  **Chars:** ~341,644 text total (largest: src/libslic3r/Print.cpp ~341,644) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2/3 — Spoolman integration (#2955)** — owner-approved 2026-07-05,
   **ID:** task_4f897d8707f90575e9b6b11fdad4f210
@@ -786,8 +786,8 @@ Score 3 comprehension/polish items below even though the whole group originated 
 
   **Context:** `src/slic3r/Utils/Http.cpp` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 3721
-  **Chars:** ~1,240,210 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 3804
+  **Chars:** ~1,267,967 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Support painting toolbox lacks a discoverable eraser tool and a "keep-out" mask to prevent accidental paint (owner pain point, 2026-07-05)**
   **ID:** task_fc22567f2bb3cceb32448777f5167224
@@ -833,8 +833,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp` · `src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp`
   **Route:** claude
-  **Context Load:** 588
-  **Chars:** ~147,018 text total (largest: src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp ~89,145) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 600
+  **Chars:** ~149,922 text total (largest: src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp ~90,543) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — 3D navigator cube should be repositionable (owner pain point, 2026-08-25)**
   **ID:** task_97710d1772ede57b798cd997284b849d
@@ -887,8 +887,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `src/slic3r/GUI/GLCanvas3D.cpp` · `src/slic3r/GUI/GLCanvas3D.hpp` · `src/slic3r/GUI/ImGuiWrapper.cpp` · `src/slic3r/GUI/ImGuiWrapper.hpp`
   **Route:** claude
-  **Context Load:** 2948
-  **Chars:** ~736,931 text total (largest: src/slic3r/GUI/GLCanvas3D.cpp ~502,970) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 3115
+  **Chars:** ~778,688 text total (largest: src/slic3r/GUI/GLCanvas3D.cpp ~533,490) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -903,8 +903,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `.github/workflows/build_orca.yml`
   **Route:** gemini
-  **Context Load:** 40
-  **Chars:** ~39,900 text total (largest: .github/workflows/build_orca.yml ~39,900) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 43
+  **Chars:** ~42,845 text total (largest: .github/workflows/build_orca.yml ~42,845) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — `dark_color_mode` ignored in dev Flatpak (#10034)**
   **ID:** task_62f97519d6eb898a98568fec7e04315c
@@ -913,8 +913,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `src/slic3r/GUI/GLCanvas3D.cpp` · `scripts/flatpak/com.orcaslicer.OrcaSlicer.yml`
   **Route:** kimi
-  **Context Load:** 1039
-  **Chars:** ~519,588 text total (largest: src/slic3r/GUI/GLCanvas3D.cpp ~502,970) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1103
+  **Chars:** ~551,728 text total (largest: src/slic3r/GUI/GLCanvas3D.cpp ~533,490) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — Printables integration broken on Flatpak (#8720)**
   **ID:** task_f53f482abc0d1e1597c98a288803cc8c
@@ -924,8 +924,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `scripts/flatpak/com.orcaslicer.OrcaSlicer.yml`
   **Route:** gemini
-  **Context Load:** 17
-  **Chars:** ~16,618 text total (largest: scripts/flatpak/com.orcaslicer.OrcaSlicer.yml ~16,618) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 18
+  **Chars:** ~18,238 text total (largest: scripts/flatpak/com.orcaslicer.OrcaSlicer.yml ~18,238) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 3 — Slowed Overhang disables arc fitting for the entire path (#7428)**
   **ID:** task_144395da3944a2315d376ca2dd79cf95
@@ -948,8 +948,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 565
-  **Chars:** ~565,156 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 578
+  **Chars:** ~578,090 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -976,8 +976,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
   **Implement:** `CMakeLists.txt` · `deps/python3/python3.cmake` · `deps/python3/stage_windows.cmake` · `deps/python3/relocate_linux.cmake` · `scripts/flatpak/com.orcaslicer.OrcaSlicer.yml` · `build_release_macos.sh`
   **Context:** `deps/python3/01-windows-nuget.patch` · `src/CMakeLists.txt` · `src/slic3r/CMakeLists.txt`
   **Route:** claude
-  **Context Load:** 1446
-  **Chars:** ~160,669 text total (largest: CMakeLists.txt ~58,533) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1527
+  **Chars:** ~169,698 text total (largest: CMakeLists.txt ~62,034) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Flatpak runtime on EOL `org.gnome.Platform` branch**
   **ID:** task_7d75f42647f70d00a88ce755e43a66bd
@@ -989,8 +989,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Implement:** `scripts/flatpak/com.orcaslicer.OrcaSlicer.yml`
   **Route:** gemini
-  **Context Load:** 17
-  **Chars:** ~16,618 text total (largest: scripts/flatpak/com.orcaslicer.OrcaSlicer.yml ~16,618) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 18
+  **Chars:** ~18,238 text total (largest: scripts/flatpak/com.orcaslicer.OrcaSlicer.yml ~18,238) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — Build RPM workflow PR (#12983)**
   **ID:** task_b3e3b724ef53c4c74aecccfa0e7261f7
@@ -1000,8 +1000,8 @@ button` to erase and `Right mouse button` to paint a "blocker"
 
   **Context:** `.github/workflows/build_orca.yml`
   **Route:** gemini
-  **Context Load:** 40
-  **Chars:** ~39,900 text total (largest: .github/workflows/build_orca.yml ~39,900) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 43
+  **Chars:** ~42,845 text total (largest: .github/workflows/build_orca.yml ~42,845) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ### Architecture evolution
 
@@ -1026,8 +1026,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/Preset.cpp` · `src/libslic3r/Format/bbs_3mf.cpp` · `src/slic3r/GUI/Tab.cpp` · `src/OrcaSlicer.cpp`
   **Write:** `research/configuration-contract.md`
   **Route:** claude
-  **Context Load:** 16712
-  **Chars:** ~2,387,468 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 17246
+  **Chars:** ~2,463,702 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Record architecture performance, build-time, and binary-size baselines**
   **ID:** task_13f495717bb46978d40c682cad98bff7
@@ -1042,8 +1042,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `CMakeLists.txt` · `src/libslic3r/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt` · `build_windows.ps1`
   **Write:** `research/architecture-baselines.md` · `scripts/architecture_metrics.ps1`
   **Route:** claude
-  **Context Load:** 624
-  **Chars:** ~104,025 text total (largest: CMakeLists.txt ~58,533) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 672
+  **Chars:** ~112,003 text total (largest: CMakeLists.txt ~62,034) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Record the configuration-schema architecture decision**
   **ID:** task_a5e7899c394327491ec51121b5dad40c
@@ -1058,8 +1058,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `research/architecture-maintainability.md` · `research/configuration-contract.md` · `research/architecture-baselines.md` · `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `CMakeLists.txt`
   **Write:** `docs/architecture/configuration-schema.md`
   **Route:** claude
-  **Context Load:** 6040
-  **Chars:** ~862,793 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 6199
+  **Chars:** ~885,523 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 1 — Build a deterministic shadow schema generator with golden tests**
   **ID:** task_4c3c2e323d01046de3dc63dafcfb56f9
@@ -1073,8 +1073,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/configuration-schema.md` · `research/architecture-baselines.md`
   **Write:** `src/libslic3r/config_schema/` · `scripts/generate_config_schema.py` · `tests/config_schema/` · `cmake/`
   **Route:** kimi
-  **Context Load:** 252
-  **Chars:** ~36,067 text total (largest: src/libslic3r/CMakeLists.txt ~20,046) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 278
+  **Chars:** ~39,731 text total (largest: src/libslic3r/CMakeLists.txt ~23,710) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Shadow-generate one low-risk PrintConfig setting family**
   **ID:** task_4f5a3e6a1cb20aafc0e1268be9f54353
@@ -1088,8 +1088,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `research/architecture-baselines.md`
   **Write:** `tests/data/config_registry/`
   **Route:** claude
-  **Context Load:** 5983
-  **Chars:** ~854,681 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 6245
+  **Chars:** ~892,144 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Add the post-upstream schema reconciliation report**
   **ID:** task_8255704cdc02ffca8e1d9d3473878b48
@@ -1118,8 +1118,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/PrintConfig.cpp` · `src/libslic3r/PrintConfig.hpp` · `src/libslic3r/config_schema/`
   **Context:** `research/configuration-contract.md` · `tests/libslic3r/test_config.cpp` · `tests/libslic3r/test_3mf.cpp`
   **Route:** claude
-  **Context Load:** 5364
-  **Chars:** ~893,939 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 5684
+  **Chars:** ~947,254 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Separate safe runtime presentation metadata from slicing semantics**
   **ID:** task_c2a24f4724050446c0733d204ed4796b
@@ -1134,8 +1134,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/configuration-schema.md`
   **Write:** `resources/data/config_ui/` · `tests/slic3r_gui/` · `docs/architecture/config-ui-metadata.md`
   **Route:** claude
-  **Context Load:** 7710
-  **Chars:** ~1,101,476 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 7888
+  **Chars:** ~1,126,833 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 1 — Define the printer-capability contract for owned hardware**
   **ID:** task_26240591b0cbf03685c9c9a543477e46
@@ -1149,8 +1149,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `src/libslic3r/Preset.hpp` · `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `resources/profiles_template/Template.json` · `TRIAGE_POLICY.md`
   **Write:** `docs/architecture/printer-capabilities.md`
   **Route:** claude
-  **Context Load:** 4752
-  **Chars:** ~791,989 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 4926
+  **Chars:** ~821,060 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Load and validate typed printer capabilities without changing behavior**
   **ID:** task_fa7966047993e8dd9c2228c85eea27ce
@@ -1163,8 +1163,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/printer-capabilities.md` · `resources/profiles_template/Template.json`
   **Write:** `tests/libslic3r/test_printer_capabilities.cpp` · `tests/data/printer_capabilities/`
   **Route:** claude
-  **Context Load:** 6237
-  **Chars:** ~779,685 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 6572
+  **Chars:** ~821,459 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Replace one vendor/model check family with capability queries**
   **ID:** task_6738687281976517eadea6beaa279cc8
@@ -1176,8 +1176,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp`
   **Context:** `docs/architecture/printer-capabilities.md` · `tests/libslic3r/test_printer_capabilities.cpp` · `research/configuration-contract.md`
   **Route:** claude
-  **Context Load:** 3415
-  **Chars:** ~682,987 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 3535
+  **Chars:** ~707,047 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Define a transport-agnostic device print-job boundary**
   **ID:** task_b89af4b7fba99a157a87e909ba1fb5a2
@@ -1190,8 +1190,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `src/slic3r/Utils/PrintHost.hpp` · `src/slic3r/Utils/OctoPrint.hpp` · `src/slic3r/Utils/Flashforge.hpp` · `src/slic3r/GUI/Plater.cpp`
   **Write:** `docs/architecture/device-print-job.md`
   **Route:** claude
-  **Context Load:** 5255
-  **Chars:** ~1,051,065 text total (largest: src/slic3r/GUI/Plater.cpp ~1,036,922) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 5453
+  **Chars:** ~1,090,606 text total (largest: src/slic3r/GUI/Plater.cpp ~1,075,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Pilot a read-only slic3r_config CMake boundary**
   **ID:** task_a149af19f6cebc21f1c5a812d518e812
@@ -1210,8 +1210,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
   **Context:** `docs/architecture/module-boundaries.md` · `research/architecture-baselines.md` · `src/libslic3r/PrintConfig.hpp`
   **Route:** claude
-  **Context Load:** 1128
-  **Chars:** ~188,032 text total (largest: src/libslic3r/PrintConfig.hpp ~116,339) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1182
+  **Chars:** ~196,969 text total (largest: src/libslic3r/PrintConfig.hpp ~120,799) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Move configuration write and preset-loading paths behind proven targets**
   **ID:** task_5f668a2f87b8fb235b8ff0c74acf97d1
@@ -1223,8 +1223,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/CMakeLists.txt` · `src/CMakeLists.txt` · `tests/libslic3r/CMakeLists.txt`
   **Context:** `src/libslic3r/Preset.cpp` · `src/libslic3r/PresetBundle.cpp` · `docs/architecture/module-boundaries.md`
   **Route:** claude
-  **Context Load:** 4432
-  **Chars:** ~738,659 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 4603
+  **Chars:** ~767,196 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Characterize one Plater responsibility and its state boundaries**
   **ID:** task_109726649a468273e5a6a1492687b88b
@@ -1238,8 +1238,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Plater.hpp` · `src/slic3r/GUI/BackgroundSlicingProcess.cpp`
   **Write:** `docs/architecture/plater-service-pilot.md` · `tests/slic3r_gui/plater_service_cases.md`
   **Route:** claude
-  **Context Load:** 5630
-  **Chars:** ~1,126,061 text total (largest: src/slic3r/GUI/Plater.cpp ~1,036,922) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 5839
+  **Chars:** ~1,167,742 text total (largest: src/slic3r/GUI/Plater.cpp ~1,075,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Extract the characterized Plater service behind a headless interface**
   **ID:** task_a10128c2a4f21164414da11d066048f9
@@ -1253,8 +1253,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/plater-service-pilot.md` · `src/slic3r/GUI/BackgroundSlicingProcess.cpp`
   **Write:** `tests/slic3r_gui/`
   **Route:** claude
-  **Context Load:** 6952
-  **Chars:** ~1,158,698 text total (largest: src/slic3r/GUI/Plater.cpp ~1,036,922) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 7218
+  **Chars:** ~1,202,944 text total (largest: src/slic3r/GUI/Plater.cpp ~1,075,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Define and validate a local runtime-content package manifest**
   **ID:** task_ea0d52428262a3370ac80b6a640ceb1c
@@ -1268,8 +1268,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `resources/profiles_template/Template.json` · `docs/architecture/configuration-schema.md` · `docs/architecture/printer-capabilities.md`
   **Write:** `docs/architecture/runtime-content-packages.md` · `tests/libslic3r/test_profile_packages.cpp` · `tests/data/profile_packages/`
   **Route:** kimi
-  **Context Load:** 201
-  **Chars:** ~28,733 text total (largest: src/dev-utils/OrcaSlicer_profile_validator.cpp ~27,457) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 290
+  **Chars:** ~41,436 text total (largest: src/dev-utils/OrcaSlicer_profile_validator.cpp ~40,160) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Add staged package activation, atomic rollback, and last-known-good recovery**
   **ID:** task_68db1d735e00d2aaca60778ca3d99103
@@ -1283,8 +1283,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/libslic3r/PresetBundle.cpp` · `src/libslic3r/Preset.cpp`
   **Context:** `docs/architecture/runtime-content-packages.md` · `tests/libslic3r/test_profile_packages.cpp`
   **Route:** claude
-  **Context Load:** 2732
-  **Chars:** ~682,987 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2828
+  **Chars:** ~707,047 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Classify feature macros and identify one product-policy pilot**
   **ID:** task_8f53cce0fdd60a2872ba62057f30f65f
@@ -1297,8 +1297,8 @@ baseline without waiting for broad schema adoption.
   **Read:** `CMakeLists.txt` · `src/CMakeLists.txt` · `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp`
   **Write:** `docs/architecture/feature-policy.md`
   **Route:** claude
-  **Context Load:** 2623
-  **Chars:** ~524,598 text total (largest: src/slic3r/GUI/GUI_App.cpp ~412,229) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2703
+  **Chars:** ~540,641 text total (largest: src/slic3r/GUI/GUI_App.cpp ~422,281) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Introduce the typed runtime feature-policy composition root**
   **ID:** task_6ad4b357fbeab23789c226c135aa69b6
@@ -1311,8 +1311,8 @@ baseline without waiting for broad schema adoption.
   **Context:** `docs/architecture/feature-policy.md` · `docs/architecture/printer-capabilities.md`
   **Write:** `tests/slic3r_gui/feature_policy_tests.cpp`
   **Route:** claude
-  **Context Load:** 2796
-  **Chars:** ~466,065 text total (largest: src/slic3r/GUI/GUI_App.cpp ~412,229) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2872
+  **Chars:** ~478,607 text total (largest: src/slic3r/GUI/GUI_App.cpp ~422,281) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Migrate one product-policy switch family with on/off equivalence tests**
   **ID:** task_c32b0f766ee151df436cf7004a181151
@@ -1324,8 +1324,8 @@ baseline without waiting for broad schema adoption.
   **Implement:** `src/slic3r/GUI/GUI_App.cpp` · `src/slic3r/GUI/GUI_App.hpp` · `src/CMakeLists.txt`
   **Context:** `docs/architecture/feature-policy.md` · `tests/slic3r_gui/feature_policy_tests.cpp`
   **Route:** claude
-  **Context Load:** 2330
-  **Chars:** ~466,065 text total (largest: src/slic3r/GUI/GUI_App.cpp ~412,229) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2393
+  **Chars:** ~478,607 text total (largest: src/slic3r/GUI/GUI_App.cpp ~422,281) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -1346,8 +1346,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `deps/Boost/Boost.cmake`
   **Route:** gemini
-  **Context Load:** 2
-  **Chars:** ~2,128 text total (largest: deps/Boost/Boost.cmake ~2,128)
+  **Context Load:** 3
+  **Chars:** ~2,596 text total (largest: deps/Boost/Boost.cmake ~2,596)
 
 - [ ] **Score 3 🥈 · Class 2 — Nozzle size selector for non-BBL multi-extruder printers (#14145)**
   **ID:** task_f2934112a96f8267ae8f9255f0f4868e
@@ -1356,8 +1356,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/Tab.cpp`
   **Route:** kimi
-  **Context Load:** 455
-  **Chars:** ~455,047 text total (largest: src/slic3r/GUI/Tab.cpp ~455,047) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 466
+  **Chars:** ~465,635 text total (largest: src/slic3r/GUI/Tab.cpp ~465,635) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 3 — Add 'brim layers' setting (#13824)** — new brim-layer capability;
   **ID:** task_15188c47f5ef505cf730812593779e7b
@@ -1366,8 +1366,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/Print.cpp`
   **Route:** claude
-  **Context Load:** 314
-  **Chars:** ~314,005 text total (largest: src/libslic3r/Print.cpp ~314,005) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 342
+  **Chars:** ~341,644 text total (largest: src/libslic3r/Print.cpp ~341,644) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 1 — Gradient filament color preview (#14324)** — visual preview
   **ID:** task_b2c9ee432e3e454b573ab0adc2495283
@@ -1376,8 +1376,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/Plater.cpp`
   **Route:** kimi
-  **Context Load:** 1037
-  **Chars:** ~1,036,922 text total (largest: src/slic3r/GUI/Plater.cpp ~1,036,922) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1076
+  **Chars:** ~1,075,802 text total (largest: src/slic3r/GUI/Plater.cpp ~1,075,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — IDEX/IQEX parallel-printing support, "IMEX" (#13086)** — directly
   **ID:** task_6a45f133feba40fff64fc984fca56f1f
@@ -1388,8 +1388,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/GCode.cpp` · `src/libslic3r/GCodeWriter.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
-  **Context Load:** 2816
-  **Chars:** ~938,671 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2938
+  **Chars:** ~979,244 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 2 — Fix Moonraker "Happy Hare" AMS sync (#13372)** — fixes a crash
   **ID:** task_0b78b7ffa250afa44a33f4d2b7a4ddf7
@@ -1399,8 +1399,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/Utils/MoonrakerPrinterAgent.cpp`
   **Route:** kimi
-  **Context Load:** 2234
-  **Chars:** ~1,116,994 text total (largest: src/slic3r/GUI/Plater.cpp ~1,036,922) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2312
+  **Chars:** ~1,155,874 text total (largest: src/slic3r/GUI/Plater.cpp ~1,075,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 5 🥇 · Class 3 — Z-pinning for inter-layer mechanical interlocking (#12771)**
   **ID:** task_c08d737fd417b3762d1909aa00c6a775
@@ -1412,8 +1412,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/Support/SupportMaterial.cpp` · `src/libslic3r/Support/TreeSupport.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 2823
-  **Chars:** ~940,863 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2861
+  **Chars:** ~953,797 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Alternate internal walls direction within a layer (#5839)**
   **ID:** task_e77fdabac451845e4802d89d1dd9799a
@@ -1439,8 +1439,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/GCode/SeamPlacer.cpp`
   **Route:** claude
-  **Context Load:** 500
-  **Chars:** ~250,189 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~173,787) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 526
+  **Chars:** ~262,963 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~179,942) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 1 🥉 · Class 3 — Precise Seam placement feature (#12974)** — substantial,
   **ID:** task_59d0325c16e8ac7cb4c9236d1ea8d0e4
@@ -1471,8 +1471,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/GCode/SeamPlacer.cpp` · `src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp`
   **Route:** claude
-  **Context Load:** 181
-  **Chars:** ~90,395 text total (largest: src/libslic3r/GCode/SeamPlacer.cpp ~76,402) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 195
+  **Chars:** ~97,446 text total (largest: src/libslic3r/GCode/SeamPlacer.cpp ~83,021) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Add multiple / 3D bed exclusion volumes (#13777)** — genuinely
   **ID:** task_a88c3c0f937372489ad494946ed32229
@@ -1481,8 +1481,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/Print.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 1758
-  **Chars:** ~879,161 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1839
+  **Chars:** ~919,734 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Clean top layer with small items above (#12187)** — addresses a
   **ID:** task_73b573b16de616d891f55fe844db214f
@@ -1491,8 +1491,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/PrintObject.cpp`
   **Route:** claude
-  **Context Load:** 960
-  **Chars:** ~480,155 text total (largest: src/libslic3r/PrintObject.cpp ~306,368) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 973
+  **Chars:** ~486,449 text total (largest: src/libslic3r/PrintObject.cpp ~306,507) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — "Smooth" outer perimeters (#8443)** — well-known quality feature.
   **ID:** task_5d1f60adb0846bd6c4db703118e4a9a0
@@ -1517,8 +1517,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp` · `src/libslic3r/Layer.cpp`
   **Route:** claude
-  **Context Load:** 393
-  **Chars:** ~196,387 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~173,787) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 406
+  **Chars:** ~203,037 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~179,942) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Gridify: anti-warping for large flat objects (#9258)** — new
   **ID:** task_bb6ef026e57630f89608db8f9b9cdb1d
@@ -1527,8 +1527,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/PrintObject.cpp` · `src/libslic3r/PrintObjectSlice.cpp`
   **Route:** claude
-  **Context Load:** 788
-  **Chars:** ~394,067 text total (largest: src/libslic3r/PrintObject.cpp ~306,368) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 789
+  **Chars:** ~394,320 text total (largest: src/libslic3r/PrintObject.cpp ~306,507) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Port PrusaSlicer's "consistent-surface cooling logic" (#12151)**
   **ID:** task_0b332bf55697dddc69b299075304d482
@@ -1538,8 +1538,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/GCode/CoolingBuffer.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
-  **Context Load:** 750
-  **Chars:** ~375,040 text total (largest: src/libslic3r/Print.cpp ~314,005) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 806
+  **Chars:** ~402,944 text total (largest: src/libslic3r/Print.cpp ~341,644) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Add bed-specific Z offset overrides (#14030)** — useful for
   **ID:** task_817deb5f521c3baef74054f86c2f6f15
@@ -1548,8 +1548,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/GCode.cpp` · `src/libslic3r/Print.cpp`
   **Route:** claude
-  **Context Load:** 1758
-  **Chars:** ~879,161 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1839
+  **Chars:** ~919,734 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Fill in truncated octahedron tops, optional setting (#12541)**
   **ID:** task_20f23a49bdd483c1f5c44a5ee6ab683e
@@ -1588,8 +1588,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/GCode/AdaptivePAProcessor.cpp` · `src/libslic3r/GCode.cpp`
   **Route:** claude
-  **Context Load:** 1170
-  **Chars:** ~584,975 text total (largest: src/libslic3r/GCode.cpp ~565,156) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1195
+  **Chars:** ~597,693 text total (largest: src/libslic3r/GCode.cpp ~578,090) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Tangential Sacrificial Bridging for counterbore holes (#12109)**
   **ID:** task_0bcf7905f600f3d95e1404052679223b
@@ -1600,7 +1600,7 @@ diff-read time, not assumed from the title here.
   **Write:** `src/libslic3r/TangentialHoleBridging.cpp`
   **Route:** claude
   **Context Load:** 613
-  **Chars:** ~306,368 text total (largest: src/libslic3r/PrintObject.cpp ~306,368) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~306,507 text total (largest: src/libslic3r/PrintObject.cpp ~306,507) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Alternate extra wall as a number, not just a boolean (#9362)**
   **ID:** task_2da496d8dd5c95204a3333677b14154f
@@ -1621,8 +1621,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/PerimeterGenerator.cpp`
   **Route:** claude
-  **Context Load:** 174
-  **Chars:** ~173,787 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~173,787) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 180
+  **Chars:** ~179,942 text total (largest: src/libslic3r/PerimeterGenerator.cpp ~179,942) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 3 — Add Spiral Vase Mode to Height Range Modifier (#14012)** — real,
   **ID:** task_f08af75467739b7c9612e5516261be6f
@@ -1633,7 +1633,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/libslic3r/GCode/SpiralVase.cpp` · `src/libslic3r/PrintObject.cpp`
   **Route:** claude
   **Context Load:** 636
-  **Chars:** ~317,910 text total (largest: src/libslic3r/PrintObject.cpp ~306,368) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Chars:** ~318,049 text total (largest: src/libslic3r/PrintObject.cpp ~306,507) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Practical Flow Ratio Calibration Test (#11065)** — real
   **ID:** task_6eaab4ff3afee40419b8762339afacd3
@@ -1643,8 +1643,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/calib_dlg.cpp` · `src/libslic3r/Fill/FillBase.cpp`
   **Route:** kimi
-  **Context Load:** 442
-  **Chars:** ~220,928 text total (largest: src/libslic3r/Fill/FillBase.cpp ~140,276) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 443
+  **Chars:** ~221,732 text total (largest: src/libslic3r/Fill/FillBase.cpp ~140,276) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Detailed cost breakdown: electricity, wear, maintenance, tax (#13906)**
   **ID:** task_ecf7dafae2bf8961a1a78c446014ef70
@@ -1654,8 +1654,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/libslic3r/PrintConfig.cpp` · `src/slic3r/GUI/Tab.cpp`
   **Route:** kimi
-  **Context Load:** 2203
-  **Chars:** ~1,101,476 text total (largest: src/libslic3r/PrintConfig.cpp ~646,429) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2254
+  **Chars:** ~1,126,833 text total (largest: src/libslic3r/PrintConfig.cpp ~661,198) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 1 — Fix dropdown popup immediately closing on some window managers (#11606)**
   **ID:** task_99e412ffc3c530311da5afc666fa61b1
@@ -1667,7 +1667,7 @@ diff-read time, not assumed from the title here.
   **Context:** `src/slic3r/GUI/Widgets/PopupWindow.cpp`
   **Route:** gemini
   **Context Load:** 3
-  **Chars:** ~3,341 text total (largest: src/slic3r/GUI/Widgets/PopupWindow.cpp ~3,341)
+  **Chars:** ~3,388 text total (largest: src/slic3r/GUI/Widgets/PopupWindow.cpp ~3,388)
 
 - [ ] **Score 3 🥈 · Class 1 — Add Align/Distribute objects on the print plate (#13373)**
   **ID:** task_39a852b3dc3774a38b7087d0ce6bb0af
@@ -1676,8 +1676,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/Plater.cpp` · `src/slic3r/GUI/Selection.cpp`
   **Route:** kimi
-  **Context Load:** 2344
-  **Chars:** ~1,171,873 text total (largest: src/slic3r/GUI/Plater.cpp ~1,036,922) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 2423
+  **Chars:** ~1,211,541 text total (largest: src/slic3r/GUI/Plater.cpp ~1,075,802) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 - [ ] **Score 3 🥈 · Class 2 — Fix bottom shell thickness + spiral vase interaction (#11496)**
   **ID:** task_6ab1f0f4959e1b927a172be2e3e6f3e2
@@ -1686,8 +1686,8 @@ diff-read time, not assumed from the title here.
 
   **Context:** `src/slic3r/GUI/ConfigManipulation.cpp`
   **Route:** gemini
-  **Context Load:** 76
-  **Chars:** ~76,145 text total (largest: src/slic3r/GUI/ConfigManipulation.cpp ~76,145) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 78
+  **Chars:** ~78,406 text total (largest: src/slic3r/GUI/ConfigManipulation.cpp ~78,406) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
 
 ---
 
@@ -1807,8 +1807,8 @@ verified as fixed — re-check current code before starting either.
 
   **Implement:** `src/libslic3r/PresetBundle.cpp` · `src/libslic3r/PresetInspector.cpp`
   **Route:** kimi
-  **Context Load:** 1046
-  **Chars:** ~523,038 text total (largest: src/libslic3r/PresetBundle.cpp ~462,128) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 1081
+  **Chars:** ~540,749 text total (largest: src/libslic3r/PresetBundle.cpp ~479,839) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   **Route/Effort/Chars:** run `helper_scripts/PMT/route_tasks.py` to stamp
 
 ## Code-review findings — 2026-08-24, discovered while verifying the #13891 fuzzy-skin cherry-pick
@@ -1838,8 +1838,8 @@ unaddressed issues per `TRIAGE_POLICY.md`'s "read the diff first" discipline.
 
   **Context:** `tests/fff_print/test_print.cpp`
   **Route:** gemini
-  **Context Load:** 29
-  **Chars:** ~28,731 text total (largest: tests/fff_print/test_print.cpp ~28,731) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 37
+  **Chars:** ~37,218 text total (largest: tests/fff_print/test_print.cpp ~37,218) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   **Route/Effort/Chars:** run `helper_scripts/PMT/route_tasks.py` to stamp
 
 - [ ] **Score 1 🥉 · Class 1 — Stale hardcoded tree-support diagnostic constant after the 2026-08-24 upstream merge**
@@ -1860,7 +1860,7 @@ unaddressed issues per `TRIAGE_POLICY.md`'s "read the diff first" discipline.
 
   **Implement:** `tests/fff_print/test_support_material.cpp`
   **Route:** gemini
-  **Context Load:** 30
-  **Chars:** ~30,217 text total (largest: tests/fff_print/test_support_material.cpp ~30,217) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
+  **Context Load:** 32
+  **Chars:** ~31,996 text total (largest: tests/fff_print/test_support_material.cpp ~31,996) — exceeds chatgpt's ~5,000-char inline-paste budget; that file can't go to chatgpt at all
   **Route/Effort/Chars:** run `helper_scripts/PMT/route_tasks.py` to stamp
 
